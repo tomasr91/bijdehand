@@ -1,6 +1,6 @@
 // Sober restaurantdetail: eerst wat je wilt weten (naam, je cijfer, favoriet, waar, wat), dan website/route,
 // de samenvatting (ingekort), je notities, en de gegevens zelf pas na "Gegevens bewerken".
-import { ChevronDown, ExternalLink, Globe, Heart, Navigation } from 'lucide-react';
+import { ChevronDown, ExternalLink, Globe, Heart, Navigation, Trash2 } from 'lucide-react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { FieldEditor } from '../components/editors';
 import { AutoText, Section } from '../components/ui';
@@ -73,8 +73,9 @@ function Summary({ item }: { item: Item }) {
   );
 }
 
-export function RestaurantBody({ item, title, setTitle, flushTitle, body, setBody, flushBody }: {
+export function RestaurantBody({ item, title, setTitle, flushTitle, body, setBody, flushBody, onDelete }: {
   item: Item;
+  onDelete: () => void;
   title: string; setTitle: (v: string) => void; flushTitle: () => void;
   body: string; setBody: (v: string) => void; flushBody: () => void;
 }) {
@@ -128,6 +129,10 @@ export function RestaurantBody({ item, title, setTitle, flushTitle, body, setBod
           {editKeys.map((k) => { const d = fieldDef('restaurant', k); return d ? <FieldEditor key={k} item={item} def={d} /> : null; })}
         </div>
       )}
+      {/* Verkeerd restaurant (bijv. Claude haalde iets uit een notitie dat geen restaurant is): direct weg, met Ongedaan maken. */}
+      <button type="button" className="btn btn-ghost btn-danger-text r-delete" onClick={onDelete}>
+        <Trash2 size={18} /> Restaurant verwijderen
+      </button>
     </>
   );
 }

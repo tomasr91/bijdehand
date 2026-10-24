@@ -8,7 +8,8 @@ import { loadSampleData } from './data/sample';
 import { applySeedBundles } from './data/seed';
 import { IS_PREVIEW } from './components/ui';
 import { AutoSync } from './ui/sync';
-import { AddCtx, DataProvider, ToastProvider, type AddOptions } from './ui/context';
+import { AddCtx, DataProvider, ToastProvider, useData, type AddOptions } from './ui/context';
+import type { TypeKey } from './data/model';
 import { HOME, useRoute, type Route } from './ui/router';
 import { AddSheet } from './screens/AddSheet';
 import { Collection, Collections, InboxScreen } from './screens/Collections';
@@ -67,6 +68,19 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
+/** Ronde Toevoegen-knop. Niet op de restaurantschermen (wens eigenaar): restaurants komen via de Inbox en Claude. */
+function Fab({ route, collectionType, onAdd }: { route: Route; collectionType: TypeKey | null; onAdd: (o?: AddOptions) => void }) {
+  const { itemById } = useData();
+  const [p, id] = route.path;
+  const onRestaurant = (p === 'verzameling' && id === 'restaurant') || (p === 'item' && itemById.get(id)?.type === 'restaurant');
+  if (onRestaurant) return null;
+  return (
+    <button type="button" className="fab" aria-label="Toevoegen" onClick={() => onAdd(collectionType ? { type: collectionType, openAfter: true } : {})}>
+      <Plus size={30} strokeWidth={2.4} />
+    </button>
+  );
+}
+
 export default function App() {
   const route = useRoute();
   const [add, setAdd] = useState<{ open: boolean; opts: AddOptions }>({ open: false, opts: {} });
@@ -111,9 +125,7 @@ export default function App() {
               </main>
               <AutoSync />
               {/* Eén hoofdscherm (Verzamelingen); Toevoegen is een vaste ronde knop rechtsonder. In een verzameling kiest hij die soort alvast. */}
-              <button type="button" className="fab" aria-label="Toevoegen" onClick={() => openAdd(collectionType ? { type: collectionType, openAfter: true } : {})}>
-                <Plus size={30} strokeWidth={2.4} />
-              </button>
+              <Fab route={route} collectionType={collectionType} onAdd={openAdd} />
               <AddSheet open={add.open} opts={add.opts} onClose={closeAdd} />
             </div>
           </AddCtx.Provider>

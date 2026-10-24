@@ -40,7 +40,7 @@ Status: **[Gebouwd]** tenzij anders vermeld. De tokens staan bovenaan `src/style
 
 Er is **geen navigatiebalk**. Op verzoek van de eigenaar zijn er drie onderdelen: **Verzamelingen** (het enige
 hoofdscherm, ook startpagina en `start_url`), **Instellingen** (tandwiel rechtsboven op het hoofdscherm) en
-**Toevoegen** (ronde accentknop rechtsonder, 64 px, op elk scherm).
+**Toevoegen** (ronde accentknop rechtsonder, 64 px; niet op de restaurantschermen — restaurants komen via de Inbox en Claude).
 
 | Breedte | Indeling |
 |---|---|
@@ -81,6 +81,7 @@ Toevoegen = bottom sheet boven het huidige scherm (ronde knop rechtsonder)
 4. **Samenvatting** ingekort tot 3 regels met "Meer lezen", en "Door Claude geschreven · datum".
 5. **Mijn notities.**
 6. **Gegevens bewerken** (ingeklapt): plaats, keuken, labels, adres (en favoriete gerechten als die er zijn).
+7. **Restaurant verwijderen** (rode tekstknop): naar de prullenbak, met *Ongedaan maken*.
 
 Geen soortkeuze bovenaan (wel in menu ⋮), geen Claude-melding, opgezochte cijfers, checklist, links, tags, eerdere versies of metadata.
 Bij andere soorten is de melding "Ingevuld door Claude" één regel; "Wat?" toont welke velden.

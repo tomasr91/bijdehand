@@ -542,3 +542,6 @@ body.no-scroll .toast-region { bottom: auto; top: calc(env(safe-area-inset-top) 
 .map-pop b { font-size: 15px; }
 .map-pop span { font-size: 13px; color: #6b6259; }
 .map-score { color: var(--on-accent); font-weight: 750; font-size: 12px; text-align: center; line-height: 18px; pointer-events: none; }
+
+.btn-danger-text { color: var(--danger); }
+.r-delete { margin-top: 8px; }

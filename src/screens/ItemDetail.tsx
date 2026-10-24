@@ -82,7 +82,7 @@ function ItemEditor({ item }: { item: Item }) {
       )}
 
       {compact ? (
-        <RestaurantBody item={item} title={title} setTitle={setTitle} flushTitle={flushTitle} body={body} setBody={setBody} flushBody={flushBody} />
+        <RestaurantBody item={item} title={title} setTitle={setTitle} flushTitle={flushTitle} body={body} setBody={setBody} flushBody={flushBody} onDelete={() => void remove()} />
       ) : (
         <>
         {item.filledBy && (

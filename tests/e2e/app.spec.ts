@@ -467,3 +467,22 @@ test('kaart met restaurants: locaties opzoeken, punten, openen; zonder adres apa
   await page.getByRole('button', { name: 'Lijst tonen' }).click();
   await expect(page.getByRole('heading', { name: /Leiden · 3/ })).toBeVisible();
 });
+
+test('restaurant verwijderen met de knop onderaan; geen ronde + op restaurantschermen', async ({ page }) => {
+  await page.goto('/#/verzameling/restaurant');
+  await page.getByRole('button', { name: 'Lijst plakken' }).click();
+  await page.getByRole('dialog').getByLabel('Geplakte lijst').fill('Leiden - Stadspark\nLeiden - Pamir');
+  await page.getByRole('dialog').getByRole('button', { name: /toevoegen/ }).click();
+  await settle(page);
+  await expect(addBtn(page)).toHaveCount(0);
+  await page.getByRole('button', { name: /Stadspark/ }).click();
+  await expect(addBtn(page)).toHaveCount(0);
+  await page.getByRole('button', { name: 'Restaurant verwijderen' }).click();
+  await expect(page.getByText('Naar prullenbak verplaatst')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Restaurants' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Stadspark/ })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Ongedaan maken' }).click();
+  await expect(page.getByRole('button', { name: /Stadspark/ })).toBeVisible();
+  await page.goto('/#/verzamelingen');
+  await expect(addBtn(page)).toBeVisible();
+});
