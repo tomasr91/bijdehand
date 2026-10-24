@@ -1,0 +1,195 @@
+# ARCHITECTURE — Bijdehand
+
+Labels zoals in `PRODUCT.md`. Genomen beslissingen staan in het beslissingslog onderaan;
+open beslissingen alleen in `ROADMAP.md`.
+
+## Overzicht — **[Gebouwd]**
+
+Bijdehand is een **local-first Progressive Web App**. Er is geen server: alle gegevens staan in IndexedDB
+op het apparaat. De app werkt offline en kan op Android via Chrome worden geïnstalleerd.
+
+| Onderdeel | Keuze |
+|---|---|
+| Taal / UI | TypeScript, React 19 |
+| Build | Vite (statische bestanden in `dist/`, relatieve paden, dus ook te hosten in een submap) |
+| Opslag | IndexedDB via Dexie 4 (`src/data/db.ts`); live-queries via `dexie-react-hooks` |
+| Iconen | lucide-react |
+| Navigatie | Eigen hash-router met echte geschiedenis (`src/ui/router.ts`), zodat de Android-terugknop werkt; open sheets sluiten met "terug" |
+| Offline | Eigen service worker (`public/sw.js`): pagina eerst van het netwerk, bestanden eerst uit de cache |
+| Tests | Vitest + fake-indexeddb (gegevenslaag), Playwright (e2e op 360 px, 412 px en desktop) |
+
+## Lagen
+
+```text
+src/screens, src/components   UI — praat alleen met de lagen hieronder
+src/ui                        router, contexten (data, meldingen, toevoegen), autosave
+src/data/repo.ts              ALLE schrijfacties: transactie, rev, updatedAt, revisie
+src/data/search.ts            zoeken + filters (één ingang: search())
+src/data/classify.ts          regelgebaseerd voorstel voor een soort
+src/data/backup.ts            export, validatie, samenvoegen/vervangen
+src/data/db.ts                Dexie-schema (IndexedDB)
+```
+
+De UI schrijft nooit rechtstreeks naar de database. Lezen gebeurt via één live-query per tabel
+(`DataProvider`); bij duizenden items is dit ruim snel genoeg. Pas paginering of indexen pas toe
+bij meetbare traagheid.
+
+## Opslag en betrouwbaarheid — **[Gebouwd]**
+
+- Elke schrijfactie is een Dexie-transactie. Een wijziging en haar revisie worden samen opgeslagen.
+- Autosave: de invoer wordt 500 ms na de laatste toetsaanslag opgeslagen. Dat gebeurt ook direct
+  bij verlaten van het veld, bij sluiten van het scherm en wanneer de app naar de achtergrond gaat
+  (`visibilitychange`/`pagehide`). De opslagindicator toont "Opslaan…", "Opgeslagen" of
+  "Niet opgeslagen".
+- Bij de eerste opslag vraagt de app om **duurzame opslag** (`navigator.storage.persist()`). Instellingen
+  toont of die is toegekend. Zonder toekenning kan de browser bij ruimtegebrek gegevens wissen; daarom
+  verschijnt een back-upwaarschuwing op Vandaag als er 14 dagen geen export is gemaakt.
+- Een privévenster of geblokkeerde opslag geeft een foutscherm dat niets wist.
+
+## Synchronisatie — **[Onderzoek]**, besluit B3
+
+**Er is géén synchronisatie.** IndexedDB is per browser en per apparaat. Telefoon en desktop hebben
+dus elk hun eigen gegevens. Overzetten kan nu alleen met een back-up (exporteren → herstellen →
+samenvoegen). Het model is al voorbereid op sync:
+
+- UUID v7 per record, `rev` en `updatedAt` per record, zacht verwijderen (verwijderingen kunnen meegaan)
+  en revisies (een "verliezende" versie blijft bewaard).
+- Samenvoegen in `backup.ts` is in feite al een handmatige sync: de nieuwste versie wint en er wordt
+  niets verwijderd.
+
+Opties voor B3: (a) een kleine eigen API + database (bijv. SQLite), (b) een gehoste backend
+(Supabase/PocketBase), (c) bestandsgebaseerd via een cloudmap (back-upbestand automatisch
+wegschrijven en samenvoegen), (d) een CRDT-bibliotheek. Bij (a)/(b) is ook authenticatie nodig
+voor één gebruiker. Voorkeur volgt na fase 2.
+
+## Authenticatie
+
+Niet nodig zolang er geen server is. Komt pas met B3.
+
+## Back-up en herstel — **[Gebouwd]**
+
+Het formaat staat in `DATA_MODEL.md`. Exporteren kan als download of, waar Android dat ondersteunt,
+via het deelmenu (bijv. naar Google Drive; Web Share met bestanden). Herstellen kan door
+samen te voegen (standaard) of door te vervangen (met automatische vangnet-back-up en bevestiging).
+Een automatische back-up buiten het apparaat is er nog niet (B4).
+
+## Android-deelmenu (link ontvangen)
+
+- **Gebouwd:** het manifest (`public/manifest.webmanifest`) declareert een `share_target` (GET naar `./`
+  met `title`, `text` en `url`). Bij het opstarten leest `readShare()` in `App.tsx` die parameters. De
+  URL komt uit `url` of uit `text` (veel Android-apps zetten hem daar). Daarna wordt de query uit de
+  adresbalk gehaald en opent de toevoegsheet in link-modus, met de titel ingevuld en `infoVia = deelmenu`.
+- **Getest:** het verwerken van deze parameters (e2e-test met dezelfde URL die Android zou openen).
+- **Niet getest:** het echte deelmenu. Dat werkt alleen als de app via Chrome op Android is
+  **geïnstalleerd** en via **HTTPS** wordt geserveerd. Controleer op het toestel:
+  1. de app installeren;
+  2. in Chrome of een andere app op Delen tikken en controleren of Bijdehand in de lijst staat;
+  3. delen en controleren of de link en titel goed binnenkomen, ook offline (de service worker
+     serveert de pagina dan uit de cache).
+  Wijkt het gedrag af, overweeg dan POST met een service-worker-handler of een native wrapper (TWA).
+
+## Hosting — **[Gewenst]**, nog niet ingericht
+
+De app is een map met statische bestanden (`npm run build` → `dist/`). Elke HTTPS-host werkt, bijvoorbeeld
+GitHub Pages, Netlify of Cloudflare Pages. HTTPS is nodig voor de service worker, installatie en het
+deelmenu. Er zijn geen geheimen of omgevingsvariabelen nodig. Let op: de gegevens horen bij het adres
+(origin). Een nieuw adres geeft een lege app; zet dan een back-up terug.
+
+## Proefversie als artifact — **[Gebouwd]**
+
+`npm run build:artifact` maakt `dist-artifact/bijdehand.html`: één zelfstandig bestand om als claude.ai-artifact
+te publiceren en rond te kijken. Hierin wijkt de app af (vlag `VITE_PREVIEW=1`): de navigatie staat in het
+geheugen (het frame heeft geen adresbalk), er is geen service worker, voorbeeldgegevens worden eenmalig
+geladen, en een melding zegt dat gegevens kunnen verdwijnen en dat een back-up downloaden of delen daar
+niet werkt.
+
+Lijsten die Claude in een chat indeelt, kan Claude in de proefversie **inbouwen**: voorstellenbestanden in
+`.local/seed/` (persoonlijke gegevens, nooit in git) gaan bij `build:artifact` mee als `window.__BIJDEHAND_SEED`.
+Bij openen past de proefversie elke bundel één keer toe (`src/data/seed.ts`), slaat dubbele titels over en
+haalt bij de eerste bundel ongewijzigde voorbeeldgegevens weg. Bewaarde gegevens blijven per browser.
+
+## AI en externe bronnen — ontwerp, **[Gewenst]** fase 2
+
+- De app werkt volledig zonder AI. Het huidige voorstel voor een soort komt uit vaste woord- en
+  websiteregels (`classify.ts`) en wordt als "vaste regel — geen AI" getoond.
+- Haakjes voor later: `Suggestion.by` kan `ai` zijn. `search()` is één ingang waarachter semantisch
+  zoeken als extra strategie kan komen. Bronnen hebben aparte velden voor externe informatie met
+  `infoVia`, zodat opgehaalde of AI-gegenereerde tekst herkenbaar blijft. Eigen notities worden nooit
+  overschreven.
+- AI-aanroepen en het ophalen van paginatitels hebben vrijwel zeker een kleine server of proxy nodig
+  (vanwege CORS en API-sleutels, die nooit in de app horen). Dat valt samen met B3.
+
+## Claude laat aantekeningen indelen — route 1 **[Gebouwd]**, route 2 **[Gewenst]**
+
+Claude kan niet bij de gegevens op het toestel en schrijft er nooit rechtstreeks in. Werkwijze en formaten
+staan in `INDELEN.md`; code in `src/data/claude.ts` en `src/screens/ProposalsSheet.tsx`.
+
+- **Route 1:** Inbox → *Delen met Claude* (Web Share naar de Claude-app, anders downloaden) → Claude maakt
+  een voorstellenbestand → *Voorstellen openen* → beoordelen → toepassen. Toepassen loopt via
+  `updateItem`, dus met revisies, plus één knop "Ongedaan maken" voor de hele actie.
+- **Route 2 (B13):** dezelfde bestanden in een **privé** GitHub-repository alleen voor gegevens (los van de
+  code). Een geplande Claude-taak leest de inbox-export en schrijft voorstellen. De app haalt ze op met een
+  persoonlijk toegangstoken dat alleen op het toestel staat (nooit in de code). Alternatief: Google Drive.
+- Persoonsgegevens gaan alleen mee als de gebruiker deelt: alleen Inbox-items en bestaande schrijfwijzen.
+
+## Kaart en adressen — **[Gewenst]** fase 2, besluit B12
+
+Doel: restaurants (en later nachtjes weg en andere plekken) op een kaart.
+
+- **Nu gebouwd:** de velden `city` en `address` bij restaurants. Er zijn nog geen coördinaten.
+- **Waarom geen GitHub-taak:** de gegevens staan op het toestel, in IndexedDB, en niet in GitHub.
+  Een taak in GitHub (Actions) kan er niet bij. Adressen omzetten naar coördinaten (geocoding) hoort
+  daarom in de app zelf te gebeuren.
+- **Voorgestelde aanpak:** een knop "Ontbrekende locaties opzoeken" in Restaurants. Die zoekt per
+  restaurant "naam + adres/plaats" op bij een geocoder (bijv. OpenStreetMap Nominatim: gratis, maximaal
+  1 verzoek per seconde, goed genoeg voor tientallen adressen). Elk resultaat wordt ter bevestiging
+  getoond en daarna opgeslagen als `geo: { lat, lng, source, at }` met de herkomst erbij, zodat
+  handmatige keuzes nooit worden overschreven. De kaart zelf: Leaflet met OpenStreetMap-tegels.
+- **Waarom pas in fase 2:** het opzoeken vraagt internettoegang die in de ontwikkelomgeving niet
+  testbaar is, en zonder kaart heeft het nog geen nut. Ook offline-gebruik (tegels cachen) en het
+  privacyaspect (namen gaan naar de geocoder) horen bij die keuze.
+
+## Google Keep-import — **[Onderzoek]** fase 2
+
+Voorlopige aanpak, te verifiëren met een echte Takeout-export van de eigenaar:
+
+- Google Takeout levert voor Keep per notitie een bestand (JSON en HTML). Dit bevat naar verwachting
+  de titel, de tekst of lijstregels met afvinkstatus, labels, kleur, pin/archief/prullenbak-status en
+  tijdstempels. De exacte velden staan nog niet vast.
+- Import gebeurt in de app (bestand of zip kiezen). Lijsten worden checklists, labels worden tags,
+  links worden bronnen en de originele tekst blijft volledig bewaard. Als `origin` geldt
+  `{ system: 'google-keep', ref: <bestandsnaam> }`; daardoor wordt een tweede import herkend en niet
+  dubbel uitgevoerd.
+- Indelen gaat via het regelgebaseerde voorstel. Bij twijfel komt een item in de Inbox.
+- Vóór het importeren volgt een voorbeeldoverzicht met aantallen en daarna een verplichte back-up.
+  De app raakt Google Keep zelf nooit aan (alleen lezen uit het exportbestand).
+
+## Beveiliging en privacy
+
+Er zijn geen accounts, geen tracking en geen externe verzoeken, behalve wanneer je zelf een link
+opent of een afbeeldings-URL invult. De afbeelding wordt dan geladen met `no-referrer`. De app
+bevat geen geheimen.
+
+## Beslissingslog
+
+- **D01 — 2026-10-24 — Local-first PWA met TypeScript, React, Vite en Dexie.** Reden: één codebase voor Android
+  en desktop, offline, geen server of beheer nodig in fase 1, installeerbaar. Gevolgen: sync en meldingen
+  hebben later extra infrastructuur nodig; lokale opslag vraagt om een back-updiscipline (waarschuwing ingebouwd).
+- **D02 — 2026-10-24 — De tien soorten zijn die van de eigenaar** (cadeaus t/m plantenonderhoud) in de groepen
+  Inspiratie, Praktisch en Naslag. Vervangt het eerdere voorstel.
+- **D03 — 2026-10-24 — Navigatie met vijf vaste bestemmingen onderaan:** Vandaag, Verzamelingen, Toevoegen,
+  Bronnen, Zoeken. De Inbox is bereikbaar via Vandaag en Verzamelingen. Op ≥ 900 px wordt de balk een rail links.
+- **D04 — 2026-10-24 — Links zijn altijd een `Source`** (één keer bewaard, gekoppeld), nooit een los tekstveld.
+  Een link zonder soort komt alleen in Bronnen; tekst zonder soort komt in de Inbox.
+- **D05 — 2026-10-24 — Indelingsvoorstel via vaste regels, geen AI** in fase 1; altijd bevestigen door de gebruiker.
+- **D07 — 2026-10-24 — Restaurants per plaats, met keuken en kenmerken als lijst** (schema v2, migratie `location` → `city`). Kenmerken zijn een eigen lijstveld en geen algemene tags, zodat filteren per soort zinvol blijft.
+- **D08 — 2026-10-24 — Lijst plakken als eerste importroute.** Werkt per verzameling, bewaart de oorspronkelijke regel en is ook de basis voor de latere Keep-import.
+- **D13 — 2026-10-24 — Hosting en route 2 (lost B10 en B13 op).** Code in de **openbare** repo `tomasr91/bijdehand`, gepubliceerd met
+  GitHub Pages (gratis alleen vanuit een openbare repo). Gegevens in de **privé** repo `tomasr91/bijdehand-data`, nooit in de
+  code-repo; testvoorbeelden gebruiken verzonnen namen. Later privé + Cloudflare Pages kan: nieuw adres, gegevens komen dan
+  via de data-repo of een back-up mee. De gepubliceerde app zelf is altijd openbaar en bevat geen gegevens.
+- **D12 — 2026-10-24 — Startpagina is Verzamelingen** (eerst in de navigatie, `HOME` in `src/ui/router.ts`, `start_url` in het manifest).
+- **D11 — 2026-10-24 — Restaurants: geen status meer, maar cijfer + hartje** (schema v4). "Geweest" volgt uit het cijfer; lijst en detail zijn eigen schermen met het belangrijkste bovenaan.
+- **D10 — 2026-10-24 — Restaurants: eigen cijfer 1–10 en sober detail.** Sterren (1–5) worden `score` (schema v3, × 2). Het detail toont alleen hoofdvelden en notities; geschiedenis, links en tags zijn er niet zichtbaar (gegevens blijven bewaard, terugzetten kan via een back-up).
+- **D09 — 2026-10-24 — Claude deelt in via voorstellen, nooit rechtstreeks.** Route 1 nu (bestanden delen), route 2 later (privé-repo). Code en gegevens blijven gescheiden; gegevens nooit in de code-repo.
+- **D06 — 2026-10-24 — Notitietekst is platte tekst** (lost het oude B6 op); opmaak alleen als daar later reden voor is.

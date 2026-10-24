@@ -1,0 +1,24 @@
+# Geheimen en lokale configuratie — nooit committen (zie AGENTS.md regel 10)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Lokale exports/back-ups met persoonlijke gegevens
+exports/
+*.backup.json
+
+# Editor/OS
+.DS_Store
+.idea/
+.vscode/
+
+# Lokale hulpbestanden
+.local/
+node_modules/
+dist/
+test-results/
+playwright-report/
+*.tsbuildinfo
+dist-artifact/

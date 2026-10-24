@@ -1,0 +1,241 @@
+import { ChevronRight, ClipboardPaste, Settings, FileCheck, Inbox as InboxIcon, Plus, Search, Share2, Trash2 } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { buildInboxExport, inboxFileName, parseProposals, type ParsedProposals } from '../data/claude';
+import { shareOrDownload } from '../ui/files';
+import { ProposalsSheet } from './ProposalsSheet';
+import { fold } from '../data/util';
+import { PasteSheet } from './PasteSheet';
+import { RestaurantCollection } from './Restaurants';
+import { ItemCard } from '../components/cards';
+import { ChipGroup, Empty, Section, TopBar, TypeIcon } from '../components/ui';
+import { GROUPS, isDone, statusOf, TYPE_MAP, TYPES } from '../data/itemTypes';
+import type { Item, TypeKey } from '../data/model';
+import { useAdd, useData, useToast } from '../ui/context';
+import { navigate } from '../ui/router';
+
+export function Collections() {
+  const { liveItems, items, sources } = useData();
+  const counts = useMemo(() => {
+    const m = new Map<string, { total: number; open: number }>();
+    for (const i of liveItems) {
+      const k = i.type ?? 'inbox';
+      const c = m.get(k) ?? { total: 0, open: 0 };
+      c.total++;
+      if (!isDone(i)) c.open++;
+      m.set(k, c);
+    }
+    return m;
+  }, [liveItems]);
+  const inbox = counts.get('inbox')?.total ?? 0;
+  const trash = items.filter((i) => i.deletedAt).length + sources.filter((s) => s.deletedAt).length;
+
+  return (
+    <div className="screen">
+      <TopBar
+        title="Verzamelingen"
+        actions={<button type="button" className="icon-btn" aria-label="Instellingen en back-up" onClick={() => navigate('/instellingen')}><Settings size={22} /></button>}
+      />
+      <button type="button" className="banner" onClick={() => navigate('/inbox')}>
+        <InboxIcon size={20} />
+        <span><b>Inbox</b> {inbox ? `· ${inbox} nog in te delen` : '· leeg'}</span>
+        <ChevronRight size={18} />
+      </button>
+      {GROUPS.map((g) => (
+        <Section key={g.key} title={g.label}>
+          <div className="tiles">
+            {TYPES.filter((t) => t.group === g.key).map((t) => {
+              const c = counts.get(t.key);
+              return (
+                <button key={t.key} type="button" className="tile" onClick={() => navigate(`/verzameling/${t.key}`)}>
+                  <TypeIcon type={t.key} size={22} />
+                  <span className="tile-label">{t.plural}</span>
+                  <span className="tile-count">{c ? (t.statusKey && c.open !== c.total ? `${c.open} open · ${c.total}` : c.total) : '—'}</span>
+                </button>
+              );
+            })}
+          </div>
+        </Section>
+      ))}
+      {trash > 0 && (
+        <button type="button" className="btn btn-ghost" onClick={() => navigate('/prullenbak')}>
+          <Trash2 size={18} /> Prullenbak ({trash})
+        </button>
+      )}
+    </div>
+  );
+}
+
+function groupItems(type: TypeKey, list: Item[]): { title: string; items: Item[] }[] {
+  const def = TYPE_MAP[type];
+  if (type === 'packing') {
+    const tpl = list.filter((i) => i.fields.isTemplate === true);
+    const trips = list.filter((i) => i.fields.isTemplate !== true).sort((a, b) => String(a.fields.tripDate ?? '9').localeCompare(String(b.fields.tripDate ?? '9')));
+    return [{ title: 'Basislijsten', items: tpl }, { title: 'Reizen', items: trips }].filter((g) => g.items.length);
+  }
+  if (def.groupBy) {
+    // Hoofdletterongevoelig groeperen ("utrecht" en "Utrecht" samen); de eerste schrijfwijze is de kop.
+    const rest = 'Overig';
+    const m = new Map<string, { title: string; items: Item[] }>();
+    for (const i of list) {
+      const label = String(i.fields[def.groupBy] ?? '').trim();
+      const key = label ? fold(label) : '\uffff';
+      const g = m.get(key) ?? { title: label || rest, items: [] };
+      g.items.push(i);
+      m.set(key, g);
+    }
+    return [...m.entries()].sort(([a], [b]) => a.localeCompare(b, 'nl')).map(([, g]) => g);
+  }
+  return [{ title: '', items: list }];
+}
+
+function sortItems(type: TypeKey, list: Item[]): Item[] {
+  const prio: Record<string, number> = { hoog: 0, normaal: 1, laag: 2 };
+  const s = [...list];
+  if (type === 'todo') {
+    return s.sort((a, b) => Number(isDone(a)) - Number(isDone(b)) || (prio[String(a.fields.priority)] ?? 1) - (prio[String(b.fields.priority)] ?? 1) || String(a.fields.due || '9').localeCompare(String(b.fields.due || '9')));
+  }
+  if (type === 'plant') return s.sort((a, b) => String(a.fields.nextCare || '9').localeCompare(String(b.fields.nextCare || '9')));
+  if (type === 'size') return s.sort((a, b) => String(a.fields.garment ?? '').localeCompare(String(b.fields.garment ?? ''), 'nl'));
+  return s.sort((a, b) => Number(isDone(a)) - Number(isDone(b)) || b.updatedAt.localeCompare(a.updatedAt));
+}
+
+export function Collection({ type }: { type: TypeKey }) {
+  if (type === 'restaurant') return <RestaurantCollection />;
+  return <GenericCollection type={type} />;
+}
+
+function GenericCollection({ type }: { type: TypeKey }) {
+  const { liveItems } = useData();
+  const add = useAdd();
+  const def = TYPE_MAP[type];
+  const [status, setStatus] = useState('');
+  const [trait, setTrait] = useState('');
+  const [pasting, setPasting] = useState(false);
+  const [allTraits, setAllTraits] = useState(false);
+  const all = liveItems.filter((i) => i.type === type);
+  const statusField = def.statusKey ? def.fields.find((f) => f.key === def.statusKey) : undefined;
+  const traitsOf = (i: Item): string[] => (def.filterKey && Array.isArray(i.fields[def.filterKey]) ? (i.fields[def.filterKey] as string[]) : []);
+  const traitCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const i of all) for (const t of traitsOf(i)) m.set(t, (m.get(t) ?? 0) + 1);
+    return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'nl'));
+  }, [all]); // eslint-disable-line react-hooks/exhaustive-deps
+  const shown = all.filter((i) => (!status || statusOf(i) === status) && (!trait || traitsOf(i).includes(trait)));
+  const groups = groupItems(type, sortItems(type, shown));
+
+  return (
+    <div className="screen">
+      <TopBar
+        back="/verzamelingen"
+        title={def.plural}
+        actions={
+          <>
+            <button type="button" className="icon-btn" aria-label={`Zoeken in ${def.plural}`} onClick={() => navigate(`/zoeken?type=${type}`)}><Search size={22} /></button>
+            <button type="button" className="icon-btn accent" aria-label={`Nieuw: ${def.label}`} onClick={() => add({ type, openAfter: true, mode: def.checklist ? 'checklist' : 'text' })}><Plus size={24} /></button>
+          </>
+        }
+      />
+      {statusField?.options && all.length > 0 && (
+        <ChipGroup
+          label="Filter op status"
+          value={status}
+          onChange={setStatus}
+          options={[
+            { value: '', label: 'Alle', count: all.length },
+            // Statussen zonder items weglaten (rustiger op een telefoon), behalve als ze gekozen zijn.
+            ...statusField.options
+              .map((o) => ({ value: o.value, label: o.label, count: all.filter((i) => statusOf(i) === o.value).length }))
+              .filter((o) => o.count > 0 || o.value === status),
+          ]}
+        />
+      )}
+      {traitCounts.length > 0 && (
+        <ChipGroup
+          label="Filter op kenmerk"
+          value={trait}
+          onChange={setTrait}
+          options={[
+            { value: '', label: 'Elk kenmerk' },
+            ...traitCounts.filter(([t], i) => allTraits || i < 4 || t === trait).map(([t, n]) => ({ value: t, label: t, count: n })),
+          ]}
+          extra={traitCounts.length > 4 && (
+            <button type="button" className="chip chip-add" aria-expanded={allTraits} onClick={() => setAllTraits(!allTraits)}>
+              {allTraits ? 'Minder' : `+${traitCounts.length - 4} meer`}
+            </button>
+          )}
+        />
+      )}
+      {all.length === 0 ? (
+        <Empty
+          icon={<TypeIcon type={type} size={28} />}
+          title={`Nog geen ${def.plural.toLowerCase()}`}
+          text="Heb je al een lijstje, bijvoorbeeld in Keep? Plak het in één keer."
+          action={
+            <div className="stack">
+              <button type="button" className="btn btn-primary" onClick={() => add({ type, openAfter: true, mode: def.checklist ? 'checklist' : 'text' })}><Plus size={18} /> {def.label} toevoegen</button>
+              <button type="button" className="btn" onClick={() => setPasting(true)}><ClipboardPaste size={18} /> Lijst plakken</button>
+            </div>
+          }
+        />
+      ) : shown.length === 0 ? (
+        <Empty title="Niets gevonden met deze filters" />
+      ) : (
+        groups.map((g) => (
+          <Section key={g.title || 'all'} title={g.title ? (<>{g.title} <span className="group-count">· {g.items.length}</span></>) : undefined} className={type === 'size' ? 'size-group' : ''}>
+            <div className="list">{g.items.map((i) => <ItemCard key={i.id} item={i} showType={false} />)}</div>
+          </Section>
+        ))
+      )}
+      {all.length > 0 && (
+        <button type="button" className="btn btn-ghost" onClick={() => setPasting(true)}><ClipboardPaste size={18} /> Lijst plakken</button>
+      )}
+      <PasteSheet type={type} open={pasting} onClose={() => setPasting(false)} />
+    </div>
+  );
+}
+
+export function InboxScreen() {
+  const { liveItems, items, sources, links } = useData();
+  const add = useAdd();
+  const toast = useToast();
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [proposals, setProposals] = useState<ParsedProposals | null>(null);
+  const [error, setError] = useState('');
+  const list = liveItems.filter((i) => i.type === null).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  const share = async () => {
+    const exp = buildInboxExport(items, sources, links);
+    const file = new File([JSON.stringify(exp, null, 1)], inboxFileName(), { type: 'application/json' });
+    const r = await shareOrDownload(file, 'Bijdehand Inbox');
+    if (r !== 'geannuleerd') toast(r === 'gedeeld' ? `${exp.items.length} items gedeeld` : `Opgeslagen als ${file.name}`);
+  };
+  const open = async (f: File | undefined) => {
+    setError('');
+    if (!f) return;
+    const r = parseProposals(await f.text(), items);
+    if (fileInput.current) fileInput.current.value = '';
+    if (!r.ok) setError(r.error);
+    else setProposals(r.value);
+  };
+
+  return (
+    <div className="screen">
+      <TopBar back="/verzamelingen" title="Inbox" sub="Alles wat nog geen soort heeft" />
+      <div className="claude-row">
+        <button type="button" className="btn btn-small" disabled={!list.length} onClick={() => void share()}><Share2 size={16} /> Delen met Claude</button>
+        {/* Een echt label om de invoer heen: werkt ook in webviews die een programmatische click() blokkeren. */}
+        <label className="btn btn-small file-btn">
+          <FileCheck size={16} /> Voorstellen openen
+          <input ref={fileInput} type="file" accept="application/json,.json,text/plain" className="visually-hidden" aria-label="Voorstellenbestand kiezen" onChange={(e) => void open(e.target.files?.[0])} />
+        </label>
+      </div>
+      {error && <p className="notice notice-error" role="alert">{error}</p>}
+      {list.length === 0 ? (
+        <Empty icon={<InboxIcon size={28} />} title="De Inbox is leeg" text="Wat je zonder soort bewaart, komt hier. Indelen kan wanneer het jou uitkomt, zelf of met Claude." action={<button type="button" className="btn" onClick={() => add()}>Iets bewaren</button>} />
+      ) : (
+        <div className="list">{list.map((i) => <ItemCard key={i.id} item={i} />)}</div>
+      )}
+      <ProposalsSheet value={proposals} onClose={() => setProposals(null)} />
+    </div>
+  );
+}

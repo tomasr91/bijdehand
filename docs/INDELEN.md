@@ -1,0 +1,137 @@
+# INDELEN — aantekeningen laten indelen door Claude
+
+Status: werkwijze en app-ondersteuning **[Gebouwd]** (route 1). De notaties per soort zijn een **voorstel**
+dat de eigenaar bijschaaft. Claude volgt dit document; pas het aan als je iets anders wilt.
+
+## Werkwijze
+
+**Route 1 (nu):**
+
+1. Zet aantekeningen ongesorteerd in Bijdehand (Toevoegen, zonder soort). Ze komen in de **Inbox**.
+2. Inbox → **Delen met Claude**: deel het bestand `bijdehand-inbox-….json` naar een chat in het
+   Claude-project *Bijdehand*. Vraag bijvoorbeeld: "Deel deze Inbox in."
+3. Claude antwoordt met een bestand `bijdehand-voorstellen-….json` (formaat hieronder).
+4. Inbox → **Voorstellen openen** → kies het bestand. Bekijk de voorstellen, vink uit wat niet klopt
+   en tik op **Toepassen**. Alles is daarna nog te wijzigen of ongedaan te maken.
+
+**In de proefversie (artifact):** stuur je lijst in de chat. Claude bouwt de voorstellen in de proefversie
+in en publiceert die opnieuw; bij openen staan de items erin, zonder bestanden. De bestandskiezer werkt
+niet in elke artifact-weergave.
+
+**Route 2 (later):** hetzelfde voorstellenbestand, maar Claude zet het in een **privé**-repository met
+gegevens, en de app haalt het op met één knop. Het formaat blijft gelijk.
+
+Het gedeelde bestand bevat alleen de Inbox-items (titel, tekst, checklist, tags, links), de velden per
+soort en bestaande schrijfwijzen (zoals plaatsen en kenmerken). Er gaat niets anders mee.
+
+## Regels voor Claude
+
+1. **Alleen wat er staat.** Verzin geen adressen, auteurs, prijzen of datums die niet in de aantekening
+   staan. Eigen kennis mag alleen als `reden` ("Andy Weir is de auteur — controleer"), niet als veld.
+2. **Bij twijfel: laten staan.** Gebruik actie `laten` en stel in `reden` één concrete vraag. Doe dit
+   bijvoorbeeld bij een onduidelijke soort, of als een plaats ook een restaurantnaam kan zijn.
+3. **Niets weggooien.** De tekst die niet in een veld past, blijft in `tekst` (Mijn notities). Splits je
+   een aantekening, dan krijgt elk nieuw item zijn deel van de tekst.
+4. **Bestaande schrijfwijzen volgen.** Gebruik de waarden onder `bekend` (bijv. "Leiden", "fancy")
+   in plaats van een nieuwe variant ("utrecht", "chique").
+5. **Eén aantekening, meerdere dingen?** Gebruik voor elk ding `nieuw` met hetzelfde `itemId`. De
+   aantekening gaat na toepassen naar de prullenbak; de oorspronkelijke tekst blijft bij elk nieuw item.
+6. **Datums** als `JJJJ-MM-DD`. Relatieve datums ("volgende vrijdag") reken je vanaf `gebaseerdOp`,
+   en dat meld je in `reden`.
+7. **Kenmerken en tags:** kleine letters, kort ("kleine gerechten", niet "ze hebben kleine gerechtjes").
+8. **Titels:** de naam zelf, zonder de soort ervoor ("Pamir", niet "Restaurant Pamir"), tenzij
+   dat de echte naam is ("Restaurant 512").
+
+## Notatie per soort
+
+Zo kun je een aantekening opschrijven zodat Claude hem zeker goed indeelt. "Lijst plakken" in de app
+herkent nu alleen de restaurantnotatie; bij andere soorten wordt daar elke regel een titel. Schrijf je het anders, dan probeert Claude het toch, maar met meer kans op `laten`.
+
+| Soort | Notatie | Voorbeeld | Velden |
+|---|---|---|---|
+| Restaurant | `Plaats - Naam (keuken, kenmerken)` | `Leiden - Pamir (Afghaans, reserveren)` | city, cuisine, traits (labels). Geen status: "geweest" volgt uit je eigen cijfer; dat en `favorite` vult Claude nooit in |
+| Cadeau | `Cadeau Persoon: idee (gelegenheid, €budget)` | `Cadeau Sanne: fotoboek (verjaardag, €40)` | person, occasion, budget, status (standaard *idee*) |
+| Nachtje weg | `Weg Plaats: accommodatie (prijs, waarom)` | `Weg Gent: hotel aan de Graslei (€140/nacht, mooie binnenstad)` | destination, accommodation, price, reasons |
+| Boek | `Boek: Titel - Auteur (status)` | `Boek: Klara and the Sun - Kazuo Ishiguro` | author, status (standaard *wil*) |
+| Album | `Album: Titel - Artiest` | `Album: Blue - Joni Mitchell (opnieuw)` | artist, status |
+| Game | `Game: Titel (platform)` | `Game: Hades II (pc)` | platform, status (standaard *verlanglijst*) |
+| Kleermaat | `Maat Persoon: kledingtype maat merk` | `Maat ik: broek 32/34 Levi's 511` | person, garment, size, brand, date (= vandaag als niets staat) |
+| Paklijst | `Paklijst Naam:` + één punt per regel | `Paklijst skiën:` / `- skibril` | checklist; `basislijst` in de naam → isTemplate |
+| Klus | `Klus: wat (prio, deadline, materiaal)` | `Klus: kraan maken (hoog, 15-11, kraanleertjes)` | status (standaard *open*), priority, due, materials |
+| Plant | `Plant Naam: locatie, elke N dagen water` | `Plant Monstera: woonkamer, elke 7 dagen` | location, care, intervalDays |
+
+Herkenningswoorden zonder vaste notatie (een greep): *cadeau, kado, verjaardag* → Cadeau;
+*hotel, b&b, weekendje* → Nachtje weg; *boek, lezen* → Boek; *klus, repareren, ophangen* → Klus.
+
+**[Aanname] — nog te bepalen door de eigenaar:**
+
+- Moet "fancy" bij restaurants een kenmerk blijven of een prijsniveau (€–€€€€) worden?
+- Krijgen boeken, albums en games ook kenmerken (bijv. genre), net als restaurants?
+- Wat is de standaardpersoon bij kleermaten als er alleen "maat broek 32" staat: "ik"?
+
+## Restaurants opzoeken
+
+Per restaurant zoekt Claude: adres, keuken, website (veld `website`, de eigen site van de zaak), prijsniveau (alleen als een bron het noemt), Google-cijfer
+(van 5) en aantal, TheFork-cijfer (van 10) en aantal, Michelin-vermelding, of de zaak open is, en links
+(website + de pagina waar het cijfer staat). Nooit reviewteksten; geen openingstijden als veld. Bij elk restaurant
+staan `checkedAt`, `ratingSource` en wat onzeker is (`uncertain`). Niet gevonden = leeg laten.
+
+**[Gebouwd]** een **samenvatting** (veld `summary`, 3–5 zinnen): wat voor zaak het is, de keuken, hoe het werkt (menu,
+opzet), sfeer of ligging, en wat opvalt. Geen cijfers of prijzen in de samenvatting (die horen in hun eigen velden); openingsdagen alleen globaal. In eigen woorden, alleen uit feiten die in de bronnen staan, zonder reviewteksten te citeren. Google levert
+soms zelf een korte beschrijving (`editorialSummary`); die mag als basis dienen, met de bron erbij.
+
+**[Gebouwd]** **Labels** (veld `traits`): bij elk opgezocht restaurant bepaalt Claude ook 1–4 labels die zeggen **wat je er eet**.
+Ze staan op het kaartje (de eerste drie), dus in één oogopslag moet duidelijk zijn wat voor keuken het is.
+
+- **Wel:** de keuken (*indonesisch*, *afghaans*, *italiaans*, *frans*, *fusion*), dieet (*veganistisch* of *vegetarisch* als de hele
+  kaart dat is, anders *vega-opties*; *glutenvrij*, *halal*), wat er centraal staat (*vis*, *vlees*, *rijsttafel*, *zeevruchten*) en
+  de aanpak van de keuken (*biologisch*, *lokaal*, *farm to table*, *verrassingsmenu*). Meest typerende eerst, meestal de keuken.
+- **Niet:** inrichting of praktische zaken (terras, open keuken, groepen, openingstijden), vermeldingen (Michelin), cijfers,
+  prijzen of oordelen. Alleen wat de bronnen zeggen.
+- **Vorm:** kleine letters, kort, bestaande schrijfwijzen volgen (`bekend`). Labels van de eigenaar blijven altijd staan.
+  Een eerder door Claude gekozen label dat niet klopt, haalt Claude weg met `weghalen` (zie hieronder).
+
+## Voorstellenbestand (formaat versie 1)
+
+```json
+{
+  "format": "bijdehand-voorstellen",
+  "formatVersion": 1,
+  "gemaaktOp": "2026-10-24T12:00:00Z",
+  "gebaseerdOp": "<exportedAt uit het inbox-bestand>",
+  "voorstellen": [
+    {
+      "id": "v1",
+      "actie": "indelen",
+      "itemId": "<id uit het inbox-bestand>",
+      "type": "restaurant",
+      "titel": "Pamir",
+      "velden": { "city": "Leiden", "cuisine": "Afghaans", "status": "proberen" },
+      "tekst": "Aanrader van Sanne",
+      "tags": [],
+      "reden": "Plaats + naam herkend; 'Afghaans' is een keuken."
+    },
+    { "id": "v2", "actie": "nieuw", "itemId": "<bron-aantekening>", "type": "book", "titel": "Klara and the Sun", "velden": { "status": "wil" } },
+    { "id": "v3", "actie": "laten", "itemId": "<id>", "reden": "Is 'Sedap' een restaurant of een plant?" }
+  ]
+}
+```
+
+- `actie`: `indelen` (het Inbox-item krijgt een soort en velden), `nieuw` (nieuw item, eventueel uit een
+  aantekening), `aanvullen` (bestaand item, gevonden via `zoek: { titel, city }`) of `laten` (blijft in de
+  Inbox; `reden` is de vraag).
+- `links`: optioneel `[{ url, titel }]`; elke link wordt één keer als bron bewaard en aan het item gekoppeld.
+- `weghalen`: alleen bij `aanvullen`, bijv. `{ "traits": ["terras"] }`: haalt precies die waarden uit een lijstveld (hoofdletters
+  maken niet uit). Wordt vóór `velden` toegepast, dus weghalen + opnieuw toevoegen herschikt de volgorde. De app toont het in rood bij
+  het voorstel; ongedaan maken zet alles terug.
+- **Aanvullen** ververst alleen *opgezochte* velden; `null` maakt een opgezocht veld leeg (bijv. een opgeloste onzekerheid), nooit een eigen veld (cijfers, prijsniveau, Michelin, status zaak, opgezocht op,
+  bron, onzeker). Eigen velden (plaats, keuken, adres…) vult het alleen in als ze leeg zijn, of als Claude ze eerder invulde en je
+  nog niet op *Gecontroleerd* tikte (dan mag Claude ze verbeteren); kenmerken worden
+  aangevuld. Jouw eigen sterren en notities blijven altijd van jou.
+- `type` en `velden` moeten voorkomen in het inbox-bestand (`soorten`). Keuzevelden gebruiken de
+  waarden uit `opties`. Een onbekend veld of een ongeldige waarde maakt dat ene voorstel ongeldig.
+- `titel`, `tekst`, `tags` en `checklist` zijn optioneel. `tekst` vervangt "Mijn notities" (de oude
+  versie blijft in de geschiedenis). Tags en checklist worden aangevuld en niet vervangen.
+- De app controleert alles en markeert per voorstel: **ok**, **let op** (item is na het delen gewijzigd
+  of al ingedeeld; standaard uitgevinkt), **kan niet** (met reden) of **blijft in Inbox**.
+- Toegepaste items tonen "Ingevuld door Claude" met de ingevulde velden, tot je op *Gecontroleerd* tikt.

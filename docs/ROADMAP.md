@@ -1,0 +1,102 @@
+# ROADMAP — Bijdehand
+
+Laatst bijgewerkt: 2026-10-24 · **Huidige fase: 1 (werkende basis) — gebouwd en geautomatiseerd getest;
+handmatige controle op het eigen Android-toestel staat nog open.**
+
+## Volgende stap
+
+1. **Publiceren via GitHub Pages** (besluit D13; workflow `.github/workflows/pages.yml`) en de app installeren op de eigen
+   Android-telefoon: <https://tomasr91.github.io/bijdehand/>.
+2. **Route 2 bouwen** (B13 besloten, zie ARCHITECTURE): synchronisatie met de privé data-repo `bijdehand-data` en een geplande
+   Claude-taak die nieuwe items indeelt en restaurants opzoekt.
+3. **Handmatige toestelcontrole** uitvoeren (checklist hieronder), inclusief het echte deelmenu.
+4. Daarna fase 2 verder met de **Google Keep-import**. Daarvoor is een echte Takeout-export van de
+   eigenaar nodig.
+
+## Fasen
+
+| Fase | Doel | Status |
+|---|---|---|
+| 0 | Projectcontext en documentatie | Afgerond |
+| 1 | Werkende basis | Gebouwd; toestelcontrole open |
+| 2 | Migratie en slimme functies | Niet gestart |
+| 3 | Actieve assistent | Niet gestart (onderzoek) |
+
+### Fase 1 — Werkende basis
+
+Gebouwd: mobiele interface; vijf hoofdschermen plus Inbox, Instellingen en Prullenbak; alle tien
+soorten met eigen velden en weergave; aanmaken, bekijken, wijzigen (autosave) en verwijderen
+(prullenbak, ongedaan maken); zoeken en filters; duurzame lokale opslag; export en herstel;
+koppelingen; eerdere versies; duplicaatherkenning; basis-paklijsten; regelgebaseerd voorstel;
+voorbeeldgegevens; installeerbaar en offline; ontvangst via het deelmenu (code).
+
+**Afgerond als** de eigenaar op de eigen Android-telefoon:
+
+- [x] snel een nieuw item kan toevoegen — *e2e getest*
+- [x] de tien soorten overzichtelijk kan beheren — *e2e getest*
+- [x] een item eenvoudig kan terugvinden — *e2e getest*
+- [x] een checklist kan afvinken — *e2e getest*
+- [x] een bestaand item kan wijzigen — *e2e getest*
+- [x] gegevens na heropenen terugvindt — *e2e getest (herladen)*
+- [x] een back-up kan exporteren en herstellen — *e2e getest (lege browser)*
+- [x] prettig bedient zonder horizontaal scrollen of lange formulieren — *e2e controleert scrollen en 44 px*
+- [ ] **alles hierboven ook op het echte toestel heeft gedaan** (checklist hieronder)
+
+### Fase 2 — Migratie en slimme functies
+
+| Onderdeel | Afhankelijk van | Afgerond als |
+|---|---|---|
+| Google Keep-import (Takeout) | Echte export van de eigenaar | Volledige export importeert zonder fouten; aantallen kloppen in het rapport; checklists blijven checklists; datums en links bewaard; tweede import maakt geen dubbelen; onzekere items in de Inbox; back-up vóór import verplicht; steekproef van 20 handmatig vergeleken |
+| Samenvatting per restaurant (3–5 zinnen) bovenaan het detail — **gebouwd voor de huidige 15**; nieuwe restaurants via de aanvultaak | Aanvultaak | Samenvatting in eigen woorden van Claude, op basis van feiten uit de bronnen (geen reviewcitaten); gemarkeerd als "door Claude geschreven" met datum; aan te passen of te verwijderen |
+| Geplande taak: nieuwe restaurants aanvullen via Google Places API (zie `GOOGLE_PLACES.md`) | Privé-repo, Google-sleutel | Nieuw restaurant krijgt binnen een dag cijfer, aantal, prijsniveau, adres, website, kenmerkende labels, samenvatting en links; maandelijkse verversing; sleutel alleen als geheim |
+| Opgezochte cijfers en prijsniveau weer tonen. **Nu op verzoek van de eigenaar verborgen** (`hidden` in het register); de waarden blijven bewaard. Het kaartje toont nu alleen naam, kenmerken en je eigen cijfer | Besluit eigenaar (waar: kaartje of detail?) | `hidden` weghalen; weergave opnieuw bouwen (de oude ★ · € · keuken-regel staat in de git-geschiedenis); samenvattingen bevatten zelf geen cijfers of prijzen |
+| Kaart met restaurants + adressen opzoeken (geocoding) in de app | B12 | Elk restaurant met plaats krijgt na bevestiging een locatie; handmatige correctie mogelijk; kaart werkt op 360 px; zonder internet blijft de lijst bruikbaar |
+| Claude-route 2: voorstellen ophalen uit privé-repo | B13 | Knop haalt het nieuwste voorstellenbestand op; token alleen op het toestel; zonder token blijft route 1 werken |
+| Verbanden voorstellen | — | Voorstellen zijn herkenbaar en worden nooit automatisch gekoppeld |
+| Verbeterd zoeken | — | Zoeken op synoniemen/meervoud en op datum; voorbeeldvragen blijven werken |
+| Automatische classificatie, samenvattingen, bronverrijking (AI) | B3, B11 | Werkt via een server of proxy zonder sleutels in de app; AI-tekst gemarkeerd; app blijft zonder AI bruikbaar |
+
+### Fase 3 — Actieve assistent (onderzoek)
+
+Herinneringen met meldingen (vereist push-server of native wrapper), terugkerende taken, updates van
+geselecteerde bronnen, slimme suggesties en verdere integraties. Per onderdeel eerst een voorstel
+met beperkingen.
+
+## Handmatige toestelcontrole (Android)
+
+1. Openen via de HTTPS-url in Chrome → menu → *App installeren* → openen vanaf het startscherm.
+2. Instellingen: staat er "Duurzame opslag is toegekend"?
+3. Tekst, link en checklist bewaren; met één hand bedienen; toetsenborden passen bij het veld.
+4. Terugknop: sluit eerst de sheet en gaat dan één scherm terug.
+5. Vliegtuigmodus aan → app openen en iets bewaren → werkt het?
+6. Vanuit Chrome een pagina **delen** → staat Bijdehand in het deelmenu, en komt de link goed binnen?
+7. Back-up delen naar Drive (of downloaden) en op een computer terugzetten.
+
+Leg de uitkomst vast in deze sectie, en bij het deelmenu ook in `ARCHITECTURE.md`.
+
+## Teststrategie
+
+| Niveau | Wat | Bestand | Commando |
+|---|---|---|---|
+| Unit/integratie | Claude-route (export, controle voorstellen, toepassen, splitsen, ongedaan maken), lijst plakken (met een realistische (verzonnen) restaurantlijst), schemamigratie v1→v2, URL-normalisatie, datums, classificatie, repository (revisies, prullenbak, duplicaten, paklijst kopiëren, planten), zoeken op voorbeeldvragen, back-up-roundtrip, samenvoegen, ongeldige bestanden, voorbeeldgegevens | `src/data/*.test.ts` | `npm test` |
+| End-to-end | Kernstromen op **360 px, 412 px en 1280 px**; per scherm geen horizontaal scrollen en geen aanraakvlak onder 44 px | `tests/e2e/app.spec.ts` | `npm run test:e2e` |
+| Alles | Typecheck + unit + build + e2e | — | `npm run check` |
+| Handmatig | Toestelcontrole hierboven | — | Bij elke fase-afronding |
+
+Regels: een opgeloste bug krijgt een test. Een schemawijziging vraagt een test met een back-up uit
+de vorige versie. Alle tests zijn groen voordat een fase afgerond heet.
+
+## Open beslissingen
+
+| ID | Vraag | Nodig vóór | Huidige aanname |
+|---|---|---|---|
+| B3 | Sync telefoon ↔ desktop: welke aanpak en hosting, welke login? | Desktopgebruik met dezelfde gegevens | Geen sync; overzetten via back-up |
+| B4 | Automatische back-up: waarheen? | Fase 2 | Handmatig + waarschuwing na 14 dagen |
+| B5 | Meldingen: push-server of native wrapper acceptabel? | Fase 3 | Geen meldingen; "Aandacht nodig" op Vandaag |
+| B7 | Bijlagen en afbeeldingen opslaan: wanneer, en met welke limiet? | Afbeeldingsinvoer / Keep-afbeeldingen | Niet; alleen afbeeldings-URL bij bronnen |
+| B8 | Keep-import: ook gearchiveerde notities en de prullenbak? | Keep-import | Gearchiveerd ja (met tag), prullenbak nee |
+| B9 | Is "Bijdehand" de definitieve naam? | Publiceren | Werknaam |
+| B11 | AI: welke dienst, welke kosten, wat mag de app versturen? | AI-functies fase 2 | Geen AI |
+| B12 | Kaart: welke geocoder en welke kaarttegels; is het goed dat restaurantnamen naar die dienst gaan? | Kaart fase 2 | Nominatim + OpenStreetMap, met bevestiging per adres |
+
+Genomen besluiten (o.a. de vroegere B1, B2 en B6): zie het beslissingslog in `ARCHITECTURE.md` (D01–D09).
