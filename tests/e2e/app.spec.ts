@@ -425,6 +425,7 @@ test('kaart met restaurants: locaties opzoeken, punten, openen; zonder adres apa
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
   await page.route('https://tile.openstreetmap.org/**', (r) => r.fulfill({ status: 200, contentType: 'image/png', body: png }));
   const asked: string[] = [];
+  await page.route('https://api.pdok.nl/**', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ response: { docs: [] } }) }));
   await page.route('https://nominatim.openstreetmap.org/**', (r) => {
     const q = new URL(r.request().url()).searchParams.get('q') ?? '';
     asked.push(q);
@@ -451,7 +452,7 @@ test('kaart met restaurants: locaties opzoeken, punten, openen; zonder adres apa
   await expect(page.getByRole('region', { name: 'Kaart met restaurants' })).toBeVisible();
   await expect(page.locator('path.leaflet-interactive')).toHaveCount(2, { timeout: 10_000 });
   await expect.poll(() => [...asked].sort()).toEqual(['Breestraat 10, Leiden', 'Haarlemmerstraat 5, Leiden', 'Wisselende locatie, Leiden']);
-  await expect(page.getByText(/Locaties opzoeken bij OpenStreetMap/)).toHaveCount(0); // klaar met opzoeken
+  await expect(page.getByText(/Locaties opzoeken/)).toHaveCount(0); // klaar met opzoeken
   await page.getByRole('button', { name: '1 zonder locatie' }).click();
   await expect(page.getByRole('button', { name: /Het smulhof/i })).toBeVisible();
   await touchTargetsOk(page);

@@ -143,7 +143,7 @@ export function RestaurantCollection() {
       ) : view === 'kaart' ? (
         <>
           <RestaurantMap items={shown} onOpen={(id) => navigate(`/item/${id}`)} onLocateError={(m) => toast(m, { tone: 'error' })} />
-          {geo.busy && <p className="hint" role="status">Locaties opzoeken bij OpenStreetMap… {geo.done} van {geo.total}</p>}
+          {geo.busy && <p className="hint" role="status">Locaties opzoeken… {geo.done ? `${geo.done} van ${geo.total}` : ''}</p>}
           {!geo.busy && geo.failed && <p className="notice notice-error" role="alert">Locaties opzoeken lukte niet (geen verbinding?). Het wordt opnieuw geprobeerd als je de kaart weer opent.</p>}
           {(() => {
             const missing = shown.filter((i) => !hasLocation(i));

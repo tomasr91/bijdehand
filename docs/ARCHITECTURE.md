@@ -137,11 +137,15 @@ staan in `INDELEN.md`; code in `src/data/claude.ts` en `src/screens/ProposalsShe
 - **Kaart:** Restaurants → kaarticoon in de kopbalk wisselt tussen lijst en kaart (keuze per toestel onthouden).
   Leaflet met OpenStreetMap-tegels (`src/screens/RestaurantMap.tsx`). Gevuld punt met cijfer = geweest, open rondje = nog niet.
   Tik → naam, labels, cijfer en *Openen*. *Waar ben ik* vraagt pas bij tikken om de locatie. Filters gelden ook voor de kaart.
-- **Locaties:** `src/data/geocode.ts` zet het adres om via OpenStreetMap Nominatim (gratis, zonder sleutel): alleen restaurants
-  mét adres (een plaatsnaam alleen zou misleidend midden in de stad landen), één verzoek per seconde, als de kaart opent.
+- **Locaties (D17):** `src/data/geocode.ts` zet het adres om, eerst via **PDOK Locatieserver** (Nederlandse overheid, nauwkeurig
+  voor Nederlandse adressen; alleen treffers op adres/postcode/straat), anders via OpenStreetMap Nominatim (max. 1 per seconde).
+  Alleen restaurants mét adres (een plaatsnaam alleen zou misleidend midden in de stad landen). Gebeurt standaard op de
+  achtergrond bij openen van en terugkomen in de app, en als de kaart opent; mislukt verzoek één keer opnieuw na 3 s.
   Opgeslagen als verborgen velden `lat`, `lng` en `geoFor` (het adres waarvoor gezocht is). Verandert het adres, dan zoekt de
   app opnieuw; zo corrigeer je een verkeerd punt. Niet gevonden = `geoFor` zonder punt, verschijnt onder "zonder locatie".
-- **Privacy:** restaurantadressen gaan naar OpenStreetMap; OSM ziet welk kaartgebied je bekijkt. Geen persoonsgegevens.
+- **Privacy:** restaurantadressen gaan naar PDOK en eventueel OpenStreetMap; OSM ziet welk kaartgebied je bekijkt. Geen persoonsgegevens.
+- **Adres standaard (D17):** de dagelijkse Claude-taak vult altijd een adres in de vorm *Straat nr, postcode Plaats*, en krijgt via
+  `claude-taak.ts todo` → `adresNodig` de restaurants waarvan de app het adres niet vond (of zonder adres) om te verbeteren.
 - **Offline:** geen kaart zonder internet (tegels worden niet bewaard); de lijst werkt gewoon.
 
 ## Google Keep-import — **[Onderzoek]** fase 2
@@ -179,6 +183,8 @@ bevat geen geheimen.
 - **D05 — 2026-10-24 — Indelingsvoorstel via vaste regels, geen AI** in fase 1; altijd bevestigen door de gebruiker.
 - **D07 — 2026-10-24 — Restaurants per plaats, met keuken en kenmerken als lijst** (schema v2, migratie `location` → `city`). Kenmerken zijn een eigen lijstveld en geen algemene tags, zodat filteren per soort zinvol blijft.
 - **D08 — 2026-10-24 — Lijst plakken als eerste importroute.** Werkt per verzameling, bewaart de oorspronkelijke regel en is ook de basis voor de latere Keep-import.
+- **D17 — 2026-10-24 — Locaties eerst via PDOK, op de achtergrond, en adres verplicht bij Claude.** Op de telefoon stopte
+  het opzoeken via OpenStreetMap na een paar adressen (OSM blokkeert browserverzoeken soms). Zie Kaart en adressen.
 - **D16 — 2026-10-24 — Kaart met restaurants (lost B12 op).** Leaflet + OpenStreetMap-tegels; locaties via Nominatim in de
   app, automatisch bij openen van de kaart (zonder bevestiging per adres; correctie via het adres). Zie Kaart en adressen.
 - **D15 — 2026-10-24 — Eén hoofdscherm, geen navigatiebalk.** Alleen Verzamelingen, Instellingen en een ronde

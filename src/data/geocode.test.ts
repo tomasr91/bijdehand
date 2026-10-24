@@ -9,7 +9,9 @@ beforeEach(() => { switchDb(`geo-${++k}`); });
 
 const fake = (answers: Record<string, [number, number] | null>, calls: string[]) => {
   setGeoFetcher(async (input) => {
-    const q = new URL(String(input)).searchParams.get('q')!;
+    const u = new URL(String(input));
+    const q = u.searchParams.get('q')!;
+    if (u.hostname === 'api.pdok.nl') return new Response(JSON.stringify({ response: { docs: [] } }), { status: 200 });
     calls.push(q);
     if (!(q in answers)) return new Response('[]', { status: 200 });
     const a = answers[q];
@@ -44,6 +46,40 @@ describe('locaties opzoeken', () => {
     await geocodeMissing([b.id]);
     expect(calls).toHaveLength(3);
     expect((await db.items.get(b.id))?.fields.lat).toBe(52.160123);
+  });
+
+  it('gebruikt eerst PDOK (Nederlandse adressen) en valt terug op OpenStreetMap; plaatsniveau telt niet', async () => {
+    const asked: string[] = [];
+    setGeoFetcher(async (input) => {
+      const u = new URL(String(input));
+      asked.push(u.hostname);
+      if (u.hostname === 'api.pdok.nl') {
+        const q = u.searchParams.get('q')!;
+        const doc = q.startsWith('Breestraat') ? { type: 'adres', centroide_ll: 'POINT(4.49 52.159)' } : { type: 'woonplaats', centroide_ll: 'POINT(4.4 52.1)' };
+        return new Response(JSON.stringify({ response: { docs: [doc] } }), { status: 200 });
+      }
+      return new Response(JSON.stringify([{ lat: '48.85', lon: '2.35' }]), { status: 200 });
+    }, async () => {});
+    const a = await repo.createItem({ type: 'restaurant', title: 'Pamir', fields: { city: 'Leiden', address: 'Breestraat 10' } });
+    const b = await repo.createItem({ type: 'restaurant', title: 'Parijs', fields: { city: 'Parijs', address: 'Rue de Rivoli 1' } });
+    await geocodeMissing([a.id, b.id]);
+    expect((await db.items.get(a.id))?.fields).toMatchObject({ lat: 52.159, lng: 4.49 });
+    expect((await db.items.get(b.id))?.fields).toMatchObject({ lat: 48.85, lng: 2.35 });
+    expect(asked).toEqual(['api.pdok.nl', 'api.pdok.nl', 'nominatim.openstreetmap.org']);
+  });
+
+  it('herhaalt een mislukt verzoek en gaat door met de volgende', async () => {
+    let n = 0;
+    setGeoFetcher(async (input) => {
+      const u = new URL(String(input));
+      n++;
+      if (n <= 2) throw new TypeError('even weg'); // eerste poging: PDOK en OSM falen
+      if (u.hostname === 'api.pdok.nl') return new Response(JSON.stringify({ response: { docs: [{ type: 'adres', centroide_ll: 'POINT(4.49 52.159)' }] } }), { status: 200 });
+      return new Response('[]', { status: 200 });
+    }, async () => {});
+    const a = await repo.createItem({ type: 'restaurant', title: 'Pamir', fields: { city: 'Leiden', address: 'Breestraat 10' } });
+    const r = await geocodeMissing([a.id]);
+    expect(r).toMatchObject({ found: 1, failed: false });
   });
 
   it('stopt bij een netwerkfout zonder iets kapot te maken', async () => {

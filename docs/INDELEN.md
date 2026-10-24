@@ -99,11 +99,14 @@ Een geplande Claude-taak draait **één keer per dag** (en op verzoek van de eig
 
 1. Kloon `tomasr91/bijdehand` (code, openbaar) en `tomasr91/bijdehand-data` (gegevens, privé); `npm ci` in de code-repo.
 2. `npx tsx scripts/claude-taak.ts todo ../bijdehand-data` geeft: Inbox-items, restaurants die nog niet zijn opgezocht
-   (geen `checkedAt`), bestaande schrijfwijzen (`bekend`), velden per soort (`soorten`) en `gebaseerdOp`.
+   (geen `checkedAt`), restaurants zonder bruikbaar adres (`adresNodig`: geen adres, of de app vond het niet op de kaart), bestaande schrijfwijzen (`bekend`), velden per soort (`soorten`) en `gebaseerdOp`.
    Items met een wachtend voorstel staan er niet in. Niets te doen → stoppen, niets committen.
 3. Per Inbox-item: `indelen` / `nieuw` / `laten` volgens de regels hierboven. Wordt het een restaurant, dan meteen ook opzoeken
    (zelfde voorstel, velden hieronder). Per al ingedeeld restaurant zonder `checkedAt`: `aanvullen`.
-4. **Opzoeken (restaurant):** `city`, `cuisine`, `address`, `website` (eigen site), `summary` (3–5 zinnen), `traits` (labels: keuken +
+   Per restaurant in `adresNodig`: `aanvullen` met het juiste adres (eigen website of Google/OSM). Heeft de zaak geen vast
+   adres, zet dat dan in `uncertain` met de woorden "geen vast adres"; dan vraagt de taak er niet meer naar.
+4. **Opzoeken (restaurant):** `city`, `cuisine`, `address` (altijd in de vorm *Straat huisnummer, postcode Plaats*, zonder
+   toelichting of wijk tussen haakjes: de app zet het adres om naar een punt op de kaart), `website` (eigen site), `summary` (3–5 zinnen), `traits` (labels: keuken +
    vega/vegan, zie hierboven), `openStatus`, `checkedAt` (vandaag), `uncertain` (wat niet zeker is) en `links`. Cijfers en
    prijsniveau zijn verborgen in de app: niet nodig. Alleen feiten uit bronnen; niets gevonden = leeg laten.
 5. Schrijf `voorstellen/JJJJ-MM-DD-UUMM.json` met `gebaseerdOp` uit stap 2, controleer met

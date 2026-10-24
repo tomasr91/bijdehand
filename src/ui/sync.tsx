@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { IS_PREVIEW } from '../components/ui';
 import { undoApply } from '../data/claude';
 import { getSyncConfig, needsPush, syncNow, type SyncResult } from '../data/sync';
+import { geocodeMissing, missingGeocodeIds } from '../data/geocode';
 import { useToast } from './context';
 
 export function describeApplied(r: SyncResult): string | null {
@@ -41,8 +42,21 @@ export function AutoSync() {
         // De fout staat in Instellingen → Synchronisatie; niet bij elke poging een melding.
       }
     };
-    void run(false);
-    const onVisible = () => void run(document.visibilityState === 'hidden');
+    // Restaurants zonder punt op de kaart: op de achtergrond opzoeken (standaard, niet pas als de kaart open is).
+    const locate = async () => {
+      try {
+        if (!navigator.onLine) return;
+        const ids = await missingGeocodeIds();
+        if (ids.length) await geocodeMissing(ids);
+      } catch {
+        // Lukt het nu niet, dan de volgende keer; de kaart meldt het als je hem opent.
+      }
+    };
+    void run(false).then(locate);
+    const onVisible = () => {
+      void run(document.visibilityState === 'hidden');
+      if (document.visibilityState === 'visible') void locate();
+    };
     document.addEventListener('visibilitychange', onVisible);
     const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void run(true); }, 60_000);
     return () => {

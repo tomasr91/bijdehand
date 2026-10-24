@@ -1,7 +1,8 @@
-// Adres → punt op de kaart via OpenStreetMap Nominatim (gratis, zonder sleutel). Zie docs/ARCHITECTURE.md → D16.
-// Regels van Nominatim: hoogstens 1 verzoek per seconde en resultaten bewaren. Daarom zoekt de app elk adres één keer
-// (bewaard als lat/lng + geoFor) en alleen opnieuw als het adres verandert. Alleen restaurants mét adres: een plaatsnaam
-// alleen zou een punt midden in de stad geven, en dat is misleidend.
+// Adres → punt op de kaart. Zie docs/ARCHITECTURE.md → D16/D17.
+// 1. PDOK Locatieserver (Nederlandse overheid, gratis, nauwkeurig voor Nederlandse adressen).
+// 2. Valt terug op OpenStreetMap Nominatim (buitenland, of als PDOK niets precies genoeg vindt; hoogstens 1 verzoek/s).
+// Elk adres wordt één keer gezocht (bewaard als lat/lng + geoFor) en alleen opnieuw als het adres verandert.
+// Alleen restaurants mét adres: een plaatsnaam alleen zou een punt midden in de stad geven, en dat is misleidend.
 import { db } from './db';
 import type { Item } from './model';
 import { updateItem } from './repo';
@@ -35,46 +36,108 @@ export function needsGeocode(item: Item): boolean {
   return item.type === 'restaurant' && !item.deletedAt && !!q && str(item.fields.geoFor) !== q;
 }
 
-async function lookup(q: string): Promise<{ lat: number; lng: number } | null> {
+type Point = { lat: number; lng: number };
+class LookupError extends Error {}
+
+async function getJson(url: string): Promise<unknown> {
+  let res: Response;
+  try {
+    res = await fetcher(url, { headers: { Accept: 'application/json' } });
+  } catch {
+    throw new LookupError('geen verbinding');
+  }
+  if (!res.ok) throw new LookupError(`fout ${res.status}`);
+  return res.json();
+}
+
+/** PDOK: alleen een treffer op adres-, straat- of postcodeniveau telt (geen plaats/gemeente: te grof). */
+async function pdok(q: string): Promise<Point | null> {
+  const url = `https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?rows=1&fl=centroide_ll,type&q=${encodeURIComponent(q)}`;
+  const json = (await getJson(url)) as { response?: { docs?: { centroide_ll?: string; type?: string }[] } };
+  const doc = json.response?.docs?.[0];
+  if (!doc?.centroide_ll || !['adres', 'postcode', 'weg', 'hectometerpaal'].includes(doc.type ?? '')) return null;
+  const m = doc.centroide_ll.match(/POINT\(([-\d.]+) ([-\d.]+)\)/);
+  return m ? { lng: Number(m[1]), lat: Number(m[2]) } : null;
+}
+
+async function nominatim(q: string): Promise<Point | null> {
   const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=nl&q=${encodeURIComponent(q)}`;
-  const res = await fetcher(url, { headers: { Accept: 'application/json' } });
-  if (!res.ok) throw new Error(`OpenStreetMap gaf fout ${res.status}`);
-  const list = (await res.json()) as { lat?: string; lon?: string }[];
-  const hit = list[0];
-  const lat = Number(hit?.lat);
-  const lng = Number(hit?.lon);
-  return hit && Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+  const list = (await getJson(url)) as { lat?: string; lon?: string }[];
+  const lat = Number(list[0]?.lat);
+  const lng = Number(list[0]?.lon);
+  return list[0] && Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+}
+
+/** Eén adres opzoeken: eerst PDOK, dan OpenStreetMap. null = nergens gevonden; LookupError = geen antwoord gekregen. */
+async function lookup(q: string): Promise<Point | null> {
+  let pdokFailed = false;
+  try {
+    const hit = await pdok(q);
+    if (hit) return hit;
+  } catch {
+    pdokFailed = true;
+  }
+  try {
+    return await nominatim(q);
+  } catch (e) {
+    // Beide bronnen gaven geen antwoord: als fout melden (niet als "niet gevonden"), dan wordt het later opnieuw geprobeerd.
+    if (pdokFailed) throw e;
+    return null;
+  }
 }
 
 export interface GeocodeResult { found: number; notFound: string[]; failed: boolean }
 
+let running: Promise<GeocodeResult> | null = null;
+
 /**
- * Zoekt de ontbrekende punten op, één per seconde. Niet gevonden = geoFor bewaren zonder punt (niet elke keer opnieuw).
- * Bij een netwerkfout stopt hij; de rest volgt de volgende keer.
+ * Zoekt de ontbrekende punten op. Niet gevonden = geoFor bewaren zonder punt (niet elke keer opnieuw).
+ * Een mislukt verzoek wordt één keer na 3 s herhaald; na drie mislukte adressen op rij stopt hij (rest volgt later).
+ * Er loopt altijd maar één ronde tegelijk.
  */
-export async function geocodeMissing(ids: string[], onProgress?: (done: number, total: number) => void): Promise<GeocodeResult> {
+export function geocodeMissing(ids: string[], onProgress?: (done: number, total: number) => void): Promise<GeocodeResult> {
+  if (!running) running = run(ids, onProgress).finally(() => { running = null; });
+  return running;
+}
+
+async function run(ids: string[], onProgress?: (done: number, total: number) => void): Promise<GeocodeResult> {
   const todo = (await db.items.bulkGet(ids)).filter((i): i is Item => !!i && needsGeocode(i));
   const result: GeocodeResult = { found: 0, notFound: [], failed: false };
+  let failsInRow = 0;
   for (let n = 0; n < todo.length; n++) {
     const item = todo[n];
     const q = geoQuery(item);
-    if (n > 0) await pause(1100);
-    let hit: { lat: number; lng: number } | null;
-    try {
-      hit = await lookup(q);
-    } catch {
-      result.failed = true;
-      break;
+    if (n > 0) await pause(1100); // netjes voor OpenStreetMap (max. 1 per seconde)
+    let hit: Point | null | undefined;
+    for (let attempt = 0; attempt < 2 && hit === undefined; attempt++) {
+      try {
+        hit = await lookup(q);
+      } catch {
+        if (attempt === 0) await pause(3000);
+      }
     }
-    await updateItem(item.id, (cur) => {
-      const fields: Item['fields'] = { ...cur.fields, geoFor: q };
+    onProgress?.(n + 1, todo.length);
+    if (hit === undefined) {
+      result.failed = true;
+      if (++failsInRow >= 3) break;
+      continue;
+    }
+    failsInRow = 0;
+    const cur = await db.items.get(item.id);
+    if (!cur || geoQuery(cur) !== q) continue; // adres intussen gewijzigd: volgende ronde
+    await updateItem(item.id, (c) => {
+      const fields: Item['fields'] = { ...c.fields, geoFor: q };
       if (hit) { fields.lat = Math.round(hit.lat * 1e6) / 1e6; fields.lng = Math.round(hit.lng * 1e6) / 1e6; }
       else { delete fields.lat; delete fields.lng; }
       return { fields };
     });
     if (hit) result.found++;
     else result.notFound.push(item.title);
-    onProgress?.(n + 1, todo.length);
   }
   return result;
+}
+
+/** Alle restaurants die nog een punt nodig hebben (voor het opzoeken op de achtergrond). */
+export async function missingGeocodeIds(): Promise<string[]> {
+  return (await db.items.where('type').equals('restaurant').toArray()).filter(needsGeocode).map((i) => i.id);
 }
