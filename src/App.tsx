@@ -7,6 +7,7 @@ import { getMeta, setMeta } from './data/repo';
 import { loadSampleData } from './data/sample';
 import { applySeedBundles } from './data/seed';
 import { IS_PREVIEW } from './components/ui';
+import { AutoSync } from './ui/sync';
 import { AddCtx, DataProvider, ToastProvider, type AddOptions } from './ui/context';
 import { HOME, navigate, useRoute, type Route } from './ui/router';
 import { AddSheet } from './screens/AddSheet';
@@ -129,6 +130,7 @@ export default function App() {
               <main className="main">
                 <Screen route={route} />
               </main>
+              <AutoSync />
               <nav className="nav" aria-label="Hoofdnavigatie">
                 {NAV.map(({ key, label, icon: Icon }) =>
                   key === 'toevoegen' ? (

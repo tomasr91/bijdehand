@@ -15,7 +15,7 @@ Android, desktop aanvullend.
 
 - **Fase 1 (werkende basis) is gebouwd en geautomatiseerd getest.** De handmatige controle op het eigen
   Android-toestel staat nog open. De volgende stap staat in `docs/ROADMAP.md`.
-- Stack: local-first PWA met TypeScript, React, Vite en Dexie (IndexedDB). Er is geen server en (nog) geen sync (`docs/ARCHITECTURE.md`).
+- Stack: local-first PWA met TypeScript, React, Vite en Dexie (IndexedDB). Er is geen server; de app synchroniseert optioneel met een privé GitHub-repo (`src/data/sync.ts`, `docs/ARCHITECTURE.md` D14).
 - Publicatie: GitHub Pages vanuit deze **openbare** repo (`.github/workflows/pages.yml`). Zet hier nooit persoonlijke gegevens
   in, ook niet in tests of docs: gebruik verzonnen namen. Gegevens horen in de privé repo `bijdehand-data`.
 

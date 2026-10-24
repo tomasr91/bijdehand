@@ -8,6 +8,7 @@ import { loadSampleData, removeSampleData } from '../data/sample';
 import { formatDateTime } from '../data/util';
 import { useData, useToast } from '../ui/context';
 import { navigate } from '../ui/router';
+import { SyncSettings } from './SyncSettings';
 import { canShareFiles as canShare, download } from '../ui/files';
 
 declare global {
@@ -127,6 +128,8 @@ export function Settings() {
       <TopBar back="/verzamelingen" title="Instellingen" />
       <PreviewNotice />
 
+      <SyncSettings />
+
       <Section title="Back-up">
         <p>Laatste back-up: <b>{lastExport ? formatDateTime(lastExport) : 'nog nooit'}</b></p>
         <p className="hint">Eén JSON-bestand met alle items, bronnen, koppelingen en eerdere versies ({liveItems.length} items, {liveSources.length} bronnen).</p>
@@ -150,7 +153,7 @@ export function Settings() {
         {storage.persisted === false && (
           <button type="button" className="btn btn-small" onClick={async () => { await navigator.storage.persist(); await refreshStorage(); }}>Duurzame opslag aanvragen</button>
         )}
-        <p className="hint">Er is nog geen synchronisatie: gegevens op je telefoon en op een computer zijn gescheiden. Gebruik een back-up om over te zetten.</p>
+        <p className="hint">Synchronisatie met GitHub is bedoeld voor één toestel tegelijk (plus Claude). Een tweede toestel kan je gegevens wel ophalen bij het koppelen, maar wijzigingen op twee toestellen tegelijk worden nog niet samengevoegd.</p>
       </Section>
 
       <Section title="Installeren">
@@ -180,7 +183,7 @@ export function Settings() {
 
       <Section title="Wat nog niet kan">
         <ul className="plain">
-          <li>Geen synchronisatie tussen apparaten en geen automatische back-up.</li>
+          <li>Nog geen synchronisatie tussen twee toestellen tegelijk; wel automatisch opslaan in je privé GitHub-repo.</li>
           <li>Geen meldingen op je telefoon; herinneringen staan alleen op Vandaag.</li>
           <li>Titels en afbeeldingen van links worden niet automatisch opgehaald.</li>
           <li>Indelingsvoorstellen komen uit vaste woordregels, niet uit AI.</li>

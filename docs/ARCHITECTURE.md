@@ -121,15 +121,15 @@ haalt bij de eerste bundel ongewijzigde voorbeeldgegevens weg. Bewaarde gegevens
 
 ## Claude laat aantekeningen indelen — route 1 **[Gebouwd]**, route 2 **[Gewenst]**
 
-Claude kan niet bij de gegevens op het toestel en schrijft er nooit rechtstreeks in. Werkwijze en formaten
+Claude schrijft nooit rechtstreeks in de gegevens: alleen voorstellen, die de app controleert en toepast. Werkwijze en formaten
 staan in `INDELEN.md`; code in `src/data/claude.ts` en `src/screens/ProposalsSheet.tsx`.
 
 - **Route 1:** Inbox → *Delen met Claude* (Web Share naar de Claude-app, anders downloaden) → Claude maakt
   een voorstellenbestand → *Voorstellen openen* → beoordelen → toepassen. Toepassen loopt via
   `updateItem`, dus met revisies, plus één knop "Ongedaan maken" voor de hele actie.
-- **Route 2 (B13):** dezelfde bestanden in een **privé** GitHub-repository alleen voor gegevens (los van de
-  code). Een geplande Claude-taak leest de inbox-export en schrijft voorstellen. De app haalt ze op met een
-  persoonlijk toegangstoken dat alleen op het toestel staat (nooit in de code). Alternatief: Google Drive.
+- **Route 2 [Gebouwd] (D13, D14):** de app synchroniseert met de **privé** repo `bijdehand-data`; een geplande Claude-taak
+  (dagelijks en op verzoek) leest `data/bijdehand.json`, zet voorstellen in `voorstellen/`, en de app past ze automatisch toe.
+  Werkwijze van de taak: `INDELEN.md` → Dagelijkse taak; hulpscript `scripts/claude-taak.ts`.
 - Persoonsgegevens gaan alleen mee als de gebruiker deelt: alleen Inbox-items en bestaande schrijfwijzen.
 
 ## Kaart en adressen — **[Gewenst]** fase 2, besluit B12
@@ -184,6 +184,14 @@ bevat geen geheimen.
 - **D05 — 2026-10-24 — Indelingsvoorstel via vaste regels, geen AI** in fase 1; altijd bevestigen door de gebruiker.
 - **D07 — 2026-10-24 — Restaurants per plaats, met keuken en kenmerken als lijst** (schema v2, migratie `location` → `city`). Kenmerken zijn een eigen lijstveld en geen algemene tags, zodat filteren per soort zinvol blijft.
 - **D08 — 2026-10-24 — Lijst plakken als eerste importroute.** Werkt per verzameling, bewaart de oorspronkelijke regel en is ook de basis voor de latere Keep-import.
+- **D14 — 2026-10-24 — Synchronisatie met de privé data-repo** (`src/data/sync.ts`, `src/ui/sync.tsx`, Instellingen →
+  Synchronisatie). GitHub Contents API rechtstreeks vanuit de app met een fine-grained token (alleen *Contents: Read and write*
+  op de data-repo), opgeslagen in de lokale meta-tabel, nooit in back-ups. De app weigert een openbare repo. Het toestel is de
+  enige schrijver van `data/bijdehand.json` (volledige back-up); alleen bij de eerste koppeling wordt wat er al staat samengevoegd
+  (nieuwste wint, niets weg). Claude schrijft alleen `voorstellen/*.json`; de app past de "ok"-voorstellen automatisch toe,
+  verwijdert het bestand en toont *Ongedaan maken*. Synchroniseren: bij openen, bij terugkomen in de app, elke minuut na een
+  wijziging en bij wegschakelen. **Beperking:** twee toestellen tegelijk worden nog niet samengevoegd (B3), en definitief
+  verwijderde items kunnen op een ander toestel blijven bestaan.
 - **D13 — 2026-10-24 — Hosting en route 2 (lost B10 en B13 op).** Code in de **openbare** repo `tomasr91/bijdehand`, gepubliceerd met
   GitHub Pages (gratis alleen vanuit een openbare repo). Gegevens in de **privé** repo `tomasr91/bijdehand-data`, nooit in de
   code-repo; testvoorbeelden gebruiken verzonnen namen. Later privé + Cloudflare Pages kan: nieuw adres, gegevens komen dan

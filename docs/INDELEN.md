@@ -18,8 +18,10 @@ dat de eigenaar bijschaaft. Claude volgt dit document; pas het aan als je iets a
 in en publiceert die opnieuw; bij openen staan de items erin, zonder bestanden. De bestandskiezer werkt
 niet in elke artifact-weergave.
 
-**Route 2 (later):** hetzelfde voorstellenbestand, maar Claude zet het in een **privé**-repository met
-gegevens, en de app haalt het op met één knop. Het formaat blijft gelijk.
+**Route 2 [Gebouwd]:** de app staat gekoppeld aan de privé repo `bijdehand-data` (Instellingen → Synchronisatie) en
+zet daar automatisch `data/bijdehand.json` neer. Claude zet voorstellen in `voorstellen/`. De app past bij de volgende
+synchronisatie alles toe wat **ok** is (zonder te vragen; met een melding en *Ongedaan maken*) en verwijdert het bestand.
+Wat "let op" of "kan niet" is, blijft gewoon in de Inbox staan.
 
 Het gedeelde bestand bevat alleen de Inbox-items (titel, tekst, checklist, tags, links), de velden per
 soort en bestaande schrijfwijzen (zoals plaatsen en kenmerken). Er gaat niets anders mee.
@@ -90,6 +92,24 @@ Ze staan op het kaartje (de eerste drie), dus in één oogopslag moet duidelijk 
   prijzen of oordelen. Alleen wat de bronnen zeggen.
 - **Vorm:** kleine letters, kort, bestaande schrijfwijzen volgen (`bekend`). Labels van de eigenaar blijven altijd staan.
   Een eerder door Claude gekozen label dat niet klopt, haalt Claude weg met `weghalen` (zie hieronder).
+
+## Dagelijkse taak (route 2) — **[Gebouwd]**
+
+Een geplande Claude-taak draait **één keer per dag** (en op verzoek van de eigenaar: "Bijdehand bijwerken").
+
+1. Kloon `tomasr91/bijdehand` (code, openbaar) en `tomasr91/bijdehand-data` (gegevens, privé); `npm ci` in de code-repo.
+2. `npx tsx scripts/claude-taak.ts todo ../bijdehand-data` geeft: Inbox-items, restaurants die nog niet zijn opgezocht
+   (geen `checkedAt`), bestaande schrijfwijzen (`bekend`), velden per soort (`soorten`) en `gebaseerdOp`.
+   Items met een wachtend voorstel staan er niet in. Niets te doen → stoppen, niets committen.
+3. Per Inbox-item: `indelen` / `nieuw` / `laten` volgens de regels hierboven. Wordt het een restaurant, dan meteen ook opzoeken
+   (zelfde voorstel, velden hieronder). Per al ingedeeld restaurant zonder `checkedAt`: `aanvullen`.
+4. **Opzoeken (restaurant):** `city`, `cuisine`, `address`, `website` (eigen site), `summary` (3–5 zinnen), `traits` (labels: keuken +
+   vega/vegan, zie hierboven), `openStatus`, `checkedAt` (vandaag), `uncertain` (wat niet zeker is) en `links`. Cijfers en
+   prijsniveau zijn verborgen in de app: niet nodig. Alleen feiten uit bronnen; niets gevonden = leeg laten.
+5. Schrijf `voorstellen/JJJJ-MM-DD-UUMM.json` met `gebaseerdOp` uit stap 2, controleer met
+   `npx tsx scripts/claude-taak.ts check ../bijdehand-data voorstellen/<bestand>` (moet "Alles in orde" geven) en commit
+   **alleen dat bestand** in `bijdehand-data`. Nooit `data/bijdehand.json` wijzigen; nooit gegevens in de openbare code-repo.
+6. Meld kort (Nederlands) wat er is ingedeeld en opgezocht, en welke items bewust zijn blijven staan (met de vraag).
 
 ## Voorstellenbestand (formaat versie 1)
 

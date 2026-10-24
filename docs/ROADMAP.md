@@ -7,8 +7,8 @@ handmatige controle op het eigen Android-toestel staat nog open.**
 
 1. **Publiceren via GitHub Pages** (besluit D13; workflow `.github/workflows/pages.yml`) en de app installeren op de eigen
    Android-telefoon: <https://tomasr91.github.io/bijdehand/>.
-2. **Route 2 bouwen** (B13 besloten, zie ARCHITECTURE): synchronisatie met de privé data-repo `bijdehand-data` en een geplande
-   Claude-taak die nieuwe items indeelt en restaurants opzoekt.
+2. **Koppelen op de telefoon** (Instellingen → Synchronisatie, sleutel maken) en de dagelijkse Claude-taak controleren
+   (D14; werkwijze in INDELEN.md → Dagelijkse taak).
 3. **Handmatige toestelcontrole** uitvoeren (checklist hieronder), inclusief het echte deelmenu.
 4. Daarna fase 2 verder met de **Google Keep-import**. Daarvoor is een echte Takeout-export van de
    eigenaar nodig.
@@ -51,7 +51,7 @@ voorbeeldgegevens; installeerbaar en offline; ontvangst via het deelmenu (code).
 | Geplande taak: nieuwe restaurants aanvullen via Google Places API (zie `GOOGLE_PLACES.md`) | Privé-repo, Google-sleutel | Nieuw restaurant krijgt binnen een dag cijfer, aantal, prijsniveau, adres, website, kenmerkende labels, samenvatting en links; maandelijkse verversing; sleutel alleen als geheim |
 | Opgezochte cijfers en prijsniveau weer tonen. **Nu op verzoek van de eigenaar verborgen** (`hidden` in het register); de waarden blijven bewaard. Het kaartje toont nu alleen naam, kenmerken en je eigen cijfer | Besluit eigenaar (waar: kaartje of detail?) | `hidden` weghalen; weergave opnieuw bouwen (de oude ★ · € · keuken-regel staat in de git-geschiedenis); samenvattingen bevatten zelf geen cijfers of prijzen |
 | Kaart met restaurants + adressen opzoeken (geocoding) in de app | B12 | Elk restaurant met plaats krijgt na bevestiging een locatie; handmatige correctie mogelijk; kaart werkt op 360 px; zonder internet blijft de lijst bruikbaar |
-| Claude-route 2: voorstellen ophalen uit privé-repo | B13 | Knop haalt het nieuwste voorstellenbestand op; token alleen op het toestel; zonder token blijft route 1 werken |
+| Claude-route 2: voorstellen ophalen uit privé-repo — **gebouwd** (D14) | — | Gedaan: automatisch synchroniseren, voorstellen automatisch toepassen met *Ongedaan maken*; token alleen op het toestel; zonder koppeling blijft route 1 werken. Open: controle op het eigen toestel |
 | Verbanden voorstellen | — | Voorstellen zijn herkenbaar en worden nooit automatisch gekoppeld |
 | Verbeterd zoeken | — | Zoeken op synoniemen/meervoud en op datum; voorbeeldvragen blijven werken |
 | Automatische classificatie, samenvattingen, bronverrijking (AI) | B3, B11 | Werkt via een server of proxy zonder sleutels in de app; AI-tekst gemarkeerd; app blijft zonder AI bruikbaar |

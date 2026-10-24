@@ -87,7 +87,8 @@ Terugzetten is zelf ook weer een wijziging met revisie.
 
 ### Meta
 
-Sleutel-waarde, nu alleen `lastExportAt`.
+Sleutel-waarde: `lastExportAt`, en voor synchronisatie `sync:repo`, `sync:token`, `sync:lastAt`, `sync:lastPrint`, `sync:error`.
+De meta-tabel gaat **nooit** mee in een back-up (de sleutel blijft op het toestel).
 
 ## Uitwisseling met Claude
 

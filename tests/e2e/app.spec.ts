@@ -351,3 +351,67 @@ test('restaurant: websiteknop in detail, cijfers en prijsniveau (tijdelijk) niet
   await touchTargetsOk(page);
   await noHorizontalScroll(page);
 });
+
+test('synchroniseren met privé GitHub-repo: koppelen, voorstel van Claude automatisch toepassen', async ({ page }) => {
+  // Nagebootste GitHub (Contents API) in het geheugen van de test.
+  const files = new Map<string, { sha: string; text: string }>();
+  let n = 0;
+  const TOKEN = 'github_pat_e2e_0123456789abcdefghij';
+  await page.route('https://api.github.com/**', async (route) => {
+    const req = route.request();
+    const url = new URL(req.url());
+    const ok = (status: number, body: unknown) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
+    if (req.headers()['authorization'] !== `Bearer ${TOKEN}`) return ok(401, { message: 'Bad credentials' });
+    const m = url.pathname.match(/^\/repos\/[^/]+\/[^/]+(\/contents\/(.*))?$/);
+    if (!m) return ok(404, {});
+    if (!m[1]) return ok(200, { private: true });
+    const path = decodeURIComponent(m[2]);
+    const method = req.method();
+    if (method === 'GET') {
+      const f = files.get(path);
+      if (f) return ok(200, { sha: f.sha, content: Buffer.from(f.text).toString('base64'), encoding: 'base64' });
+      const dir = [...files.keys()].filter((p) => p.startsWith(path + '/'));
+      if (dir.length) return ok(200, dir.map((p) => ({ name: p.split('/').pop(), path: p, sha: files.get(p)!.sha, type: 'file' })));
+      return ok(404, { message: 'Not Found' });
+    }
+    const body = req.postDataJSON();
+    if (method === 'PUT') {
+      files.set(path, { sha: `s${++n}`, text: Buffer.from(body.content, 'base64').toString('utf8') });
+      return ok(201, {});
+    }
+    if (method === 'DELETE') { files.delete(path); return ok(200, {}); }
+    return ok(405, {});
+  });
+
+  await page.goto('/');
+  await nav(page, 'Toevoegen').click();
+  await page.getByRole('dialog').getByLabel('Tekst').fill('Pamir Leiden');
+  await page.getByRole('dialog').getByRole('button', { name: 'Bewaren' }).click();
+  await settle(page);
+
+  await page.goto('/#/instellingen');
+  await page.getByLabel('Repo').fill('iemand/bijdehand-data');
+  await page.getByLabel('Sleutel (fine-grained token)').fill('github_pat_fout_00000000000000000000');
+  await page.getByRole('button', { name: 'Koppelen' }).click();
+  await expect(page.getByRole('alert').getByText(/ongeldig of verlopen/)).toBeVisible();
+  await page.getByLabel('Sleutel (fine-grained token)').fill(TOKEN);
+  await page.getByRole('button', { name: 'Koppelen' }).click();
+  await expect(page.getByText(/Gekoppeld met/)).toBeVisible();
+  await expect.poll(() => files.has('data/bijdehand.json')).toBe(true);
+  const stored = JSON.parse(files.get('data/bijdehand.json')!.text);
+  expect(stored.data.items.map((i: { title: string }) => i.title)).toContain('Pamir Leiden');
+  expect(files.get('data/bijdehand.json')!.text).not.toContain(TOKEN);
+
+  // Claude zet een voorstel klaar; bij de volgende synchronisatie wordt het automatisch toegepast.
+  const note = stored.data.items.find((i: { title: string }) => i.title === 'Pamir Leiden');
+  files.set('voorstellen/2026-10-25.json', { sha: 'v1', text: JSON.stringify({
+    format: 'bijdehand-voorstellen', formatVersion: 1, gebaseerdOp: stored.exportedAt,
+    voorstellen: [{ id: 'v1', actie: 'indelen', itemId: note.id, type: 'restaurant', titel: 'Pamir', velden: { city: 'Leiden', cuisine: 'Afghaans', traits: ['afghaans'] } }],
+  }) });
+  await page.getByRole('button', { name: 'Nu synchroniseren' }).click();
+  await expect(page.getByText(/Claude verwerkte 1 item: Pamir/)).toBeVisible();
+  expect(files.has('voorstellen/2026-10-25.json')).toBe(false);
+  await page.goto('/#/verzameling/restaurant');
+  await expect(page.getByRole('button', { name: /Pamir/ })).toContainText('afghaans');
+  await touchTargetsOk(page);
+});
