@@ -1,6 +1,6 @@
 // Service worker: app offline openen. Bevat geen gebruikersgegevens (die staan in IndexedDB).
 // Verhoog CACHE bij wijzigingen in deze strategie.
-const CACHE = 'bijdehand-shell-v1';
+const CACHE = 'bijdehand-shell-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {

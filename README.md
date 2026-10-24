@@ -21,6 +21,9 @@ Elke push naar `main` wordt na typecheck, unittests en build automatisch gepubli
 
 Open die url in Chrome op Android → menu (⋮) → *App installeren*.
 
+De app heeft een vaste `id` in `public/manifest.webmanifest` (`./?app=bijdehand-2`). Verander die alleen als een
+installatie op een toestel vastloopt ("kan app niet openen"): Chrome ziet de app dan als nieuw.
+
 Deze repo is openbaar en bevat **nooit** persoonlijke gegevens of sleutels: gegevens staan op het toestel
 (en straks in een aparte privé-repo); testvoorbeelden gebruiken verzonnen namen.
 
