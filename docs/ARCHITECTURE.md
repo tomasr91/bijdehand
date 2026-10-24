@@ -183,6 +183,11 @@ bevat geen geheimen.
 - **D05 — 2026-10-24 — Indelingsvoorstel via vaste regels, geen AI** in fase 1; altijd bevestigen door de gebruiker.
 - **D07 — 2026-10-24 — Restaurants per plaats, met keuken en kenmerken als lijst** (schema v2, migratie `location` → `city`). Kenmerken zijn een eigen lijstveld en geen algemene tags, zodat filteren per soort zinvol blijft.
 - **D08 — 2026-10-24 — Lijst plakken als eerste importroute.** Werkt per verzameling, bewaart de oorspronkelijke regel en is ook de basis voor de latere Keep-import.
+- **D18 — 2026-10-24 — Geen dubbele items meer.** (1) Synchroniseren via een Web Lock: maar één tabblad tegelijk.
+  (2) Toegepaste voorstelbestanden worden onthouden (naam@sha) en nooit opnieuw toegepast. (3) Voorstellen `nieuw`/`indelen`
+  voor iets dat er al staat (soort + naam + plaats) of dubbel in het bestand: niet toepassen. (4) Bij openen ruimt
+  `src/data/repair.ts` overduidelijke kopieën op (door Claude, zelfde aantekening, < 5 s, gelijke inhoud). Nieuwe actie
+  `verwijderen` (alleen met itemId, naar de prullenbak).
 - **D17 — 2026-10-24 — Locaties eerst via PDOK, op de achtergrond, en adres verplicht bij Claude.** Op de telefoon stopte
   het opzoeken via OpenStreetMap na een paar adressen (OSM blokkeert browserverzoeken soms). Zie Kaart en adressen.
 - **D16 — 2026-10-24 — Kaart met restaurants (lost B12 op).** Leaflet + OpenStreetMap-tegels; locaties via Nominatim in de

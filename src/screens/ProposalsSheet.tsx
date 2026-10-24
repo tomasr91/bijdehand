@@ -66,7 +66,7 @@ export function ProposalsSheet({ value, onClose }: { value: ParsedProposals | nu
         {rows.map((r, i) => {
           const p = r.p;
           const def = p.type ? TYPE_MAP[p.type] : undefined;
-          const head = p.actie === 'indelen' ? `Indelen als ${def?.label.toLowerCase()}` : p.actie === 'nieuw' ? `Nieuw: ${def?.label.toLowerCase() ?? ''}` : p.actie === 'aanvullen' ? 'Aanvullen' : 'Laten staan';
+          const head = p.actie === 'indelen' ? `Indelen als ${def?.label.toLowerCase()}` : p.actie === 'nieuw' ? `Nieuw: ${def?.label.toLowerCase() ?? ''}` : p.actie === 'aanvullen' ? 'Aanvullen' : p.actie === 'verwijderen' ? 'Naar prullenbak' : 'Laten staan';
           const title = p.titel || r.item?.title || '—';
           return (
             <li key={p.id + i} className={`proposal s-${r.status}`}>

@@ -169,6 +169,44 @@ describe('aanvullen: leegmaken en website', () => {
   });
 });
 
+describe('dubbele items voorkomen en verwijderen', () => {
+  const file = (v: unknown[]) => JSON.stringify({ format: 'bijdehand-voorstellen', formatVersion: 1, voorstellen: v });
+
+  it('slaat een voorstel over voor iets dat er al staat of twee keer in het bestand staat; de aantekening telt als afgehandeld', async () => {
+    await repo.createItem({ type: 'restaurant', title: 'Pamir', fields: { city: 'Leiden' } });
+    const note = await repo.createItem({ type: null, title: 'Pamir, Groen' });
+    const r = parseProposals(file([
+      { actie: 'nieuw', itemId: note.id, type: 'restaurant', titel: 'pamir', velden: { city: 'Leiden' } },
+      { actie: 'nieuw', itemId: note.id, type: 'restaurant', titel: 'Groen', velden: { city: 'Leiden' } },
+      { actie: 'nieuw', itemId: note.id, type: 'restaurant', titel: 'Groen', velden: { city: 'Leiden' } },
+      { actie: 'nieuw', type: 'restaurant', titel: 'Pamir', velden: { city: 'Haarlem' } },
+    ]), await db.items.toArray());
+    if (!r.ok) throw new Error(r.error);
+    expect(r.value.rows.map((x) => [x.status, x.duplicate ?? false])).toEqual([['gewijzigd', true], ['ok', false], ['gewijzigd', true], ['ok', false]]);
+    expect(r.value.rows[0].problem).toMatch(/staat al in Restaurants/);
+    const ok = r.value.rows.filter((x) => x.status === 'ok');
+    await applyProposals(ok, r.value.rows);
+    const titles = (await db.items.toArray()).filter((i) => i.type === 'restaurant' && !i.deletedAt).map((i) => `${i.title}/${i.fields.city}`).sort();
+    expect(titles).toEqual(['Groen/Leiden', 'Pamir/Haarlem', 'Pamir/Leiden']);
+    expect((await db.items.get(note.id))?.deletedAt).toBeTruthy(); // volledig afgehandeld
+  });
+
+  it('verwijderen: alleen met itemId, naar de prullenbak, terug te draaien', async () => {
+    const a = await repo.createItem({ type: 'restaurant', title: 'Dubbel', fields: { city: 'Leiden' } });
+    const bad = parseProposals(file([{ actie: 'verwijderen', zoek: { titel: 'Dubbel' } }]), await db.items.toArray());
+    if (!bad.ok) throw new Error(bad.error);
+    expect(bad.value.rows[0].status).toBe('fout');
+    const r = parseProposals(file([{ actie: 'verwijderen', itemId: a.id, reden: 'dubbel' }]), await db.items.toArray());
+    if (!r.ok) throw new Error(r.error);
+    expect(r.value.rows[0].status).toBe('ok');
+    const res = await applyProposals(r.value.rows);
+    expect(res.trashed).toBe(1);
+    expect((await db.items.get(a.id))?.deletedAt).toBeTruthy();
+    await undoApply(res.undo);
+    expect((await db.items.get(a.id))?.deletedAt).toBeNull();
+  });
+});
+
 describe('aanvullen: labels weghalen en herschikken', () => {
   it('haalt alleen de genoemde waarden weg; eigen labels blijven; ongedaan maken herstelt', async () => {
     const it0 = await repo.createItem({ type: 'restaurant', title: 'Pamir', fields: { city: 'Leiden', traits: ['reserveren', 'aan de werf', 'Laat open'] } });

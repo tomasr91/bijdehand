@@ -83,7 +83,7 @@ export function inboxFileName(d = new Date()): string {
 
 export interface Proposal {
   id: string;
-  actie: 'indelen' | 'nieuw' | 'aanvullen' | 'laten';
+  actie: 'indelen' | 'nieuw' | 'aanvullen' | 'laten' | 'verwijderen';
   /** aanvullen: welk bestaand item (zelfde soort, titel en eventueel plaats). */
   zoek?: { titel: string; city?: string };
   /** Links die als bron worden bewaard en gekoppeld (website, Google Maps, TheFork…). */
@@ -107,8 +107,10 @@ export interface ProposalRow {
   p: Proposal;
   status: RowStatus;
   problem?: string;
-  /** Het bestaande item (indelen/laten) of de bronaantekening (nieuw). */
+  /** Het bestaande item (indelen/laten/verwijderen) of de bronaantekening (nieuw). */
   item?: Item;
+  /** Staat er al (zelfde soort, naam en plaats): niet toepassen, maar geldt wel als afgehandeld. */
+  duplicate?: boolean;
 }
 
 export interface ParsedProposals {
@@ -185,12 +187,25 @@ export function parseProposals(text: string, items: Item[]): ParseProposalsResul
   if (raw.formatVersion !== 1) return { ok: false, error: 'Onbekende versie van het voorstellenbestand.' };
   if (!Array.isArray(raw.voorstellen)) return { ok: false, error: 'Het bestand bevat geen lijst "voorstellen".' };
   const byId = new Map(items.map((i) => [i.id, i]));
+  // Dubbele items voorkomen: zelfde soort + naam (+ plaats als beide er een hebben) bestaat al, of komt eerder in dit bestand.
+  const live = items.filter((i) => !i.deletedAt && i.type);
+  const inFile: { type: TypeKey; title: string; city: string }[] = [];
+  const sameCity = (a: string, b: string) => !a || !b || a === b;
+  const duplicateOf = (type: TypeKey, title: string, cityRaw: FieldValue | undefined): string | null => {
+    const t = fold(title);
+    const c = typeof cityRaw === 'string' ? fold(cityRaw) : '';
+    const hit = live.find((i) => i.type === type && fold(i.title) === t && sameCity(c, typeof i.fields.city === 'string' ? fold(i.fields.city) : ''));
+    if (hit) return `staat al in ${TYPE_MAP[type].plural}: "${hit.title}"`;
+    if (inFile.some((x) => x.type === type && x.title === t && sameCity(c, x.city))) return 'staat twee keer in dit voorstel';
+    inFile.push({ type, title: t, city: c });
+    return null;
+  };
   const basedOn = typeof raw.gebaseerdOp === 'string' ? raw.gebaseerdOp : '';
   const rows: ProposalRow[] = raw.voorstellen.map((v: unknown, n: number): ProposalRow => {
     const bad = (problem: string, p: Partial<Proposal> = {}): ProposalRow => ({ p: { id: `v${n + 1}`, actie: 'laten', ...p }, status: 'fout', problem });
     if (!isObj(v)) return bad('geen geldig voorstel');
     const actie = v.actie;
-    if (actie !== 'indelen' && actie !== 'nieuw' && actie !== 'aanvullen' && actie !== 'laten') return bad(`onbekende actie "${String(actie)}"`);
+    if (actie !== 'indelen' && actie !== 'nieuw' && actie !== 'aanvullen' && actie !== 'laten' && actie !== 'verwijderen') return bad(`onbekende actie "${String(actie)}"`);
     const p: Proposal = {
       id: typeof v.id === 'string' && v.id ? v.id : `v${n + 1}`,
       actie,
@@ -207,6 +222,12 @@ export function parseProposals(text: string, items: Item[]): ParseProposalsResul
     };
     let item = p.itemId ? byId.get(p.itemId) : undefined;
     if (actie === 'laten') return { p, status: 'laten', item };
+    if (actie === 'verwijderen') {
+      // Alleen een exact aangewezen item (itemId) naar de prullenbak; altijd terug te zetten.
+      if (!item) return bad('verwijderen kan alleen met het itemId van een bestaand item', p);
+      if (item.deletedAt) return { p: { ...p, type: item.type ?? undefined }, status: 'gewijzigd', problem: 'staat al in de prullenbak', item };
+      return { p: { ...p, type: item.type ?? undefined }, status: 'ok', item };
+    }
     if (actie === 'aanvullen') {
       if (!isTypeKey(v.type)) return bad(`onbekende soort "${String(v.type)}"`, p);
       if (!p.zoek) return bad('"zoek" met de titel van het bestaande item ontbreekt', p);
@@ -239,11 +260,15 @@ export function parseProposals(text: string, items: Item[]): ParseProposalsResul
       if (!item || item.deletedAt) return { p, status: 'fout', problem: 'het Inbox-item bestaat niet (meer)' };
       if (item.type !== null) return { p, status: 'gewijzigd', problem: 'is intussen al ingedeeld', item };
       if (basedOn && item.updatedAt > basedOn) return { p, status: 'gewijzigd', problem: 'is na het delen nog gewijzigd', item };
+      const dup = duplicateOf(v.type, p.titel || item.title, p.velden?.city);
+      if (dup) return { p, status: 'gewijzigd', problem: dup, item, duplicate: true };
       return { p, status: 'ok', item };
     }
     // nieuw
     if (!p.titel) return { p, status: 'fout', problem: 'titel ontbreekt', item };
     if (p.itemId && (!item || item.deletedAt)) return { p, status: 'fout', problem: 'de aantekening waar dit uit komt bestaat niet (meer)' };
+    const dup = duplicateOf(v.type, p.titel, p.velden?.city);
+    if (dup) return { p, status: 'gewijzigd', problem: dup, item, duplicate: true };
     return { p, status: 'ok', item };
   });
   return { ok: true, value: { createdAt: typeof raw.gemaaktOp === 'string' ? raw.gemaaktOp : '', basedOn, rows } };
@@ -282,11 +307,11 @@ export async function applyProposals(rows: ProposalRow[], allRows: ProposalRow[]
 
   for (const r of rows) {
     const p = r.p;
-    if (r.status === 'fout' || p.actie === 'laten' || !p.type) continue;
+    if (r.status === 'fout' || p.actie === 'laten' || (!p.type && p.actie !== 'verwijderen')) continue;
     if (p.actie === 'aanvullen' && r.item) {
       // Opgezochte velden mogen worden ververst; eigen velden alleen invullen als ze leeg zijn; lijsten aanvullen.
       res.undo.updated.push(structuredClone(r.item));
-      const defs = new Map(TYPE_MAP[p.type].fields.map((f) => [f.key, f]));
+      const defs = new Map(TYPE_MAP[p.type!].fields.map((f) => [f.key, f]));
       const changed: string[] = [];
       const claudeOwned = new Set(r.item.filledBy?.fields ?? []);
       await updateItem(r.item.id, (cur) => {
@@ -340,6 +365,13 @@ export async function applyProposals(rows: ProposalRow[], allRows: ProposalRow[]
       await attachLinks(r.item.id, p.links, res.undo);
       await db.items.update(r.item.id, { filledBy: { by: 'claude', at, fields: changed } });
       res.updated++;
+    } else if (p.actie === 'verwijderen' && r.item) {
+      const cur = await db.items.get(r.item.id);
+      if (cur && !cur.deletedAt) {
+        res.undo.updated.push(structuredClone(cur));
+        await db.items.put({ ...cur, deletedAt: at, updatedAt: at, rev: cur.rev + 1 });
+        res.trashed++;
+      }
     } else if (p.actie === 'nieuw') {
       const item = buildItem({
         type: p.type,
@@ -367,7 +399,8 @@ export async function applyProposals(rows: ProposalRow[], allRows: ProposalRow[]
   }
   // Alleen naar de prullenbak als élk "nieuw"-voorstel uit deze aantekening is toegepast.
   const applied = new Set(rows.filter((r) => r.status !== 'fout'));
-  const fullySplit = (id: string) => allRows.filter((r) => r.p.actie === 'nieuw' && r.p.itemId === id).every((r) => applied.has(r));
+  // Een voorstel voor iets dat er al staat, telt als afgehandeld.
+  const fullySplit = (id: string) => allRows.filter((r) => r.p.actie === 'nieuw' && r.p.itemId === id).every((r) => applied.has(r) || r.duplicate);
   for (const id of splitSources) {
     if (!fullySplit(id)) continue;
     const cur = await db.items.get(id);

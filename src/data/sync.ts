@@ -14,7 +14,7 @@ import { nowIso } from './util';
 export const DATA_PATH = 'data/bijdehand.json';
 export const PROPOSALS_DIR = 'voorstellen';
 
-const K = { repo: 'sync:repo', token: 'sync:token', lastAt: 'sync:lastAt', lastPrint: 'sync:lastPrint', error: 'sync:error' } as const;
+const K = { repo: 'sync:repo', token: 'sync:token', lastAt: 'sync:lastAt', lastPrint: 'sync:lastPrint', error: 'sync:error', applied: 'sync:applied' } as const;
 
 export interface SyncConfig { repo: string; token: string }
 
@@ -177,10 +177,29 @@ export async function needsPush(): Promise<boolean> {
 
 let running: Promise<SyncResult> | null = null;
 
-/** Eén synchronisatieronde. Gelijktijdige aanroepen wachten op dezelfde ronde. */
+/**
+ * Eén synchronisatieronde. Gelijktijdige aanroepen wachten op dezelfde ronde, en via een Web Lock ook over tabbladen heen:
+ * staat de app op twee plekken open (tabblad + geïnstalleerde app), dan synchroniseert er maar één tegelijk.
+ * Zonder die vergrendeling pasten twee tabbladen hetzelfde voorstel tegelijk toe en ontstonden dubbele items.
+ */
 export function syncNow(): Promise<SyncResult> {
-  if (!running) running = runSync().finally(() => { running = null; });
+  if (!running) running = withLock('bijdehand-sync', runSync).finally(() => { running = null; });
   return running;
+}
+
+async function withLock<T>(name: string, fn: () => Promise<T>): Promise<T> {
+  const locks = typeof navigator !== 'undefined' ? (navigator as Navigator & { locks?: LockManager }).locks : undefined;
+  return locks?.request ? (locks.request(name, fn) as Promise<T>) : fn();
+}
+
+/** Voorstelbestanden die al zijn toegepast (naam@sha), zodat een bestand nooit twee keer wordt verwerkt. */
+async function appliedFiles(): Promise<string[]> {
+  try { return JSON.parse((await meta(K.applied)) ?? '[]') as string[]; } catch { return []; }
+}
+async function rememberApplied(id: string): Promise<void> {
+  const list = (await appliedFiles()).filter((x) => x !== id);
+  list.push(id);
+  await setMeta(K.applied, JSON.stringify(list.slice(-200)));
 }
 
 async function runSync(): Promise<SyncResult> {
@@ -201,6 +220,12 @@ async function runSync(): Promise<SyncResult> {
     // 2. Voorstellen van Claude toepassen (vóór het opslaan, zodat de repo meteen de nieuwe stand krijgt).
     const files = (await gh.listDir(PROPOSALS_DIR)).filter((f) => f.type === 'file' && f.name.endsWith('.json')).sort((a, b) => a.name.localeCompare(b.name));
     for (const f of files) {
+      const done = `${f.name}@${f.sha}`;
+      if ((await appliedFiles()).includes(done)) {
+        // Al eerder toegepast (bijv. het verwijderen mislukte toen): alleen opruimen.
+        await gh.deleteFile(f.path, f.sha, `Al verwerkt door de app: ${f.name}`).catch(() => {});
+        continue;
+      }
       const file = await gh.getFile(f.path);
       if (!file) continue;
       const items = await db.items.toArray();
@@ -215,6 +240,7 @@ async function runSync(): Promise<SyncResult> {
         result.undo.push(res.undo);
         for (const r of ok) if (r.p.actie !== 'laten') result.applied.titles.push(r.p.titel || r.item?.title || '');
       }
+      await rememberApplied(done);
       await gh.deleteFile(f.path, file.sha, `Verwerkt door de app: ${f.name}`);
     }
 

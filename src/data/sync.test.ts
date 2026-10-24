@@ -129,6 +129,23 @@ describe('synchroniseren', () => {
     expect((await db.items.get(note.id))?.type).toBeNull();
   });
 
+  it('past een voorstelbestand nooit twee keer toe, ook niet als het verwijderen in GitHub mislukte', async () => {
+    const gh = fakeGitHub();
+    let failDelete = true;
+    setFetcher(async (input, init) => {
+      if ((init?.method ?? 'GET') === 'DELETE' && failDelete) { failDelete = false; return new Response('{}', { status: 409 }); }
+      return gh.fetch(input, init);
+    });
+    await connect('tomas/data', TOKEN);
+    await syncNow();
+    gh.put('voorstellen/a.json', JSON.stringify({ format: 'bijdehand-voorstellen', formatVersion: 1, voorstellen: [{ actie: 'nieuw', type: 'book', titel: 'Klara and the Sun' }] }));
+    await expect(syncNow()).rejects.toThrow(); // verwijderen mislukt → ronde mislukt, maar het bestand is al toegepast
+    await syncNow(); // tweede ronde: bestand overslaan en opruimen
+    const books = (await db.items.toArray()).filter((i) => i.type === 'book');
+    expect(books).toHaveLength(1);
+    expect(gh.files.has('voorstellen/a.json')).toBe(false);
+  });
+
   it('meldt een fout en onthoudt die in de status; ontkoppelen laat de gegevens staan', async () => {
     const gh = fakeGitHub();
     setFetcher(gh.fetch);

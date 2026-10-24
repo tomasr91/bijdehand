@@ -6,14 +6,17 @@ import { IS_PREVIEW } from '../components/ui';
 import { undoApply } from '../data/claude';
 import { getSyncConfig, needsPush, syncNow, type SyncResult } from '../data/sync';
 import { geocodeMissing, missingGeocodeIds } from '../data/geocode';
+import { repairDuplicates } from '../data/repair';
 import { useToast } from './context';
 
 export function describeApplied(r: SyncResult): string | null {
   const n = r.applied.updated + r.applied.created;
-  if (!n) return null;
+  const trashed = r.applied.trashed;
+  if (!n && !trashed) return null;
   const names = r.applied.titles.filter(Boolean);
   const list = names.slice(0, 3).join(', ') + (names.length > 3 ? ` en ${names.length - 3} meer` : '');
-  return `Claude verwerkte ${n} ${n === 1 ? 'item' : 'items'}${list ? `: ${list}` : ''}`;
+  const main = n ? `Claude verwerkte ${n} ${n === 1 ? 'item' : 'items'}${list ? `: ${list}` : ''}` : 'Claude ruimde op';
+  return trashed ? `${main} · ${trashed} naar prullenbak` : main;
 }
 
 export function AutoSync() {
@@ -52,7 +55,12 @@ export function AutoSync() {
         // Lukt het nu niet, dan de volgende keer; de kaart meldt het als je hem opent.
       }
     };
-    void run(false).then(locate);
+    // Eerst dubbele kopieën opruimen (zie repair.ts), dan synchroniseren, dan locaties.
+    void repairDuplicates()
+      .then((ids) => { if (ids.length && alive) toast(`${ids.length} dubbele ${ids.length === 1 ? 'item' : 'items'} naar de prullenbak`); })
+      .catch(() => {})
+      .then(() => run(false))
+      .then(locate);
     const onVisible = () => {
       void run(document.visibilityState === 'hidden');
       if (document.visibilityState === 'visible') void locate();

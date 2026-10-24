@@ -143,6 +143,10 @@ Een geplande Claude-taak draait **één keer per dag** (en op verzoek van de eig
 - `actie`: `indelen` (het Inbox-item krijgt een soort en velden), `nieuw` (nieuw item, eventueel uit een
   aantekening), `aanvullen` (bestaand item, gevonden via `zoek: { titel, city }`) of `laten` (blijft in de
   Inbox; `reden` is de vraag).
+- `verwijderen`: alleen met `itemId`, naar de prullenbak (terug te zetten). Gebruik het alleen voor een dubbel item of iets
+  wat aantoonbaar verkeerd is ingedeeld, altijd met `reden`.
+- Dubbel voorkomen: `nieuw`/`indelen` voor iets dat er al staat (zelfde soort, naam en plaats) wordt niet toegepast.
+  Gebruik dan `aanvullen`.
 - `links`: optioneel `[{ url, titel }]`; elke link wordt één keer als bron bewaard en aan het item gekoppeld.
 - `weghalen`: alleen bij `aanvullen`, bijv. `{ "traits": ["terras"] }`: haalt precies die waarden uit een lijstveld (hoofdletters
   maken niet uit). Wordt vóór `velden` toegepast, dus weghalen + opnieuw toevoegen herschikt de volgorde. De app toont het in rood bij
