@@ -97,7 +97,7 @@ verbanden, tags, eerdere versies en metadata.
 | Paklijsten | Secties "Basislijsten" en "Reizen", voortgangsbalk |
 | Klussen | Open eerst, dan prioriteit en deadline; afvinkknop op de kaart |
 | Planten | Op volgende verzorgingsdatum; "verzorgd"-knop op de kaart |
-| Restaurants | Eigen scherm (`src/screens/Restaurants.tsx`). Eén filterrij **Alle · Nog niet · Geweest** (afgeleid van je cijfer); labelfilter via de filterknop in de kopbalk (sheet met labels; actief filter als chip met ✕, stip op de knop). Per plaats één blok met rijen en dunne scheidingslijnen; grootste plaats eerst. Rij: **naam**, daaronder hoogstens 3 labels ("+2"); rechts **hartje** (favoriet) en **je cijfer** groot en vet, of niets als je er nog niet was. Volgorde: favorieten, dan cijfer hoog → laag, dan nog niet geweest (op naam) |
+| Restaurants | Eigen scherm (`src/screens/Restaurants.tsx`). Eén filterrij **Alle · Nog niet · Geweest** (afgeleid van je cijfer); labelfilter via de filterknop in de kopbalk (sheet met labels; actief filter als chip met ✕, stip op de knop). Per plaats één blok met rijen en dunne scheidingslijnen; grootste plaats eerst. Rij: **naam**, daaronder hoogstens 3 labels ("+2"); rechts **hartje** (favoriet) en **je cijfer** groot en vet, of niets als je er nog niet was. Volgorde: favorieten, dan cijfer hoog → laag, dan nog niet geweest (op naam). **Kaart** via het kaarticoon (D16): gevuld punt met cijfer = geweest, open rondje = nog niet; tik → popup met *Openen*; knop *Waar ben ik*; daaronder "N zonder locatie" |
 | Boeken, Albums, Games | Statusfilter-chips, sterren in de kaart |
 | Nachtjes weg | Bestemming, prijsindicatie en status |
 

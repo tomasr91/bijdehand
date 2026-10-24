@@ -132,22 +132,17 @@ staan in `INDELEN.md`; code in `src/data/claude.ts` en `src/screens/ProposalsShe
   Werkwijze van de taak: `INDELEN.md` → Dagelijkse taak; hulpscript `scripts/claude-taak.ts`.
 - Persoonsgegevens gaan alleen mee als de gebruiker deelt: alleen Inbox-items en bestaande schrijfwijzen.
 
-## Kaart en adressen — **[Gewenst]** fase 2, besluit B12
+## Kaart en adressen — **[Gebouwd]** (D16)
 
-Doel: restaurants (en later nachtjes weg en andere plekken) op een kaart.
-
-- **Nu gebouwd:** de velden `city` en `address` bij restaurants. Er zijn nog geen coördinaten.
-- **Waarom geen GitHub-taak:** de gegevens staan op het toestel, in IndexedDB, en niet in GitHub.
-  Een taak in GitHub (Actions) kan er niet bij. Adressen omzetten naar coördinaten (geocoding) hoort
-  daarom in de app zelf te gebeuren.
-- **Voorgestelde aanpak:** een knop "Ontbrekende locaties opzoeken" in Restaurants. Die zoekt per
-  restaurant "naam + adres/plaats" op bij een geocoder (bijv. OpenStreetMap Nominatim: gratis, maximaal
-  1 verzoek per seconde, goed genoeg voor tientallen adressen). Elk resultaat wordt ter bevestiging
-  getoond en daarna opgeslagen als `geo: { lat, lng, source, at }` met de herkomst erbij, zodat
-  handmatige keuzes nooit worden overschreven. De kaart zelf: Leaflet met OpenStreetMap-tegels.
-- **Waarom pas in fase 2:** het opzoeken vraagt internettoegang die in de ontwikkelomgeving niet
-  testbaar is, en zonder kaart heeft het nog geen nut. Ook offline-gebruik (tegels cachen) en het
-  privacyaspect (namen gaan naar de geocoder) horen bij die keuze.
+- **Kaart:** Restaurants → kaarticoon in de kopbalk wisselt tussen lijst en kaart (keuze per toestel onthouden).
+  Leaflet met OpenStreetMap-tegels (`src/screens/RestaurantMap.tsx`). Gevuld punt met cijfer = geweest, open rondje = nog niet.
+  Tik → naam, labels, cijfer en *Openen*. *Waar ben ik* vraagt pas bij tikken om de locatie. Filters gelden ook voor de kaart.
+- **Locaties:** `src/data/geocode.ts` zet het adres om via OpenStreetMap Nominatim (gratis, zonder sleutel): alleen restaurants
+  mét adres (een plaatsnaam alleen zou misleidend midden in de stad landen), één verzoek per seconde, als de kaart opent.
+  Opgeslagen als verborgen velden `lat`, `lng` en `geoFor` (het adres waarvoor gezocht is). Verandert het adres, dan zoekt de
+  app opnieuw; zo corrigeer je een verkeerd punt. Niet gevonden = `geoFor` zonder punt, verschijnt onder "zonder locatie".
+- **Privacy:** restaurantadressen gaan naar OpenStreetMap; OSM ziet welk kaartgebied je bekijkt. Geen persoonsgegevens.
+- **Offline:** geen kaart zonder internet (tegels worden niet bewaard); de lijst werkt gewoon.
 
 ## Google Keep-import — **[Onderzoek]** fase 2
 
@@ -184,6 +179,8 @@ bevat geen geheimen.
 - **D05 — 2026-10-24 — Indelingsvoorstel via vaste regels, geen AI** in fase 1; altijd bevestigen door de gebruiker.
 - **D07 — 2026-10-24 — Restaurants per plaats, met keuken en kenmerken als lijst** (schema v2, migratie `location` → `city`). Kenmerken zijn een eigen lijstveld en geen algemene tags, zodat filteren per soort zinvol blijft.
 - **D08 — 2026-10-24 — Lijst plakken als eerste importroute.** Werkt per verzameling, bewaart de oorspronkelijke regel en is ook de basis voor de latere Keep-import.
+- **D16 — 2026-10-24 — Kaart met restaurants (lost B12 op).** Leaflet + OpenStreetMap-tegels; locaties via Nominatim in de
+  app, automatisch bij openen van de kaart (zonder bevestiging per adres; correctie via het adres). Zie Kaart en adressen.
 - **D15 — 2026-10-24 — Eén hoofdscherm, geen navigatiebalk.** Alleen Verzamelingen, Instellingen en een ronde
   Toevoegen-knop. Vandaag en de lijst Bronnen zijn weg (code verwijderd; gegevens blijven). Links zonder soort worden een
   Inbox-item met de link (niet meer een losse bron). Zoeken blijft als vergrootglas binnen een verzameling.

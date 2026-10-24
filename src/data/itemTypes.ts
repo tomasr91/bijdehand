@@ -144,6 +144,11 @@ export const TYPES: TypeDef[] = [
       { key: 'checkedAt', label: 'Opgezocht op', kind: 'date', external: true },
       { key: 'ratingSource', label: 'Bron van de cijfers', kind: 'text', external: true, hidden: true },
       { key: 'uncertain', label: 'Nog onzeker', kind: 'textarea', external: true },
+      // Locatie voor de kaart, door de app opgezocht uit het adres (OpenStreetMap). geoFor = het adres waarvoor
+      // gezocht is; verandert het adres, dan zoekt de app opnieuw. geoFor zonder lat/lng = niet gevonden.
+      { key: 'lat', label: 'Breedtegraad', kind: 'number', external: true, hidden: true },
+      { key: 'lng', label: 'Lengtegraad', kind: 'number', external: true, hidden: true },
+      { key: 'geoFor', label: 'Locatie gezocht voor', kind: 'text', external: true, hidden: true },
     ],
     derivedStatus: {
       options: [{ value: 'niet', label: 'Nog niet geweest' }, { value: 'geweest', label: 'Geweest' }],

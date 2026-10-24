@@ -529,3 +529,16 @@ body.no-scroll .toast-region { bottom: auto; top: calc(env(safe-area-inset-top) 
 .home-status { display: flex; align-items: center; gap: 6px; min-height: var(--tap); padding: 0 4px; border: 0; background: none; font-size: 14px; color: var(--muted); text-align: left; }
 .home-status.warn { color: var(--warn, var(--muted)); }
 .home-status.bad { color: var(--danger); font-weight: 600; }
+
+/* Kaart (Leaflet) */
+.map-wrap { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); }
+.map { height: max(320px, calc(100dvh - 260px)); background: var(--surface-2); z-index: 0; }
+.map-locate { position: absolute; right: 10px; bottom: 28px; z-index: 500; width: var(--tap); height: var(--tap); border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: grid; place-items: center; box-shadow: var(--shadow); }
+.map-locate:disabled { opacity: 0.6; }
+.leaflet-control-zoom a { width: var(--tap) !important; height: var(--tap) !important; line-height: var(--tap) !important; font-size: 22px !important; }
+.leaflet-container { font: inherit; }
+.leaflet-popup-content { margin: 12px 14px; }
+.map-pop { display: flex; flex-direction: column; gap: 6px; min-width: 160px; }
+.map-pop b { font-size: 15px; }
+.map-pop span { font-size: 13px; color: #6b6259; }
+.map-score { color: var(--on-accent); font-weight: 750; font-size: 12px; text-align: center; line-height: 18px; pointer-events: none; }

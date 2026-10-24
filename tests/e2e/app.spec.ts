@@ -26,7 +26,7 @@ async function noHorizontalScroll(page: Page) {
 async function touchTargetsOk(page: Page) {
   const small = await page.evaluate(() =>
     [...document.querySelectorAll<HTMLElement>('button, a, [role="checkbox"], input:not([type="file"]):not([type="checkbox"])')]
-      .filter((el) => !el.classList.contains('link-btn') && !el.classList.contains('visually-hidden') && el.offsetParent !== null && !el.closest('.capture-lines'))
+      .filter((el) => !el.classList.contains('link-btn') && !el.classList.contains('visually-hidden') && el.offsetParent !== null && !el.closest('.capture-lines') && !el.closest('.leaflet-control-attribution'))
       .map((el) => ({ el: el.getAttribute('aria-label') || el.textContent?.trim().slice(0, 30) || el.tagName, h: el.getBoundingClientRect().height }))
       .filter((x) => x.h > 0 && x.h < 43.5),
   );
@@ -418,4 +418,52 @@ test('synchroniseren met privé GitHub-repo: koppelen, voorstel van Claude autom
   await page.goto('/#/verzameling/restaurant');
   await expect(page.getByRole('button', { name: /Pamir/ })).toContainText('afghaans');
   await touchTargetsOk(page);
+});
+
+test('kaart met restaurants: locaties opzoeken, punten, openen; zonder adres apart', async ({ page }) => {
+  // OpenStreetMap nagebootst: adreszoeker en (lege) kaarttegels.
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
+  await page.route('https://tile.openstreetmap.org/**', (r) => r.fulfill({ status: 200, contentType: 'image/png', body: png }));
+  const asked: string[] = [];
+  await page.route('https://nominatim.openstreetmap.org/**', (r) => {
+    const q = new URL(r.request().url()).searchParams.get('q') ?? '';
+    asked.push(q);
+    const hits: Record<string, [string, string]> = { 'Breestraat 10, Leiden': ['52.1590', '4.4900'], 'Haarlemmerstraat 5, Leiden': ['52.1610', '4.4920'] };
+    return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(hits[q] ? [{ lat: hits[q][0], lon: hits[q][1] }] : []) });
+  });
+  await page.goto('/#/verzameling/restaurant');
+  await page.getByRole('button', { name: 'Lijst plakken' }).click();
+  const paste = page.getByRole('dialog', { name: 'Lijst plakken in Restaurants' });
+  await paste.getByLabel('Geplakte lijst').fill('Leiden - Pamir (Afghaans)\nLeiden - Groen\nLeiden - Het Smulhof');
+  await paste.getByRole('button', { name: /toevoegen/ }).click();
+  await settle(page);
+  // Adressen invullen (zoals Claude doet): twee vindbaar, één niet.
+  for (const [name, addr] of [['Pamir', 'Breestraat 10'], ['Groen', 'Haarlemmerstraat 5 (hoek)'], ['Het smulhof', 'Wisselende locatie']]) {
+    await page.goto('/#/verzameling/restaurant');
+    await page.getByRole('button', { name: new RegExp(name, 'i') }).first().click();
+    await page.getByRole('button', { name: 'Gegevens bewerken' }).click();
+    await page.getByLabel('Adres of buurt').fill(addr);
+    await page.getByLabel('Adres of buurt').blur();
+    await settle(page);
+  }
+  await page.goto('/#/verzameling/restaurant');
+  await page.getByRole('button', { name: 'Kaart tonen' }).click();
+  await expect(page.getByRole('region', { name: 'Kaart met restaurants' })).toBeVisible();
+  await expect(page.locator('path.leaflet-interactive')).toHaveCount(2, { timeout: 10_000 });
+  await expect.poll(() => [...asked].sort()).toEqual(['Breestraat 10, Leiden', 'Haarlemmerstraat 5, Leiden', 'Wisselende locatie, Leiden']);
+  await expect(page.getByText(/Locaties opzoeken bij OpenStreetMap/)).toHaveCount(0); // klaar met opzoeken
+  await page.getByRole('button', { name: '1 zonder locatie' }).click();
+  await expect(page.getByRole('button', { name: /Het smulhof/i })).toBeVisible();
+  await touchTargetsOk(page);
+  await noHorizontalScroll(page);
+  // Kaart blijft de gekozen weergave; tweede keer niets opnieuw opzoeken.
+  await page.reload();
+  await expect(page.locator('path.leaflet-interactive')).toHaveCount(2);
+  expect(asked).toHaveLength(3);
+  await page.locator('path.leaflet-interactive').first().click({ force: true });
+  await page.locator('.leaflet-popup').getByRole('button', { name: 'Openen' }).click();
+  await expect(page.getByRole('link', { name: 'Route in Google Maps' })).toBeVisible();
+  await page.goto('/#/verzameling/restaurant');
+  await page.getByRole('button', { name: 'Lijst tonen' }).click();
+  await expect(page.getByRole('heading', { name: /Leiden · 3/ })).toBeVisible();
 });

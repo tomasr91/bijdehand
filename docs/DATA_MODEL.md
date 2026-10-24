@@ -42,7 +42,7 @@ Werk dit document bij in dezelfde wijziging als die bestanden.
 |---|---|
 | Cadeaus (`gift`) | `person`, `occasion`, `budget` (€, getal), `status`: idee/gekocht/gegeven |
 | Nachtjes weg (`trip`) | `destination`, `accommodation`, `price` (tekst), `reasons`, `status`: idee/gepland/geweest |
-| Restaurants (`restaurant`) | `city` (plaats), `cuisine` (keuken), `traits` (labels, lijst), `score` (eigen cijfer 1–10, één decimaal), `favorite` (ja/nee), `visited` (verborgen; "geweest" zonder cijfer uit v3). **Geen statusveld:** de status "geweest" wordt afgeleid (`derivedStatus`: cijfer of `visited`), `address` (adres of buurt, voor de kaart), `dishes`. **Opgezocht** (`external`): `summary` (samenvatting), `website` (link), `priceLevel` €–€€€€, `googleRating`/`googleCount`, `theforkRating`/`theforkCount`, `tripadvisorRating`/`tripadvisorCount`, `michelin`, `openStatus`, `checkedAt`, `ratingSource`, `uncertain` |
+| Restaurants (`restaurant`) | `city` (plaats), `cuisine` (keuken), `traits` (labels, lijst), `score` (eigen cijfer 1–10, één decimaal), `favorite` (ja/nee), `visited` (verborgen; "geweest" zonder cijfer uit v3). **Geen statusveld:** de status "geweest" wordt afgeleid (`derivedStatus`: cijfer of `visited`), `address` (adres of buurt, voor de kaart), `dishes`. **Opgezocht** (`external`): `summary` (samenvatting), `website` (link), `priceLevel` €–€€€€, `googleRating`/`googleCount`, `theforkRating`/`theforkCount`, `tripadvisorRating`/`tripadvisorCount`, `michelin`, `openStatus`, `checkedAt`, `ratingSource`, `uncertain`; verborgen locatie `lat`, `lng`, `geoFor` (door de app opgezocht uit het adres, D16) |
 | Boeken (`book`) | `author`, `status`: wil/bezig/gelezen, `rating` |
 | Albums (`album`) | `artist`, `status`: ontdekken/luisteren/opnieuw/geluisterd, `rating` |
 | Kleermaten (`size`) | `person`, `garment`, `size`, `brand`, `date` |
@@ -55,7 +55,7 @@ Veldwaarden zijn tekst, getal, ja/nee, `null` of een lijst met teksten (`kind: '
 Een `url`-veld (`kind: 'url'`, bijv. `website`) is tekst die met `http://` of `https://` begint.
 Een `score`-veld (`kind: 'score'`) is een getal van 1 t/m 10, afgerond op één decimaal (invoer met komma of punt).
 Een veld met `hidden: true` in het register wordt nergens getoond, maar de waarde blijft bewaard en gaat mee in back-ups
-(nu: de cijfers, aantallen, `priceLevel` en `ratingSource` bij restaurants, zie `ROADMAP.md`).
+(nu: de cijfers, aantallen, `priceLevel` en `ratingSource` bij restaurants, zie `ROADMAP.md`, en de locatie `lat`/`lng`/`geoFor`).
 Links horen niet in deze velden: ze zijn altijd een gekoppelde `Source`.
 
 ### Source (bron)

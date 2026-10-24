@@ -50,7 +50,7 @@ voorbeeldgegevens; installeerbaar en offline; ontvangst via het deelmenu (code).
 | Samenvatting per restaurant (3–5 zinnen) bovenaan het detail — **gebouwd voor de huidige 15**; nieuwe restaurants via de aanvultaak | Aanvultaak | Samenvatting in eigen woorden van Claude, op basis van feiten uit de bronnen (geen reviewcitaten); gemarkeerd als "door Claude geschreven" met datum; aan te passen of te verwijderen |
 | Geplande taak: nieuwe restaurants aanvullen via Google Places API (zie `GOOGLE_PLACES.md`) | Privé-repo, Google-sleutel | Nieuw restaurant krijgt binnen een dag cijfer, aantal, prijsniveau, adres, website, kenmerkende labels, samenvatting en links; maandelijkse verversing; sleutel alleen als geheim |
 | Opgezochte cijfers en prijsniveau weer tonen. **Nu op verzoek van de eigenaar verborgen** (`hidden` in het register); de waarden blijven bewaard. Het kaartje toont nu alleen naam, kenmerken en je eigen cijfer | Besluit eigenaar (waar: kaartje of detail?) | `hidden` weghalen; weergave opnieuw bouwen (de oude ★ · € · keuken-regel staat in de git-geschiedenis); samenvattingen bevatten zelf geen cijfers of prijzen |
-| Kaart met restaurants + adressen opzoeken (geocoding) in de app | B12 | Elk restaurant met plaats krijgt na bevestiging een locatie; handmatige correctie mogelijk; kaart werkt op 360 px; zonder internet blijft de lijst bruikbaar |
+| Kaart met restaurants — **gebouwd** (D16) | — | Gedaan: locaties via OpenStreetMap, kaart op 360 px getest, correctie via adres, lijst werkt offline. Open: controle op het eigen toestel |
 | Claude-route 2: voorstellen ophalen uit privé-repo — **gebouwd** (D14) | — | Gedaan: automatisch synchroniseren, voorstellen automatisch toepassen met *Ongedaan maken*; token alleen op het toestel; zonder koppeling blijft route 1 werken. Open: controle op het eigen toestel |
 | Verbanden voorstellen | — | Voorstellen zijn herkenbaar en worden nooit automatisch gekoppeld |
 | Verbeterd zoeken | — | Zoeken op synoniemen/meervoud en op datum; voorbeeldvragen blijven werken |
@@ -97,6 +97,5 @@ de vorige versie. Alle tests zijn groen voordat een fase afgerond heet.
 | B8 | Keep-import: ook gearchiveerde notities en de prullenbak? | Keep-import | Gearchiveerd ja (met tag), prullenbak nee |
 | B9 | Is "Bijdehand" de definitieve naam? | Publiceren | Werknaam |
 | B11 | AI: welke dienst, welke kosten, wat mag de app versturen? | AI-functies fase 2 | Geen AI |
-| B12 | Kaart: welke geocoder en welke kaarttegels; is het goed dat restaurantnamen naar die dienst gaan? | Kaart fase 2 | Nominatim + OpenStreetMap, met bevestiging per adres |
 
 Genomen besluiten (o.a. de vroegere B1, B2 en B6): zie het beslissingslog in `ARCHITECTURE.md` (D01–D09).

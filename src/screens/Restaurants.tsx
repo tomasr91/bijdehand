@@ -1,13 +1,15 @@
 // Restaurantlijst: één filterrij (geweest of niet), labels via de filterknop, per plaats een blok met rijen.
 // Belangrijkste eerst: favorieten, dan je cijfer (hoog → laag), dan waar je nog niet was.
-import { ClipboardPaste, ListFilter, Plus, Search, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { ChevronDown, ClipboardPaste, List, ListFilter, Map as MapIcon, Plus, Search, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { RestaurantRow } from '../components/cards';
 import { ChipGroup, Empty, Section, Segmented, Sheet, TopBar, TypeIcon } from '../components/ui';
 import { hasBeen, TYPE_MAP } from '../data/itemTypes';
 import type { Item } from '../data/model';
 import { fold } from '../data/util';
-import { useAdd, useData } from '../ui/context';
+import { useAdd, useData, useToast } from '../ui/context';
+import { geocodeMissing, hasLocation, needsGeocode } from '../data/geocode';
+import { RestaurantMap } from './RestaurantMap';
 import { navigate } from '../ui/router';
 import { PasteSheet } from './PasteSheet';
 
@@ -45,7 +47,36 @@ export function RestaurantCollection() {
   const [trait, setTrait] = useState('');
   const [picking, setPicking] = useState(false);
   const [pasting, setPasting] = useState(false);
+  const toast = useToast();
+  const [view, setViewState] = useState<'lijst' | 'kaart'>(() => {
+    try { return localStorage.getItem('bijdehand:restaurantView') === 'kaart' ? 'kaart' : 'lijst'; } catch { return 'lijst'; }
+  });
+  const setView = (v: 'lijst' | 'kaart') => {
+    setViewState(v);
+    try { localStorage.setItem('bijdehand:restaurantView', v); } catch { /* alleen gemak */ }
+  };
+  const [geo, setGeo] = useState<{ busy: boolean; done: number; total: number; failed: boolean }>({ busy: false, done: 0, total: 0, failed: false });
+  const [showMissing, setShowMissing] = useState(false);
   const all = liveItems.filter((i) => i.type === 'restaurant');
+  // Kaart open: ontbrekende locaties opzoeken (één keer per adres; zie geocode.ts).
+  const missingIds = all.filter(needsGeocode).map((i) => i.id).join(',');
+  // Eén ronde tegelijk; tijdens de ronde veranderen de items (gevonden punten), dat mag de ronde niet afbreken.
+  const running = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
+  useEffect(() => {
+    if (view !== 'kaart' || !missingIds || running.current || geo.failed) return;
+    running.current = true;
+    const ids = missingIds.split(',');
+    setGeo({ busy: true, done: 0, total: ids.length, failed: false });
+    const done = (failed: boolean) => {
+      running.current = false;
+      if (mounted.current) setGeo((g) => ({ ...g, busy: false, failed }));
+    };
+    void geocodeMissing(ids, (n, total) => { if (mounted.current) setGeo((g) => ({ ...g, done: n, total })); })
+      .then((r) => done(r.failed))
+      .catch(() => done(true));
+  }, [view, missingIds, geo.failed]);
   const traitCounts = useMemo(() => {
     const m = new Map<string, number>();
     for (const i of all) for (const t of traitsOf(i)) m.set(t, (m.get(t) ?? 0) + 1);
@@ -63,6 +94,11 @@ export function RestaurantCollection() {
         actions={
           <>
             <button type="button" className="icon-btn" aria-label="Zoeken in Restaurants" onClick={() => navigate('/zoeken?type=restaurant')}><Search size={22} /></button>
+            {all.length > 0 && (
+              <button type="button" className="icon-btn" aria-label={view === 'kaart' ? 'Lijst tonen' : 'Kaart tonen'} onClick={() => setView(view === 'kaart' ? 'lijst' : 'kaart')}>
+                {view === 'kaart' ? <List size={22} /> : <MapIcon size={22} />}
+              </button>
+            )}
             {traitCounts.length > 0 && (
               <button type="button" className="icon-btn" aria-label={trait ? `Filter op label: ${trait}` : 'Filter op label'} aria-haspopup="dialog" onClick={() => setPicking(true)}>
                 <ListFilter size={22} />{trait && <span className="badge-dot" aria-hidden="true" />}
@@ -104,6 +140,30 @@ export function RestaurantCollection() {
         />
       ) : shown.length === 0 ? (
         <Empty title="Niets gevonden met deze filters" />
+      ) : view === 'kaart' ? (
+        <>
+          <RestaurantMap items={shown} onOpen={(id) => navigate(`/item/${id}`)} onLocateError={(m) => toast(m, { tone: 'error' })} />
+          {geo.busy && <p className="hint" role="status">Locaties opzoeken bij OpenStreetMap… {geo.done} van {geo.total}</p>}
+          {!geo.busy && geo.failed && <p className="notice notice-error" role="alert">Locaties opzoeken lukte niet (geen verbinding?). Het wordt opnieuw geprobeerd als je de kaart weer opent.</p>}
+          {(() => {
+            const missing = shown.filter((i) => !hasLocation(i));
+            if (!missing.length) return null;
+            return (
+              <div className="empty-types">
+                <button type="button" className="btn btn-ghost r-edit-toggle" aria-expanded={showMissing} onClick={() => setShowMissing(!showMissing)}>
+                  <span className="empty-types-label">{missing.length} zonder locatie</span>
+                  <ChevronDown size={18} className={showMissing ? 'rot' : ''} />
+                </button>
+                {showMissing && (
+                  <>
+                    <p className="hint">Zonder (vindbaar) adres. Vul het adres in via het restaurant → Gegevens bewerken; daarna zoekt de kaart opnieuw.</p>
+                    <div className="r-block">{missing.map((i) => <RestaurantRow key={i.id} item={i} />)}</div>
+                  </>
+                )}
+              </div>
+            );
+          })()}
+        </>
       ) : (
         groups.map((g) => (
           <Section key={g.title} title={<>{g.title} <span className="group-count">· {g.items.length}</span></>}>

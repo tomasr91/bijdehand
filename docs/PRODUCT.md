@@ -68,7 +68,7 @@ De groepering (Inspiratie, Praktisch, Naslag) en de soorten staan in één regis
 | Koppelingen item↔item en item↔bron | [Gebouwd] |
 | Lijst plakken: een Keep-lijstje (één regel per item) in één keer toevoegen, met voorbeeld, duplicaatcontrole en ongedaan maken; restaurants als "Plaats - Naam (kenmerken)" | [Gebouwd] |
 | Aantekeningen laten indelen door Claude (route 1): Inbox delen → voorstellenbestand → beoordelen en toepassen; ingevulde velden gemarkeerd | [Gebouwd] — werkwijze in `INDELEN.md` |
-| Kaart met restaurants (en later andere plekken) | [Gewenst] fase 2 — zie `ARCHITECTURE.md` → Kaart |
+| Kaart met restaurants (en later andere plekken) | [Gebouwd] voor restaurants — zie `ARCHITECTURE.md` → Kaart |
 | Eerdere versies bekijken en terugzetten (o.a. kleermaten) | [Gebouwd] |
 | Duplicaatwaarschuwing (zelfde titel) en dezelfde link nooit dubbel als bron | [Gebouwd] |
 | Export en herstel (samenvoegen of vervangen met vangnet-back-up) | [Gebouwd] |
