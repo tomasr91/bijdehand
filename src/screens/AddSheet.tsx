@@ -14,7 +14,7 @@ type Mode = 'text' | 'link' | 'checklist';
 
 export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOptions; onClose: () => void }) {
   const toast = useToast();
-  const { liveItems } = useData();
+  const { liveItems, links } = useData();
   const [mode, setMode] = useState<Mode>('text');
   const [text, setText] = useState('');
   const [url, setUrl] = useState('');
@@ -95,12 +95,16 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
     setBusy(true);
     try {
       const via = opts.viaShare ? 'deelmenu' : 'handmatig';
-      if (mode === 'link' && !type) {
-        // Losse link zonder soort: alleen bewaren in Bronnen.
-        const r = await addSource({ url: cleanUrl!, title, note, infoVia: via });
-        onClose();
-        toast(r.existed ? 'Deze link stond al in Bronnen' : 'Bewaard in Bronnen', { action: { label: 'Openen', run: () => navigate(`/bron/${r.source.id}`) } });
-        return;
+      if (mode === 'link' && !type && existing) {
+        // Link stond er al: geen dubbel item. Staat hij bij een item, verwijs daarnaar.
+        const linked = links.filter((l) => !l.deletedAt && (l.aId === existing.id || l.bId === existing.id)).map((l) => (l.aId === existing.id ? l.bId : l.aId));
+        const item = liveItems.find((i) => linked.includes(i.id));
+        if (item) {
+          if (note.trim()) await addSource({ url: cleanUrl!, title, note, infoVia: via });
+          onClose();
+          toast(`Deze link heb je al bewaard bij "${item.title}"`, { action: { label: 'Openen', run: () => navigate(`/item/${item.id}`) } });
+          return;
+        }
       }
       const body = mode === 'text' ? text.split('\n').slice(1).join('\n').trim() : '';
       const r = await capture({
@@ -168,7 +172,7 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
               <input ref={firstInput} type="url" inputMode="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Plak een link" aria-label="Link" enterKeyHint="next" autoCapitalize="none" />
               {cleanUrl && <p className="hint">{siteOf(cleanUrl)}</p>}
               {existing && (
-                <p className="notice">Deze link heb je al bewaard op {formatDate(dayOf(existing.createdAt))}. Hij wordt niet dubbel opgeslagen{type ? ' maar wel gekoppeld' : ''}.</p>
+                <p className="notice">Deze link heb je al bewaard op {formatDate(dayOf(existing.createdAt))}. Hij wordt niet dubbel opgeslagen.</p>
               )}
               <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={tdef ? tdef.titlePlaceholder : 'Titel (optioneel)'} aria-label="Titel" enterKeyHint="next" />
               <AutoText value={note} onChange={(e) => setNote(e.target.value)} placeholder="Waarom is dit interessant? (optioneel)" aria-label="Eigen notitie" minRows={2} />

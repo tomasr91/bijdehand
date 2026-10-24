@@ -184,7 +184,7 @@ export function Settings() {
       <Section title="Wat nog niet kan">
         <ul className="plain">
           <li>Nog geen synchronisatie tussen twee toestellen tegelijk; wel automatisch opslaan in je privé GitHub-repo.</li>
-          <li>Geen meldingen op je telefoon; herinneringen staan alleen op Vandaag.</li>
+          <li>Geen meldingen of herinneringen (ook niet voor klussen en planten).</li>
           <li>Titels en afbeeldingen van links worden niet automatisch opgehaald.</li>
           <li>Indelingsvoorstellen komen uit vaste woordregels, niet uit AI.</li>
           <li>Import uit Google Keep volgt in fase 2.</li>

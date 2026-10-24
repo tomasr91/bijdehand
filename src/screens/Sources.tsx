@@ -1,52 +1,13 @@
-import { ExternalLink, Info, Library, Plus, Search, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { SourceCard } from '../components/cards';
+import { ExternalLink, Info, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { HistorySection, LinksSection, SaveStatus } from '../components/editors';
 import { AutoText, Empty, Section, TopBar } from '../components/ui';
 import type { Source } from '../data/model';
 import * as repo from '../data/repo';
-import { search } from '../data/search';
 import { formatDateTime } from '../data/util';
-import { useAdd, useData, useToast } from '../ui/context';
+import { useData, useToast } from '../ui/context';
 import { useDraft } from '../ui/draft';
 import { goBack } from '../ui/router';
-
-export function Sources() {
-  const data = useData();
-  const add = useAdd();
-  const [q, setQ] = useState('');
-  const counts = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const l of data.links) {
-      if (l.deletedAt) continue;
-      for (const id of [l.aId, l.bId]) m.set(id, (m.get(id) ?? 0) + 1);
-    }
-    return m;
-  }, [data.links]);
-  const list = useMemo(() => {
-    if (q.trim()) return search(data, q, { kind: 'sources' }).hits.flatMap((h) => (h.kind === 'source' ? [h.source] : []));
-    return [...data.liveSources].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [data, q]);
-
-  return (
-    <div className="screen">
-      <TopBar title="Bronnen" actions={<button type="button" className="icon-btn accent" aria-label="Link bewaren" onClick={() => add({ mode: 'link' })}><Plus size={24} /></button>} />
-      {data.liveSources.length > 0 && (
-        <div className="search-box">
-          <Search size={18} aria-hidden="true" />
-          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Zoek in bronnen" aria-label="Zoek in bronnen" enterKeyHint="search" />
-        </div>
-      )}
-      {data.liveSources.length === 0 ? (
-        <Empty icon={<Library size={28} />} title="Nog geen bronnen" text="Websites, artikelen, producten en video's die je bewaart, komen hier. Je kunt ze koppelen aan items." action={<button type="button" className="btn btn-primary" onClick={() => add({ mode: 'link' })}><Plus size={18} /> Link bewaren</button>} />
-      ) : list.length === 0 ? (
-        <Empty title="Geen bronnen gevonden" />
-      ) : (
-        <div className="list">{list.map((s) => <SourceCard key={s.id} source={s} linkedCount={counts.get(s.id)} />)}</div>
-      )}
-    </div>
-  );
-}
 
 const VIA: Record<Source['infoVia'], string> = {
   handmatig: 'zelf ingevuld',
@@ -68,13 +29,13 @@ function SourceEditor({ source }: { source: Source }) {
 
   const remove = async () => {
     await repo.deleteSource(source.id);
-    goBack('/bronnen');
+    goBack('/verzamelingen');
     toast('Bron naar prullenbak verplaatst', { action: { label: 'Ongedaan maken', run: () => void repo.restoreSource(source.id) } });
   };
 
   return (
     <div className="screen detail">
-      <TopBar back="/bronnen" title="Bron" actions={<SaveStatus />} />
+      <TopBar back="/verzamelingen" title="Bron" actions={<SaveStatus />} />
 
       <a className="btn btn-primary btn-block" href={source.url} target="_blank" rel="noopener noreferrer">
         <ExternalLink size={18} /> Open {source.site || 'link'}
@@ -109,7 +70,7 @@ function SourceEditor({ source }: { source: Source }) {
 export function SourceDetail({ id }: { id: string }) {
   const { sourceById } = useData();
   const s = sourceById.get(id);
-  if (!s) return <div className="screen"><TopBar back="/bronnen" title="Niet gevonden" /><Empty title="Deze bron bestaat niet (meer)." /></div>;
+  if (!s) return <div className="screen"><TopBar back="/verzamelingen" title="Niet gevonden" /><Empty title="Deze bron bestaat niet (meer)." /></div>;
   if (s.deletedAt) {
     return (
       <div className="screen">

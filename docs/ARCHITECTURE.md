@@ -43,7 +43,7 @@ bij meetbare traagheid.
   "Niet opgeslagen".
 - Bij de eerste opslag vraagt de app om **duurzame opslag** (`navigator.storage.persist()`). Instellingen
   toont of die is toegekend. Zonder toekenning kan de browser bij ruimtegebrek gegevens wissen; daarom
-  verschijnt een back-upwaarschuwing op Vandaag als er 14 dagen geen export is gemaakt.
+  toont het hoofdscherm "Alleen op dit toestel bewaard" zolang de app niet aan de privé data-repo gekoppeld is (D14, D15).
 - Een privévenster of geblokkeerde opslag geeft een foutscherm dat niets wist.
 
 ## Synchronisatie — **[Onderzoek]**, besluit B3
@@ -177,13 +177,16 @@ bevat geen geheimen.
   hebben later extra infrastructuur nodig; lokale opslag vraagt om een back-updiscipline (waarschuwing ingebouwd).
 - **D02 — 2026-10-24 — De tien soorten zijn die van de eigenaar** (cadeaus t/m plantenonderhoud) in de groepen
   Inspiratie, Praktisch en Naslag. Vervangt het eerdere voorstel.
-- **D03 — 2026-10-24 — Navigatie met vijf vaste bestemmingen onderaan:** Vandaag, Verzamelingen, Toevoegen,
+- **D03 — 2026-10-24 — (vervangen door D15)** Navigatie met vijf vaste bestemmingen onderaan: Vandaag, Verzamelingen, Toevoegen,
   Bronnen, Zoeken. De Inbox is bereikbaar via Vandaag en Verzamelingen. Op ≥ 900 px wordt de balk een rail links.
 - **D04 — 2026-10-24 — Links zijn altijd een `Source`** (één keer bewaard, gekoppeld), nooit een los tekstveld.
   Een link zonder soort komt alleen in Bronnen; tekst zonder soort komt in de Inbox.
 - **D05 — 2026-10-24 — Indelingsvoorstel via vaste regels, geen AI** in fase 1; altijd bevestigen door de gebruiker.
 - **D07 — 2026-10-24 — Restaurants per plaats, met keuken en kenmerken als lijst** (schema v2, migratie `location` → `city`). Kenmerken zijn een eigen lijstveld en geen algemene tags, zodat filteren per soort zinvol blijft.
 - **D08 — 2026-10-24 — Lijst plakken als eerste importroute.** Werkt per verzameling, bewaart de oorspronkelijke regel en is ook de basis voor de latere Keep-import.
+- **D15 — 2026-10-24 — Eén hoofdscherm, geen navigatiebalk.** Alleen Verzamelingen, Instellingen en een ronde
+  Toevoegen-knop. Vandaag en de lijst Bronnen zijn weg (code verwijderd; gegevens blijven). Links zonder soort worden een
+  Inbox-item met de link (niet meer een losse bron). Zoeken blijft als vergrootglas binnen een verzameling.
 - **D14 — 2026-10-24 — Synchronisatie met de privé data-repo** (`src/data/sync.ts`, `src/ui/sync.tsx`, Instellingen →
   Synchronisatie). GitHub Contents API rechtstreeks vanuit de app met een fine-grained token (alleen *Contents: Read and write*
   op de data-repo), opgeslagen in de lokale meta-tabel, nooit in back-ups. De app weigert een openbare repo. Het toestel is de

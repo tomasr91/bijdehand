@@ -53,7 +53,7 @@ export function SearchScreen({ route }: { route: Route }) {
 
   return (
     <div className="screen">
-      <TopBar title="Zoeken" />
+      <TopBar back={type && type !== 'inbox' ? `/verzameling/${type}` : '/verzamelingen'} title="Zoeken" />
       <form className="search-box big" role="search" onSubmit={(e) => { e.preventDefault(); input.current?.blur(); }}>
         <SearchIcon size={20} aria-hidden="true" />
         <input ref={input} type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Zoek of stel een vraag" aria-label="Zoeken" enterKeyHint="search" />

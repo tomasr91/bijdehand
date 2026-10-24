@@ -1,5 +1,5 @@
 import { Component, useCallback, useEffect, useState, type ReactNode } from 'react';
-import { LayoutGrid, Library, Plus, Search, Sun } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { isTypeKey } from './data/itemTypes';
 import { findUrl } from './data/util';
 import { db } from './data/db';
@@ -9,42 +9,22 @@ import { applySeedBundles } from './data/seed';
 import { IS_PREVIEW } from './components/ui';
 import { AutoSync } from './ui/sync';
 import { AddCtx, DataProvider, ToastProvider, type AddOptions } from './ui/context';
-import { HOME, navigate, useRoute, type Route } from './ui/router';
+import { HOME, useRoute, type Route } from './ui/router';
 import { AddSheet } from './screens/AddSheet';
 import { Collection, Collections, InboxScreen } from './screens/Collections';
 import { ItemDetail } from './screens/ItemDetail';
 import { SearchScreen } from './screens/Search';
 import { Settings, Trash } from './screens/Settings';
-import { SourceDetail, Sources } from './screens/Sources';
-import { Today } from './screens/Today';
-
-const NAV = [
-  { key: 'verzamelingen', label: 'Verzamelingen', icon: LayoutGrid },
-  { key: 'vandaag', label: 'Vandaag', icon: Sun },
-  { key: 'toevoegen', label: 'Toevoegen', icon: Plus },
-  { key: 'bronnen', label: 'Bronnen', icon: Library },
-  { key: 'zoeken', label: 'Zoeken', icon: Search },
-] as const;
-
-/** Welke hoofdbestemming hoort bij de huidige pagina. */
-function section(route: Route): string {
-  const p = route.path[0] ?? 'verzamelingen';
-  if (p === 'verzameling' || p === 'inbox' || p === 'item') return 'verzamelingen';
-  if (p === 'bron') return 'bronnen';
-  if (p === 'instellingen' || p === 'prullenbak') return 'vandaag';
-  return p;
-}
+import { SourceDetail } from './screens/Sources';
 
 function Screen({ route }: { route: Route }) {
   const [p, id] = route.path;
   switch (p) {
-    case 'vandaag': return <Today />;
     case undefined:
     case 'verzamelingen': return <Collections />;
     case 'verzameling': return isTypeKey(id) ? <Collection key={id} type={id} /> : <Collections />;
     case 'inbox': return <InboxScreen />;
     case 'item': return <ItemDetail key={id} id={id} />;
-    case 'bronnen': return <Sources />;
     case 'bron': return <SourceDetail key={id} id={id} />;
     case 'zoeken': return <SearchScreen route={route} />;
     case 'instellingen': return <Settings />;
@@ -90,7 +70,6 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
 export default function App() {
   const route = useRoute();
   const [add, setAdd] = useState<{ open: boolean; opts: AddOptions }>({ open: false, opts: {} });
-  const current = section(route);
   const collectionType = route.path[0] === 'verzameling' && isTypeKey(route.path[1]) ? route.path[1] : null;
 
   const openAdd = useCallback((opts: AddOptions = {}) => setAdd({ open: true, opts }), []);
@@ -131,21 +110,10 @@ export default function App() {
                 <Screen route={route} />
               </main>
               <AutoSync />
-              <nav className="nav" aria-label="Hoofdnavigatie">
-                {NAV.map(({ key, label, icon: Icon }) =>
-                  key === 'toevoegen' ? (
-                    <button key={key} type="button" className="nav-item nav-add" onClick={() => openAdd(collectionType ? { type: collectionType, openAfter: true } : {})}>
-                      <span className="nav-add-circle"><Icon size={26} strokeWidth={2.4} /></span>
-                      <span>{label}</span>
-                    </button>
-                  ) : (
-                    <button key={key} type="button" className={`nav-item ${current === key ? 'on' : ''}`} aria-current={current === key ? 'page' : undefined} onClick={() => navigate(`/${key}`)}>
-                      <Icon size={24} />
-                      <span>{label}</span>
-                    </button>
-                  ),
-                )}
-              </nav>
+              {/* Eén hoofdscherm (Verzamelingen); Toevoegen is een vaste ronde knop rechtsonder. In een verzameling kiest hij die soort alvast. */}
+              <button type="button" className="fab" aria-label="Toevoegen" onClick={() => openAdd(collectionType ? { type: collectionType, openAfter: true } : {})}>
+                <Plus size={30} strokeWidth={2.4} />
+              </button>
               <AddSheet open={add.open} opts={add.opts} onClose={closeAdd} />
             </div>
           </AddCtx.Provider>

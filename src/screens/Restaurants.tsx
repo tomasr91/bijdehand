@@ -68,7 +68,6 @@ export function RestaurantCollection() {
                 <ListFilter size={22} />{trait && <span className="badge-dot" aria-hidden="true" />}
               </button>
             )}
-            <button type="button" className="icon-btn accent" aria-label="Nieuw: Restaurant" onClick={newOne}><Plus size={24} /></button>
           </>
         }
       />

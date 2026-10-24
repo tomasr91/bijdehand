@@ -3,12 +3,13 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 // Kernstromen uit ROADMAP.md → "Geslaagde eerste versie". Draait op 360 px, 412 px en desktop.
 
-const nav = (page: Page, name: string) => page.getByRole('navigation', { name: 'Hoofdnavigatie' }).getByRole('button', { name, exact: true });
+/** De ronde Toevoegen-knop rechtsonder (er is geen navigatiebalk meer). */
+const addBtn = (page: Page) => page.getByRole('button', { name: 'Toevoegen', exact: true });
 
 async function loadSamples(page: Page) {
-  await page.goto('/#/vandaag');
+  await page.goto('/#/instellingen');
   await page.getByRole('button', { name: 'Voorbeeldgegevens laden' }).click();
-  await expect(page.getByText('Aandacht nodig')).toBeVisible();
+  await expect(page.getByText(/voorbeelditems geladen/)).toBeVisible();
 }
 
 /** Wacht tot een gesloten sheet zijn geschiedenis-item heeft opgeruimd (voorkomt races met reload/goto). */
@@ -36,7 +37,7 @@ test('hoofdschermen: geen horizontaal scrollen, ruime aanraakvlakken, geen foute
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await loadSamples(page);
-  for (const path of ['/vandaag', '/verzamelingen', '/verzameling/restaurant', '/verzameling/size', '/verzameling/packing', '/verzameling/todo', '/inbox', '/bronnen', '/zoeken?q=gent', '/instellingen', '/prullenbak']) {
+  for (const path of ['/verzamelingen', '/verzameling/restaurant', '/verzameling/size', '/verzameling/packing', '/verzameling/todo', '/inbox', '/zoeken?q=gent', '/instellingen', '/prullenbak']) {
     await page.goto(`/#${path}`);
     await page.waitForTimeout(150);
     await noHorizontalScroll(page);
@@ -51,8 +52,9 @@ test('hoofdschermen: geen horizontaal scrollen, ruime aanraakvlakken, geen foute
 
 test('snel bewaren zonder soort → Inbox → voorstel → indelen; blijft na herladen', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Verzamelingen', level: 1 })).toBeVisible(); // startpagina
-  await nav(page, 'Toevoegen').click();
+  await expect(page.getByRole('heading', { name: 'Bijdehand', level: 1 })).toBeVisible(); // startpagina = verzamelingen
+  await expect(page.getByRole('navigation')).toHaveCount(0); // geen navigatiebalk meer
+  await addBtn(page).click();
   const sheet = page.getByRole('dialog', { name: 'Iets bewaren' });
   await sheet.getByLabel('Tekst').fill('Restaurant De Zwaan proberen\nAanrader van Sanne');
   await expect(sheet.getByRole('button', { name: /Restaurant\?/ })).toBeVisible();
@@ -98,7 +100,7 @@ test('snel bewaren zonder soort → Inbox → voorstel → indelen; blijft na he
 
 test('checklist aanmaken, afvinken en terugvinden na herladen', async ({ page }) => {
   await page.goto('/');
-  await nav(page, 'Toevoegen').click();
+  await addBtn(page).click();
   const sheet = page.getByRole('dialog');
   await sheet.getByRole('radio', { name: 'Checklist' }).click();
   await sheet.getByLabel('Naam van de lijst').fill('Boodschappen zaterdag');
@@ -128,7 +130,7 @@ test('basis-paklijst kopiëren naar een nieuwe reis', async ({ page }) => {
 
 test('zoeken met een vraag en met filters', async ({ page }) => {
   await loadSamples(page);
-  await nav(page, 'Zoeken').click();
+  await page.goto('/#/zoeken');
   await page.getByRole('button', { name: 'Welke games staan nog op mijn verlanglijst?' }).click();
   await expect(page.getByText('1 resultaat')).toBeVisible();
   await expect(page.getByRole('button', { name: /Hades II/ })).toBeVisible();
@@ -185,8 +187,8 @@ test('back-up exporteren en in een lege app terugzetten', async ({ page, browser
   await expect(fresh.getByText(/Samengevoegd: 28 nieuw/)).toBeVisible();
   await fresh.goto('/#/verzameling/restaurant');
   await expect(fresh.getByRole('button', { name: /Trattoria Da Marco/ })).toBeVisible();
-  await fresh.goto('/#/bronnen');
-  await expect(fresh.getByRole('button', { name: /Hotel aan de Graslei/ })).toBeVisible();
+  await fresh.goto('/#/zoeken?q=Graslei');
+  await expect(fresh.getByRole('button', { name: /Graslei/ }).first()).toBeVisible();
 
   // Nogmaals terugzetten: niets dubbel.
   await fresh.goto('/#/instellingen');
@@ -203,7 +205,7 @@ test('ongeldig back-upbestand wordt geweigerd', async ({ page }, info) => {
   await expect(page.getByRole('alert')).toHaveText('Dit is geen Bijdehand-back-up.');
 });
 
-test('link via deelmenu-parameters komt in Bronnen en wordt niet dubbel bewaard', async ({ page }) => {
+test('link via deelmenu-parameters komt in de Inbox en wordt niet dubbel bewaard', async ({ page }) => {
   // Simuleert wat Android na delen opent (share_target in manifest). Het deelmenu zelf is niet te testen in deze omgeving.
   await page.goto('/?title=Mooi%20artikel&text=Lees%20dit%20https%3A%2F%2Fexample.org%2Fartikel%3Futm_source%3Dx');
   const sheet = page.getByRole('dialog', { name: 'Iets bewaren' });
@@ -211,32 +213,34 @@ test('link via deelmenu-parameters komt in Bronnen en wordt niet dubbel bewaard'
   await expect(sheet.getByLabel('Titel')).toHaveValue('Mooi artikel');
   await sheet.getByLabel('Eigen notitie').fill('Voor het weekend');
   await sheet.getByRole('button', { name: 'Bewaren' }).click();
-  await expect(page.getByText('Bewaard in Bronnen')).toBeVisible();
+  await expect(page.getByText('Bewaard in Inbox')).toBeVisible();
   expect(new URL(page.url()).search).toBe('');
   await settle(page);
 
   await page.goto('/?url=https%3A%2F%2Fwww.example.org%2Fartikel');
   await expect(page.getByRole('dialog').getByText(/al bewaard/)).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: 'Bewaren' }).click();
-  await expect(page.getByText('Deze link stond al in Bronnen')).toBeVisible();
-  await nav(page, 'Bronnen').click();
+  await expect(page.getByText('Deze link heb je al bewaard bij "Mooi artikel"')).toBeVisible();
+  await settle(page);
+  await page.goto('/#/inbox');
   await expect(page.getByRole('button', { name: /Mooi artikel/ })).toHaveCount(1);
   await page.getByRole('button', { name: /Mooi artikel/ }).click();
+  await page.getByRole('button', { name: /example\.org/ }).first().click();
   await expect(page.getByText('titel uit het deelmenu')).toBeVisible();
   await expect(page.getByLabel('Mijn notitie')).toHaveValue('Voor het weekend');
 });
 
 test('terugknop sluit eerst de sheet, daarna terug naar vorig scherm', async ({ page }) => {
   await loadSamples(page);
-  await nav(page, 'Verzamelingen').click();
+  await page.goto('/#/verzamelingen');
   await page.getByRole('button', { name: /Boeken/ }).click();
-  await nav(page, 'Toevoegen').click();
+  await addBtn(page).click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.goBack();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Boeken' })).toBeVisible();
   await page.goBack();
-  await expect(page.getByRole('heading', { name: 'Verzamelingen' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Bijdehand' })).toBeVisible();
 });
 
 test('restaurantlijst plakken: per plaats gegroepeerd, filter op kenmerk, kenmerk toevoegen', async ({ page }) => {
@@ -271,7 +275,7 @@ test('restaurantlijst plakken: per plaats gegroepeerd, filter op kenmerk, kenmer
 test('Inbox delen met Claude en voorstellen beoordelen en toepassen', async ({ page }, info) => {
   await page.goto('/');
   for (const t of ['Pamir Leiden\nAfghaans, aanrader', 'Lezen\nKlara and the Sun\nProject Hail Mary']) {
-    await nav(page, 'Toevoegen').click();
+    await addBtn(page).click();
     await page.getByRole('dialog').getByLabel('Tekst').fill(t);
     await page.getByRole('dialog').getByRole('button', { name: 'Bewaren' }).click();
     await settle(page);
@@ -384,7 +388,7 @@ test('synchroniseren met privé GitHub-repo: koppelen, voorstel van Claude autom
   });
 
   await page.goto('/');
-  await nav(page, 'Toevoegen').click();
+  await addBtn(page).click();
   await page.getByRole('dialog').getByLabel('Tekst').fill('Pamir Leiden');
   await page.getByRole('dialog').getByRole('button', { name: 'Bewaren' }).click();
   await settle(page);

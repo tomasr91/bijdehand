@@ -1,4 +1,4 @@
-import { ChevronRight, ClipboardPaste, Settings, FileCheck, Inbox as InboxIcon, Plus, Search, Share2, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, CircleAlert, ClipboardPaste, Cloud, CloudOff, Settings, FileCheck, Inbox as InboxIcon, Plus, Search, Share2, Trash2 } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { buildInboxExport, inboxFileName, parseProposals, type ParsedProposals } from '../data/claude';
 import { shareOrDownload } from '../ui/files';
@@ -7,61 +7,105 @@ import { fold } from '../data/util';
 import { PasteSheet } from './PasteSheet';
 import { RestaurantCollection } from './Restaurants';
 import { ItemCard } from '../components/cards';
-import { ChipGroup, Empty, Section, TopBar, TypeIcon } from '../components/ui';
-import { GROUPS, isDone, statusOf, TYPE_MAP, TYPES } from '../data/itemTypes';
+import { ChipGroup, Empty, IS_PREVIEW, PreviewNotice, Section, TopBar, TypeIcon } from '../components/ui';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { getSyncStatus } from '../data/sync';
+import { formatDateTime } from '../data/util';
+import { isDone, statusOf, TYPE_MAP, TYPES } from '../data/itemTypes';
 import type { Item, TypeKey } from '../data/model';
 import { useAdd, useData, useToast } from '../ui/context';
 import { navigate } from '../ui/router';
 
+/** Hoofdscherm: alleen soorten waar iets in zit (grootste eerst), lege soorten ingeklapt, Inbox alleen als er iets in staat. */
 export function Collections() {
   const { liveItems, items, sources } = useData();
+  const [showEmpty, setShowEmpty] = useState(false);
   const counts = useMemo(() => {
-    const m = new Map<string, { total: number; open: number }>();
-    for (const i of liveItems) {
-      const k = i.type ?? 'inbox';
-      const c = m.get(k) ?? { total: 0, open: 0 };
-      c.total++;
-      if (!isDone(i)) c.open++;
-      m.set(k, c);
-    }
+    const m = new Map<string, number>();
+    for (const i of liveItems) m.set(i.type ?? 'inbox', (m.get(i.type ?? 'inbox') ?? 0) + 1);
     return m;
   }, [liveItems]);
-  const inbox = counts.get('inbox')?.total ?? 0;
+  const inbox = counts.get('inbox') ?? 0;
   const trash = items.filter((i) => i.deletedAt).length + sources.filter((s) => s.deletedAt).length;
+  const used = TYPES.filter((t) => counts.get(t.key)).sort((a, b) => (counts.get(b.key) ?? 0) - (counts.get(a.key) ?? 0) || a.plural.localeCompare(b.plural, 'nl'));
+  const empty = TYPES.filter((t) => !counts.get(t.key));
 
   return (
     <div className="screen">
       <TopBar
-        title="Verzamelingen"
-        actions={<button type="button" className="icon-btn" aria-label="Instellingen en back-up" onClick={() => navigate('/instellingen')}><Settings size={22} /></button>}
+        title="Bijdehand"
+        actions={<button type="button" className="icon-btn" aria-label="Instellingen" onClick={() => navigate('/instellingen')}><Settings size={22} /></button>}
       />
-      <button type="button" className="banner" onClick={() => navigate('/inbox')}>
-        <InboxIcon size={20} />
-        <span><b>Inbox</b> {inbox ? `· ${inbox} nog in te delen` : '· leeg'}</span>
-        <ChevronRight size={18} />
-      </button>
-      {GROUPS.map((g) => (
-        <Section key={g.key} title={g.label}>
-          <div className="tiles">
-            {TYPES.filter((t) => t.group === g.key).map((t) => {
-              const c = counts.get(t.key);
-              return (
-                <button key={t.key} type="button" className="tile" onClick={() => navigate(`/verzameling/${t.key}`)}>
-                  <TypeIcon type={t.key} size={22} />
-                  <span className="tile-label">{t.plural}</span>
-                  <span className="tile-count">{c ? (t.statusKey && c.open !== c.total ? `${c.open} open · ${c.total}` : c.total) : '—'}</span>
+      <PreviewNotice />
+      {inbox > 0 && (
+        <button type="button" className="banner banner-inbox" onClick={() => navigate('/inbox')}>
+          <InboxIcon size={20} />
+          <span><b>Inbox</b> · {inbox} nog in te delen</span>
+          <ChevronRight size={18} />
+        </button>
+      )}
+      {used.length === 0 && inbox === 0 ? (
+        <Empty title="Nog niets bewaard" text="Tik op + om iets te bewaren: een restaurant, een boek, een cadeau-idee. Je hoeft geen soort te kiezen." />
+      ) : (
+        <div className="tiles">
+          {used.map((t) => (
+            <button key={t.key} type="button" className="tile" onClick={() => navigate(`/verzameling/${t.key}`)}>
+              <TypeIcon type={t.key} size={22} />
+              <span className="tile-label">{t.plural}</span>
+              <span className="tile-count">{counts.get(t.key)}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {empty.length > 0 && (
+        <div className="empty-types">
+          <button type="button" className="btn btn-ghost r-edit-toggle" aria-expanded={showEmpty} onClick={() => setShowEmpty(!showEmpty)}>
+            <span className="empty-types-label">Nog leeg: {empty.map((t) => t.plural).join(', ')}</span>
+            <ChevronDown size={18} className={showEmpty ? 'rot' : ''} />
+          </button>
+          {showEmpty && (
+            <div className="chips">
+              {empty.map((t) => (
+                <button key={t.key} type="button" className="chip" onClick={() => navigate(`/verzameling/${t.key}`)}>
+                  <TypeIcon type={t.key} size={16} /> {t.plural}
                 </button>
-              );
-            })}
-          </div>
-        </Section>
-      ))}
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      <SyncLine />
       {trash > 0 && (
         <button type="button" className="btn btn-ghost" onClick={() => navigate('/prullenbak')}>
           <Trash2 size={18} /> Prullenbak ({trash})
         </button>
       )}
     </div>
+  );
+}
+
+/** Eén regel onderaan het hoofdscherm: is alles veilig opgeslagen? */
+function SyncLine() {
+  const st = useLiveQuery(getSyncStatus, []);
+  if (IS_PREVIEW || !st) return null;
+  if (!st.connected) {
+    return (
+      <button type="button" className="home-status warn" onClick={() => navigate('/instellingen')}>
+        <CloudOff size={16} /> Alleen op dit toestel bewaard · GitHub koppelen <ChevronRight size={16} />
+      </button>
+    );
+  }
+  if (st.error) {
+    return (
+      <button type="button" className="home-status bad" onClick={() => navigate('/instellingen')}>
+        <CircleAlert size={16} /> Synchroniseren mislukt · bekijk Instellingen <ChevronRight size={16} />
+      </button>
+    );
+  }
+  return (
+    <p className="home-status">
+      <Cloud size={16} /> {st.lastAt ? `Bijgewerkt ${formatDateTime(st.lastAt)}` : 'Gekoppeld'} · Claude deelt elke ochtend in
+    </p>
   );
 }
 
@@ -131,7 +175,6 @@ function GenericCollection({ type }: { type: TypeKey }) {
         actions={
           <>
             <button type="button" className="icon-btn" aria-label={`Zoeken in ${def.plural}`} onClick={() => navigate(`/zoeken?type=${type}`)}><Search size={22} /></button>
-            <button type="button" className="icon-btn accent" aria-label={`Nieuw: ${def.label}`} onClick={() => add({ type, openAfter: true, mode: def.checklist ? 'checklist' : 'text' })}><Plus size={24} /></button>
           </>
         }
       />

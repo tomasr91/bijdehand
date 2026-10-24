@@ -92,7 +92,7 @@ de vorige versie. Alle tests zijn groen voordat een fase afgerond heet.
 |---|---|---|---|
 | B3 | Sync telefoon ↔ desktop: welke aanpak en hosting, welke login? | Desktopgebruik met dezelfde gegevens | Geen sync; overzetten via back-up |
 | B4 | Automatische back-up: waarheen? | Fase 2 | Handmatig + waarschuwing na 14 dagen |
-| B5 | Meldingen: push-server of native wrapper acceptabel? | Fase 3 | Geen meldingen; "Aandacht nodig" op Vandaag |
+| B5 | Meldingen: push-server of native wrapper acceptabel? | Fase 3 | Geen meldingen (Vandaag is weg, D15) |
 | B7 | Bijlagen en afbeeldingen opslaan: wanneer, en met welke limiet? | Afbeeldingsinvoer / Keep-afbeeldingen | Niet; alleen afbeeldings-URL bij bronnen |
 | B8 | Keep-import: ook gearchiveerde notities en de prullenbak? | Keep-import | Gearchiveerd ja (met tag), prullenbak nee |
 | B9 | Is "Bijdehand" de definitieve naam? | Publiceren | Werknaam |

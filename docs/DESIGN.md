@@ -6,8 +6,8 @@ Status: **[Gebouwd]** tenzij anders vermeld. De tokens staan bovenaan `src/style
 
 1. **Mobiel eerst, één hand.** Ontwerp en test op 360–412 px. Grotere schermen voegen ruimte toe,
    maar geen ander gedrag.
-2. **Opslaan in één tik.** De toevoegknop zit midden in de navigatie en staat ook als grote knop op
-   Vandaag. Een soort kiezen is optioneel.
+2. **Opslaan in één tik.** Een ronde toevoegknop rechtsonder, op elk scherm. Een soort kiezen is optioneel;
+   zonder soort gaat het naar de Inbox en deelt Claude het 's ochtends in.
 3. **Rustig.** Warme, neutrale kleuren, veel witruimte en geen statistieken of decoratie die de inhoud
    verdringt.
 4. **Eerlijk.** Wat nog niet werkt, staat er niet. Beperkingen worden kort benoemd: bij herinneringen,
@@ -36,32 +36,41 @@ Status: **[Gebouwd]** tenzij anders vermeld. De tokens staan bovenaan `src/style
 - Selecties met weinig opties zijn chips, beoordeling met 5 grote sterren, ja/nee met een schakelaar.
 - Er zijn geen tabellen en er is nergens horizontaal scrollen; de e2e-test controleert dit.
 
-## Navigatie
+## Navigatie — **[Gebouwd]** (D15)
+
+Er is **geen navigatiebalk**. Op verzoek van de eigenaar zijn er drie onderdelen: **Verzamelingen** (het enige
+hoofdscherm, ook startpagina en `start_url`), **Instellingen** (tandwiel rechtsboven op het hoofdscherm) en
+**Toevoegen** (ronde accentknop rechtsonder, 64 px, op elk scherm).
 
 | Breedte | Indeling |
 |---|---|
-| < 900 px | Vaste balk onderaan met **Verzamelingen · Vandaag · Toevoegen · Bronnen · Zoeken**; Toevoegen is een gevulde accentknop |
-| ≥ 900 px | Dezelfde vijf als rail links (Toevoegen bovenaan); inhoud max. 720 px breed, tegels in 3 kolommen, sheets als gecentreerde dialoog |
+| < 900 px | Inhoud over de volle breedte; ronde knop rechtsonder boven de veilige zone |
+| ≥ 900 px | Inhoud max. 720 px breed in het midden, knop rechtsonder naast de inhoud; sheets als gecentreerde dialoog |
 
-- Zoeken is vanaf elk scherm met één tik bereikbaar via de balk. Verzamelingen hebben daarnaast een
-  zoekknop die op die soort filtert.
-- **Terugknop (Android):** sluit eerst een open sheet en gaat daarna terug naar het vorige scherm.
+- **Terugknop (Android):** sluit eerst een open sheet, gaat daarna terug; op het hoofdscherm sluit hij de app.
 - Toevoegen vanuit een verzameling kiest die soort alvast en opent na opslaan het detail.
-- **Startpagina is Verzamelingen** (op verzoek van de eigenaar; ook `start_url` in het manifest).
-- Instellingen zit achter het tandwiel op Verzamelingen en op Vandaag; de Prullenbak is bereikbaar via Instellingen en
-  Verzamelingen.
+- **Zoeken** zit alleen nog als vergrootglas bovenaan een verzameling (zoekt binnen die soort).
+- Vandaag en de lijst Bronnen bestaan niet meer. Een link zonder soort wordt een item in de Inbox met die link erbij;
+  dezelfde link opnieuw bewaren maakt geen dubbel item maar verwijst naar het bestaande.
+- De Prullenbak is bereikbaar via Instellingen (en onderaan het hoofdscherm als er iets in ligt).
+
+## Hoofdscherm
+
+- Kop **Bijdehand** met tandwiel. In de proefversie een melding.
+- **Inbox** als balk, alleen als er iets in staat.
+- **Tegels** alleen voor soorten waar iets in zit, grootste eerst.
+- **Nog leeg: …** als één inklapbare regel; uitgeklapt als chips om een lege soort te openen.
+- **Statusregel** synchronisatie: "Bijgewerkt <tijd> · Claude deelt elke ochtend in"; rood bij een fout; zonder
+  koppeling "Alleen op dit toestel bewaard · GitHub koppelen".
 
 ## Schermhiërarchie
 
 ```text
 Verzamelingen (start) ── Inbox ── item
               ├─ Instellingen ── Prullenbak
-              └─ Soort (filter op status, groepering per soort) ── item (detail = bewerken)
-Vandaag ── Inbox ── item
-        └─ Instellingen
-Bronnen ── bron (broninformatie | mijn notitie | gekoppeld aan)
-Zoeken ── item of bron
-Toevoegen = bottom sheet boven het huidige scherm
+              └─ Soort (filters, groepering per soort; zoeken binnen de soort) ── item (detail = bewerken)
+                                                                                 └─ bron (via de links van een item)
+Toevoegen = bottom sheet boven het huidige scherm (ronde knop rechtsonder)
 ```
 
 **[Gebouwd]** Restaurants hebben een **eigen, sober detail** (`compactDetail`, `src/screens/RestaurantDetail.tsx`), belangrijkste eerst:

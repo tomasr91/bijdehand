@@ -51,12 +51,11 @@ De groepering (Inspiratie, Praktisch, Naslag) en de soorten staan in één regis
 
 | Scherm | Inhoud | Status |
 |---|---|---|
-| Vandaag | (Startpagina is Verzamelingen.) Toevoegknop, Inbox-melding, "Aandacht nodig" (te laat/vandaag/hoge prioriteit), "Binnenkort", recent bewaard, back-upwaarschuwing | [Gebouwd]; AI-suggesties [Gewenst] fase 2 |
-| Inbox | Items zonder soort, met regelgebaseerd voorstel en "Indelen" in één tik | [Gebouwd] (bereikbaar via Vandaag en Verzamelingen) |
-| Verzamelingen | Inbox + tien soorten in drie groepen, met tellers | [Gebouwd] |
-| Toevoegen | Bottom sheet: tekst, link of checklist; soort optioneel | [Gebouwd] |
-| Bronnen | Bibliotheek van links met eigen notitie en koppelingen; externe informatie apart van eigen notitie | [Gebouwd]; automatisch ophalen [Gewenst] fase 2 |
-| Zoeken | Tekst + filters (soort, status, tag, items/bronnen); vraagwoorden genegeerd | [Gebouwd]; semantisch zoeken [Gewenst] fase 2 |
+| Inbox | Items zonder soort, met regelgebaseerd voorstel en "Indelen" in één tik; Claude deelt dagelijks in | [Gebouwd] (balk op het hoofdscherm als er iets in staat) |
+| Verzamelingen | Het enige hoofdscherm: gebruikte soorten als tegels (grootste eerst), lege soorten ingeklapt, statusregel synchronisatie | [Gebouwd] (D15) |
+| Toevoegen | Ronde knop rechtsonder → bottom sheet: tekst, link of checklist; soort optioneel | [Gebouwd] |
+| Bronnen | Geen eigen scherm meer (D15): links horen bij een item en zijn daar te openen | [Gebouwd] |
+| Zoeken | Vergrootglas in een verzameling: tekst + filters binnen die soort | [Gebouwd]; semantisch zoeken [Gewenst] fase 2 |
 | Instellingen | Back-up/herstel, opslagstatus, installeren, prullenbak, voorbeeldgegevens, beperkingen | [Gebouwd] |
 
 ## Belangrijkste functies en status

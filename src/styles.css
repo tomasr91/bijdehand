@@ -103,33 +103,19 @@ img { max-width: 100%; }
 /* ---------- Indeling ---------- */
 
 .app { min-height: 100dvh; }
-.main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px); }
+.main { padding-bottom: calc(env(safe-area-inset-bottom) + 104px); }
 .screen { max-width: 720px; margin: 0 auto; padding: 0 var(--gutter); display: flex; flex-direction: column; gap: 16px; }
 .loading { padding: 40vh 0 0; text-align: center; color: var(--muted); }
 .fatal { padding-top: 48px; }
 
-.nav {
-  position: fixed; inset: auto 0 0 0; z-index: 20;
-  display: grid; grid-template-columns: repeat(5, 1fr);
-  height: calc(var(--nav-h) + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid var(--border);
+.fab {
+  position: fixed; z-index: 25; right: max(var(--gutter), env(safe-area-inset-right));
+  bottom: calc(env(safe-area-inset-bottom) + 20px);
+  width: 64px; height: 64px; border-radius: 50%; border: 0;
+  display: grid; place-items: center;
+  background: var(--accent); color: var(--on-accent); box-shadow: 0 6px 18px rgb(0 0 0 / 0.25);
 }
-.nav-item {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  min-height: var(--tap); border: 0; background: none; color: var(--muted);
-  font-size: 11.5px; font-weight: 500; padding: 4px 0;
-}
-.nav-item.on { color: var(--accent); font-weight: 650; }
-.nav-item.on svg { stroke-width: 2.4; }
-.nav-add { color: var(--text); }
-.nav-add-circle {
-  display: grid; place-items: center; width: 48px; height: 36px; border-radius: 18px;
-  background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow);
-}
-.nav-add:active .nav-add-circle { background: var(--accent-strong); }
+.fab:active { background: var(--accent-strong); transform: scale(0.97); }
 
 /* ---------- Kopteksten ---------- */
 
@@ -417,7 +403,7 @@ input[type='search']::-webkit-search-cancel-button { display: none; }
 .example { min-height: var(--tap); padding: 8px 14px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); text-align: left; font-size: 15px; }
 
 body.no-scroll .toast-region { bottom: auto; top: calc(env(safe-area-inset-top) + 12px); }
-.toast-region { position: fixed; left: 0; right: 0; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 12px); z-index: 60; display: flex; justify-content: center; padding: 0 var(--gutter); pointer-events: none; }
+.toast-region { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 96px); z-index: 60; display: flex; justify-content: center; padding: 0 var(--gutter); pointer-events: none; }
 .toast {
   pointer-events: auto; display: flex; align-items: center; gap: 12px; max-width: 520px; width: 100%;
   padding: 6px 6px 6px 16px; min-height: 48px; border-radius: var(--radius); background: #2a2420; color: #fbf6ef; box-shadow: 0 6px 24px rgb(0 0 0 / 22%);
@@ -435,15 +421,7 @@ body.no-scroll .toast-region { bottom: auto; top: calc(env(safe-area-inset-top) 
 }
 
 @media (min-width: 900px) {
-  :root { --nav-h: 0px; }
-  .main { padding-left: 96px; padding-bottom: 48px; }
-  .nav {
-    inset: 0 auto 0 0; width: 96px; height: auto; grid-template-columns: 1fr; grid-auto-rows: 76px;
-    align-content: start; padding: 24px 0 0; border-top: 0; border-right: 1px solid var(--border);
-  }
-  .nav-add { order: -1; margin-bottom: 12px; }
-  .nav-item { font-size: 12px; }
-  .toast-region { bottom: 24px; padding-left: 96px; }
+  .fab { right: max(32px, calc(50vw - 360px - 96px)); bottom: 32px; }
   .sheet-backdrop { align-items: center; }
   .sheet { border-radius: 20px; max-height: 86dvh; }
   .sheet-handle { display: none; }
@@ -543,3 +521,11 @@ body.no-scroll .toast-region { bottom: auto; top: calc(env(safe-area-inset-top) 
 .r-edit-toggle .rot { transform: rotate(180deg); }
 
 .plain-ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 15px; }
+
+/* Hoofdscherm */
+.empty-types { display: flex; flex-direction: column; gap: 8px; }
+.empty-types .r-edit-toggle { color: var(--muted); font-weight: 500; text-align: left; }
+.empty-types-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-status { display: flex; align-items: center; gap: 6px; min-height: var(--tap); padding: 0 4px; border: 0; background: none; font-size: 14px; color: var(--muted); text-align: left; }
+.home-status.warn { color: var(--warn, var(--muted)); }
+.home-status.bad { color: var(--danger); font-weight: 600; }
