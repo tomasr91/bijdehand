@@ -82,6 +82,18 @@ staan `checkedAt`, `ratingSource` en wat onzeker is (`uncertain`). Niet gevonden
 opzet), sfeer of ligging, en wat opvalt. Geen cijfers of prijzen in de samenvatting (die horen in hun eigen velden); openingsdagen alleen globaal. In eigen woorden, alleen uit feiten die in de bronnen staan, zonder reviewteksten te citeren. Google levert
 soms zelf een korte beschrijving (`editorialSummary`); die mag als basis dienen, met de bron erbij.
 
+**[Gebouwd]** **Soort zaak** (veld `venue`, verplicht bij opzoeken) — wat je kunt verwachten; staat op het kaartje:
+
+| Waarde | Wanneer | Kaartje |
+|---|---|---|
+| `finedining` | Proef-/gangenmenu, Michelinster of -vermelding als fine dining, chef's menu, wijnarrangement | ◆◆◆ Fine dining |
+| `restaurant` | Gewoon uit eten, à la carte of shared dining | ◆◆ Restaurant |
+| `bistro` | Ongedwongen: bistro, eetcafé, grand café, brouwerij met keuken, ook voor lunch/borrel | ◆ Bistro / eetcafé |
+| `casual` | Streetfood, afhaal, lunchroom, snackbar | ◇ Snel & casual |
+
+Daarnaast `experience: true` (🎭 Beleving) bij een show, pop-up, table d'hôte of geheim/verrassingsmenu. ⭐ (Michelin) en 🌱
+(volledig vegetarisch/veganistisch) volgen vanzelf uit `michelin` en de labels.
+
 **[Gebouwd]** **Labels** (veld `traits`): bij elk opgezocht restaurant bepaalt Claude ook 1–4 labels die zeggen **wat je er eet**.
 Ze staan op het kaartje (de eerste drie), dus in één oogopslag moet duidelijk zijn wat voor keuken het is.
 
@@ -105,7 +117,7 @@ Een geplande Claude-taak draait **één keer per dag** (en op verzoek van de eig
    (zelfde voorstel, velden hieronder). Per al ingedeeld restaurant zonder `checkedAt`: `aanvullen`.
    Per restaurant in `adresNodig`: `aanvullen` met het juiste adres (eigen website of Google/OSM). Heeft de zaak geen vast
    adres, zet dat dan in `uncertain` met de woorden "geen vast adres"; dan vraagt de taak er niet meer naar.
-4. **Opzoeken (restaurant):** `city`, `cuisine`, `address` (altijd in de vorm *Straat huisnummer, postcode Plaats*, zonder
+4. **Opzoeken (restaurant):** `venue` (soort zaak, zie hierboven), `experience` als het een beleving is, `city`, `cuisine`, `address` (altijd in de vorm *Straat huisnummer, postcode Plaats*, zonder
    toelichting of wijk tussen haakjes: de app zet het adres om naar een punt op de kaart), `website` (eigen site), `summary` (3–5 zinnen), `traits` (labels: keuken +
    vega/vegan, zie hierboven), `openStatus`, `checkedAt` (vandaag), `uncertain` (wat niet zeker is) en `links`. Cijfers en
    prijsniveau zijn verborgen in de app: niet nodig. Alleen feiten uit bronnen; niets gevonden = leeg laten.

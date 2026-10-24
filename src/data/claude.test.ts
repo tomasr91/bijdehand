@@ -191,6 +191,18 @@ describe('dubbele items voorkomen en verwijderen', () => {
     expect((await db.items.get(note.id))?.deletedAt).toBeTruthy(); // volledig afgehandeld
   });
 
+  it('aanvullen met itemId werkt ook als er twee met dezelfde naam zijn', async () => {
+    const a = await repo.createItem({ type: 'restaurant', title: 'Dubbel', fields: { city: 'Leiden' } });
+    await repo.createItem({ type: 'restaurant', title: 'Dubbel', fields: { city: 'Leiden' } });
+    const viaZoek = parseProposals(file([{ actie: 'aanvullen', type: 'restaurant', zoek: { titel: 'Dubbel' }, velden: { venue: 'bistro' } }]), await db.items.toArray());
+    if (!viaZoek.ok) throw new Error(viaZoek.error);
+    expect(viaZoek.value.rows[0].problem).toMatch(/meerdere/);
+    const r = parseProposals(file([{ actie: 'aanvullen', type: 'restaurant', itemId: a.id, velden: { venue: 'bistro', experience: true } }]), await db.items.toArray());
+    if (!r.ok) throw new Error(r.error);
+    await applyProposals(r.value.rows);
+    expect((await db.items.get(a.id))?.fields).toMatchObject({ venue: 'bistro', experience: true });
+  });
+
   it('verwijderen: alleen met itemId, naar de prullenbak, terug te draaien', async () => {
     const a = await repo.createItem({ type: 'restaurant', title: 'Dubbel', fields: { city: 'Leiden' } });
     const bad = parseProposals(file([{ actie: 'verwijderen', zoek: { titel: 'Dubbel' } }]), await db.items.toArray());

@@ -230,12 +230,17 @@ export function parseProposals(text: string, items: Item[]): ParseProposalsResul
     }
     if (actie === 'aanvullen') {
       if (!isTypeKey(v.type)) return bad(`onbekende soort "${String(v.type)}"`, p);
-      if (!p.zoek) return bad('"zoek" met de titel van het bestaande item ontbreekt', p);
+      if (p.itemId) {
+        // Exact aangewezen item (bijv. als er twee met dezelfde naam zijn).
+        if (!item || item.deletedAt || item.type !== v.type) return bad('itemId hoort niet bij een bestaand item van deze soort', p);
+      } else if (!p.zoek) return bad('"zoek" met de titel van het bestaande item ontbreekt', p);
+      else {
       const t = fold(p.zoek.titel);
       const c = p.zoek.city ? fold(p.zoek.city) : '';
       const hits = items.filter((i) => !i.deletedAt && i.type === v.type && fold(i.title) === t && (!c || !i.fields.city || fold(String(i.fields.city)) === c));
       if (hits.length !== 1) return { p, status: 'fout', problem: hits.length ? 'meerdere items met deze titel' : `"${p.zoek.titel}" niet gevonden` };
       item = hits[0];
+      }
     }
     if (!isTypeKey(v.type)) return bad(`onbekende soort "${String(v.type)}"`, p);
     p.type = v.type;

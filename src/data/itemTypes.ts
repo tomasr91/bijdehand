@@ -116,6 +116,12 @@ export const TYPES: TypeDef[] = [
     fields: [
       { key: 'city', label: 'Plaats', kind: 'text', primary: true, placeholder: 'Bijv. Utrecht' },
       { key: 'cuisine', label: 'Keuken', kind: 'text', primary: true, placeholder: 'Bijv. Afghaans, Italiaans' },
+      // Wat voor zaak het is (verwachting): staat op het kaartje als ◆◆◆/◆◆/◆/◇. Claude vult dit in bij het opzoeken.
+      { key: 'venue', label: 'Soort zaak', kind: 'select', primary: true, options: [
+        { value: 'finedining', label: 'Fine dining' }, { value: 'restaurant', label: 'Restaurant' },
+        { value: 'bistro', label: 'Bistro / eetcafé' }, { value: 'casual', label: 'Snel & casual' },
+      ] },
+      { key: 'experience', label: 'Beleving', kind: 'boolean', hint: 'Show, pop-up, verrassingsmenu of iets anders bijzonders' },
       { key: 'traits', label: 'Labels', kind: 'list', primary: true, hint: 'Wat maakt het bijzonder?',
         suggestions: ['vegetarisch', 'veganistisch', 'fancy', 'kleine gerechten', 'reserveren', 'terras', 'betaalbaar', 'afhalen'] },
       { key: 'score', label: 'Mijn cijfer', kind: 'score', primary: true, placeholder: 'Bijv. 7,5', hint: '1 tot 10; leeg = nog niet geweest' },

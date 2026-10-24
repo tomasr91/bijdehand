@@ -46,6 +46,26 @@ function dueTone(item: Item): string {
   return diff < 0 ? 'tone-late' : diff === 0 ? 'tone-today' : '';
 }
 
+/** Soort zaak: label en tekens voor het kaartje (◆◆◆ fine dining … ◇ snel & casual). */
+export const VENUE: Record<string, { label: string; mark: string; level: number }> = {
+  finedining: { label: 'Fine dining', mark: '◆◆◆', level: 3 },
+  restaurant: { label: 'Restaurant', mark: '◆◆', level: 2 },
+  bistro: { label: 'Bistro / eetcafé', mark: '◆', level: 1 },
+  casual: { label: 'Snel & casual', mark: '◇', level: 0 },
+};
+
+/** Kleine symbolen: ⭐ in de Michelin-gids, 🌱 hele kaart vegetarisch/veganistisch, 🎭 beleving. */
+export function restaurantBadges(item: Item): { icon: string; label: string }[] {
+  const f = item.fields;
+  const traits = Array.isArray(f.traits) ? f.traits : [];
+  const out: { icon: string; label: string }[] = [];
+  if (typeof f.michelin === 'string' && f.michelin.trim()) out.push({ icon: '⭐', label: f.michelin.trim() });
+  if (traits.includes('veganistisch')) out.push({ icon: '🌱', label: 'Volledig veganistisch' });
+  else if (traits.includes('vegetarisch')) out.push({ icon: '🌱', label: 'Volledig vegetarisch' });
+  if (f.experience === true) out.push({ icon: '🎭', label: 'Beleving' });
+  return out;
+}
+
 /** "fancy, reserveren, terras +2": hoogstens `max` kenmerken. */
 export function traitsLine(item: Item, max = 3): string {
   const t = Array.isArray(item.fields.traits) ? item.fields.traits : [];
@@ -72,13 +92,24 @@ export function RestaurantMark({ item }: { item: Item }) {
 
 /** Eén regel in de restaurantlijst (binnen een blok per plaats). */
 export function RestaurantRow({ item }: { item: Item }) {
-  const traits = traitsLine(item);
+  const venue = typeof item.fields.venue === 'string' ? VENUE[item.fields.venue] : undefined;
+  const traits = traitsLine(item, venue ? 2 : 3);
+  const badges = restaurantBadges(item);
   const closed = item.fields.openStatus === 'gesloten';
   return (
     <button type="button" className="r-row" onClick={() => navigate(`/item/${item.id}`)}>
       <span className="r-row-text">
-        <span className="r-row-title">{item.title || 'Zonder titel'}</span>
-        {(traits || closed) && <span className="r-row-sub">{[closed ? 'Permanent gesloten' : '', traits].filter(Boolean).join(' · ')}</span>}
+        <span className="r-row-title">
+          {item.title || 'Zonder titel'}
+          {badges.map((b) => <span key={b.icon} className="r-badge" role="img" aria-label={b.label} title={b.label}>{b.icon}</span>)}
+        </span>
+        {(traits || closed || venue) && (
+          <span className="r-row-sub">
+            {venue && <span className="r-venue" aria-label={venue.label}><span aria-hidden="true">{venue.mark}</span> {venue.label}</span>}
+            {venue && (traits || closed) ? ' · ' : ''}
+            {[closed ? 'Permanent gesloten' : '', traits].filter(Boolean).join(' · ')}
+          </span>
+        )}
       </span>
       <RestaurantMark item={item} />
     </button>

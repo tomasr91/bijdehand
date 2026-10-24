@@ -146,6 +146,18 @@ describe('synchroniseren', () => {
     expect(gh.files.has('voorstellen/a.json')).toBe(false);
   });
 
+  it('laat een voorstel voor een nieuwere app-versie (onbekend veld) staan in plaats van het weg te gooien', async () => {
+    const gh = fakeGitHub();
+    setFetcher(gh.fetch);
+    await connect('tomas/data', TOKEN);
+    await syncNow();
+    gh.put('voorstellen/nieuw.json', JSON.stringify({ format: 'bijdehand-voorstellen', formatVersion: 1, voorstellen: [{ actie: 'nieuw', type: 'book', titel: 'X', velden: { veldUitDeToekomst: 1 } }] }));
+    const r = await syncNow();
+    expect(r.skippedFiles).toEqual(['nieuw.json']);
+    expect(gh.files.has('voorstellen/nieuw.json')).toBe(true);
+    expect((await db.items.toArray()).filter((i) => i.type === 'book')).toHaveLength(0);
+  });
+
   it('meldt een fout en onthoudt die in de status; ontkoppelen laat de gegevens staan', async () => {
     const gh = fakeGitHub();
     setFetcher(gh.fetch);

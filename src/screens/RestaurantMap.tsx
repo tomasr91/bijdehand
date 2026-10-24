@@ -8,14 +8,9 @@ import { hasBeen } from '../data/itemTypes';
 import { hasLocation } from '../data/geocode';
 import type { Item } from '../data/model';
 import { formatScore } from '../data/util';
-import { traitsLine } from '../components/cards';
+import { traitsLine, VENUE } from '../components/cards';
 
 const NL: L.LatLngExpression = [52.2, 5.3];
-
-function cssVar(name: string, fallback: string): string {
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return v || fallback;
-}
 
 function popupContent(item: Item, onOpen: (id: string) => void): HTMLElement {
   const box = document.createElement('div');
@@ -23,7 +18,8 @@ function popupContent(item: Item, onOpen: (id: string) => void): HTMLElement {
   const title = document.createElement('b');
   title.textContent = item.title;
   box.append(title);
-  const sub = [traitsLine(item), typeof item.fields.score === 'number' ? `mijn cijfer ${formatScore(item.fields.score)}` : ''].filter(Boolean).join(' · ');
+  const v = typeof item.fields.venue === 'string' ? VENUE[item.fields.venue] : undefined;
+  const sub = [v ? `${v.mark} ${v.label}` : '', traitsLine(item, 2), typeof item.fields.score === 'number' ? `mijn cijfer ${formatScore(item.fields.score)}` : ''].filter(Boolean).join(' · ');
   if (sub) {
     const s = document.createElement('span');
     s.textContent = sub;
@@ -63,33 +59,27 @@ export function RestaurantMap({ items, onOpen, onLocateError }: { items: Item[];
   }, []);
 
   const located = items.filter(hasLocation);
-  const key = located.map((i) => `${i.id}:${i.fields.lat},${i.fields.lng}:${i.fields.score ?? ''}`).join('|');
+  const key = located.map((i) => `${i.id}:${i.fields.lat},${i.fields.lng}:${i.fields.score ?? ''}:${i.fields.venue ?? ''}:${i.fields.visited ?? ''}`).join('|');
 
   useEffect(() => {
     const m = map.current;
     const g = layer.current;
     if (!m || !g) return;
     g.clearLayers();
-    const accent = cssVar('--accent', '#b5532a');
-    const surface = cssVar('--surface', '#ffffff');
     for (const item of located) {
       const been = hasBeen(item);
-      const marker = L.circleMarker([item.fields.lat as number, item.fields.lng as number], {
-        radius: been ? 14 : 9,
-        color: been ? surface : accent,
-        weight: been ? 2 : 3,
-        fillColor: been ? accent : surface,
-        fillOpacity: 1,
+      // Vorm = soort zaak (ruit fine dining, rond restaurant, vierkant bistro, klein rondje casual);
+      // gevuld met je cijfer = geweest, open = nog niet.
+      const venue = typeof item.fields.venue === 'string' && VENUE[item.fields.venue] ? item.fields.venue : 'onbekend';
+      const score = typeof item.fields.score === 'number' ? formatScore(item.fields.score) : '';
+      const html = `<span class="pin-shape"></span>${score ? `<span class="pin-score">${score}</span>` : ''}`;
+      const marker = L.marker([item.fields.lat as number, item.fields.lng as number], {
+        icon: L.divIcon({ className: `map-pin v-${venue} ${been ? 'been' : 'not'}`, html, iconSize: [30, 30], iconAnchor: [15, 15] }),
+        title: item.title,
+        alt: item.title,
+        riseOnHover: true,
       });
-      marker.bindPopup(() => popupContent(item, onOpen), { closeButton: false, autoPanPadding: [24, 24] });
-      marker.bindTooltip(item.title, { direction: 'top', offset: [0, -8] });
-      if (typeof item.fields.score === 'number') {
-        L.marker([item.fields.lat as number, item.fields.lng as number], {
-          icon: L.divIcon({ className: 'map-score', html: formatScore(item.fields.score), iconSize: [30, 18], iconAnchor: [15, 9] }),
-          interactive: false,
-          keyboard: false,
-        }).addTo(g);
-      }
+      marker.bindPopup(() => popupContent(item, onOpen), { closeButton: false, autoPanPadding: [24, 24], offset: [0, -10] });
       marker.addTo(g);
     }
     // Inzoomen op wat zichtbaar is, alleen als de verzameling punten verandert (niet bij elke kleine wijziging).
@@ -129,5 +119,18 @@ export function RestaurantMap({ items, onOpen, onLocateError }: { items: Item[];
         <LocateFixed size={22} />
       </button>
     </div>
+  );
+}
+
+/** Uitleg van de vormen onder de kaart. */
+export function MapLegend() {
+  return (
+    <p className="map-legend">
+      <span><b>◆</b> ruit = fine dining</span>
+      <span><b>●</b> rond = restaurant</span>
+      <span><b>■</b> vierkant = bistro / eetcafé</span>
+      <span><b>•</b> klein = snel &amp; casual</span>
+      <span>gevuld met cijfer = geweest</span>
+    </p>
   );
 }

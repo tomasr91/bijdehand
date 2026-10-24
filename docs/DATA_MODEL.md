@@ -42,7 +42,7 @@ Werk dit document bij in dezelfde wijziging als die bestanden.
 |---|---|
 | Cadeaus (`gift`) | `person`, `occasion`, `budget` (€, getal), `status`: idee/gekocht/gegeven |
 | Nachtjes weg (`trip`) | `destination`, `accommodation`, `price` (tekst), `reasons`, `status`: idee/gepland/geweest |
-| Restaurants (`restaurant`) | `city` (plaats), `cuisine` (keuken), `traits` (labels, lijst), `score` (eigen cijfer 1–10, één decimaal), `favorite` (ja/nee), `visited` (verborgen; "geweest" zonder cijfer uit v3). **Geen statusveld:** de status "geweest" wordt afgeleid (`derivedStatus`: cijfer of `visited`), `address` (adres of buurt, voor de kaart), `dishes`. **Opgezocht** (`external`): `summary` (samenvatting), `website` (link), `priceLevel` €–€€€€, `googleRating`/`googleCount`, `theforkRating`/`theforkCount`, `tripadvisorRating`/`tripadvisorCount`, `michelin`, `openStatus`, `checkedAt`, `ratingSource`, `uncertain`; verborgen locatie `lat`, `lng`, `geoFor` (door de app opgezocht uit het adres, D16) |
+| Restaurants (`restaurant`) | `city` (plaats), `cuisine` (keuken), `traits` (labels, lijst), `score` (eigen cijfer 1–10, één decimaal), `favorite` (ja/nee), `venue` (soort zaak: finedining/restaurant/bistro/casual), `experience` (ja/nee, beleving), `visited` (verborgen; "geweest" zonder cijfer uit v3). **Geen statusveld:** de status "geweest" wordt afgeleid (`derivedStatus`: cijfer of `visited`), `address` (adres of buurt, voor de kaart), `dishes`. **Opgezocht** (`external`): `summary` (samenvatting), `website` (link), `priceLevel` €–€€€€, `googleRating`/`googleCount`, `theforkRating`/`theforkCount`, `tripadvisorRating`/`tripadvisorCount`, `michelin`, `openStatus`, `checkedAt`, `ratingSource`, `uncertain`; verborgen locatie `lat`, `lng`, `geoFor` (door de app opgezocht uit het adres, D16) |
 | Boeken (`book`) | `author`, `status`: wil/bezig/gelezen, `rating` |
 | Albums (`album`) | `artist`, `status`: ontdekken/luisteren/opnieuw/geluisterd, `rating` |
 | Kleermaten (`size`) | `person`, `garment`, `size`, `brand`, `date` |
@@ -109,6 +109,7 @@ het typen worden steeds opnieuw berekend.
   "formatVersion": 1,
   "schemaVersion": 1,
   "exportedAt": "2026-10-24T10:00:00.000Z",
+  "appVersion": "2026-10-24.5-soort-zaak",
   "counts": { "items": 28, "sources": 2, "links": 2, "revisions": 0 },
   "data": { "items": [], "sources": [], "links": [], "revisions": [] }
 }

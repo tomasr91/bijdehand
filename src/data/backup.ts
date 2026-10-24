@@ -8,12 +8,16 @@ import { normalizeUrl, nowIso, siteOf } from './util';
 
 export const BACKUP_FORMAT = 'bijdehand-backup';
 export const BACKUP_FORMAT_VERSION = 1;
+/** Versie van de app die de back-up maakte (informatief; ophogen bij een functie die nieuwe velden of acties kent). */
+export const APP_VERSION = '2026-10-24.5-soort-zaak';
 
 export interface Backup {
   format: typeof BACKUP_FORMAT;
   formatVersion: number;
   schemaVersion: number;
   exportedAt: string;
+  /** Welke app-versie de back-up maakte (optioneel; oudere back-ups hebben dit niet). */
+  appVersion?: string;
   counts: { items: number; sources: number; links: number; revisions: number };
   data: { items: Item[]; sources: Source[]; links: Link[]; revisions: Revision[] };
 }
@@ -28,6 +32,7 @@ export async function exportBackup(): Promise<Backup> {
       formatVersion: BACKUP_FORMAT_VERSION,
       schemaVersion: SCHEMA_VERSION,
       exportedAt: nowIso(),
+      appVersion: APP_VERSION,
       counts: { items: items.length, sources: sources.length, links: links.length, revisions: revisions.length },
       data: { items, sources, links, revisions },
     };

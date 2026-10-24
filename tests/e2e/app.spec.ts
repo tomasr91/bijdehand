@@ -254,8 +254,8 @@ test('restaurantlijst plakken: per plaats gegroepeerd, filter op kenmerk, kenmer
   await expect(page.getByRole('heading', { name: /Leiden · 3/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: /Zwolle · 1/ })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Filter op label' }).click();
-  await page.getByRole('dialog', { name: 'Filter op label' }).getByRole('radio', { name: /^fancy/ }).click();
+  await page.getByRole('button', { name: 'Filter op soort zaak of label' }).click();
+  await page.getByRole('dialog', { name: 'Filter' }).getByRole('radio', { name: /^fancy/ }).click();
   await settle(page);
   await expect(page.getByRole('button', { name: /Erfgoed/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /Pamir/ })).toHaveCount(0);
@@ -324,7 +324,7 @@ test('restaurant: websiteknop in detail, cijfers en prijsniveau (tijdelijk) niet
   const file = info.outputPath('aanvulling.json');
   writeFileSync(file, JSON.stringify({
     format: 'bijdehand-voorstellen', formatVersion: 1, voorstellen: [
-      { id: 'a1', actie: 'aanvullen', type: 'restaurant', zoek: { titel: 'Pamir', city: 'Leiden' }, velden: { website: 'http://pamir.example/', googleRating: 4.7, priceLevel: '€€', summary: 'Afghaans restaurant aan de Breestraat.' } },
+      { id: 'a1', actie: 'aanvullen', type: 'restaurant', zoek: { titel: 'Pamir', city: 'Leiden' }, velden: { website: 'http://pamir.example/', googleRating: 4.7, priceLevel: '€€', summary: 'Afghaans restaurant aan de Breestraat.', venue: 'finedining', michelin: 'Bib Gourmand', experience: true } },
     ],
   }));
   await page.goto('/#/inbox');
@@ -335,6 +335,9 @@ test('restaurant: websiteknop in detail, cijfers en prijsniveau (tijdelijk) niet
   const card = page.getByRole('button', { name: /Pamir/ });
   await expect(card).not.toContainText('Afghaans'); // kaartje: alleen naam en kenmerken (+ eigen cijfer)
   await expect(card).not.toContainText('Wil proberen');
+  await expect(card).toContainText('Fine dining'); // soort zaak op het kaartje
+  await expect(card.getByRole('img', { name: 'Bib Gourmand' })).toBeVisible();
+  await expect(card.getByRole('img', { name: 'Beleving' })).toBeVisible();
   await expect(card).not.toContainText('4,7');
   await expect(card).not.toContainText('€');
   await card.click();
@@ -450,7 +453,7 @@ test('kaart met restaurants: locaties opzoeken, punten, openen; zonder adres apa
   await page.goto('/#/verzameling/restaurant');
   await page.getByRole('button', { name: 'Kaart tonen' }).click();
   await expect(page.getByRole('region', { name: 'Kaart met restaurants' })).toBeVisible();
-  await expect(page.locator('path.leaflet-interactive')).toHaveCount(2, { timeout: 10_000 });
+  await expect(page.locator('.map-pin')).toHaveCount(2, { timeout: 10_000 });
   await expect.poll(() => [...asked].sort()).toEqual(['Breestraat 10, Leiden', 'Haarlemmerstraat 5, Leiden', 'Wisselende locatie, Leiden']);
   await expect(page.getByText(/Locaties opzoeken/)).toHaveCount(0); // klaar met opzoeken
   await page.getByRole('button', { name: '1 zonder locatie' }).click();
@@ -459,9 +462,9 @@ test('kaart met restaurants: locaties opzoeken, punten, openen; zonder adres apa
   await noHorizontalScroll(page);
   // Kaart blijft de gekozen weergave; tweede keer niets opnieuw opzoeken.
   await page.reload();
-  await expect(page.locator('path.leaflet-interactive')).toHaveCount(2);
+  await expect(page.locator('.map-pin')).toHaveCount(2);
   expect(asked).toHaveLength(3);
-  await page.locator('path.leaflet-interactive').first().click({ force: true });
+  await page.locator('.map-pin').first().click();
   await page.locator('.leaflet-popup').getByRole('button', { name: 'Openen' }).click();
   await expect(page.getByRole('link', { name: 'Route in Google Maps' })).toBeVisible();
   await page.goto('/#/verzameling/restaurant');
