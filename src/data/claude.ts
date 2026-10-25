@@ -3,7 +3,7 @@
 import { db } from './db';
 import { TYPE_MAP, isTypeKey } from './itemTypes';
 import type { FieldValue, Item, TypeKey } from './model';
-import { addSource, buildItem, entry, linkRecords, updateItem } from './repo';
+import { addSource, buildItem, entry, linkRecords, mergeChecklist, updateItem } from './repo';
 import { fold, nowIso } from './util';
 
 export const PROPOSALS_FORMAT = 'bijdehand-voorstellen';
@@ -277,6 +277,10 @@ export async function applyProposals(rows: ProposalRow[], allRows: ProposalRow[]
         if (p.titel && p.titel !== cur.title) { patch.title = p.titel; changed.push('title'); }
         if (p.tekst) { patch.body = cur.body ? `${cur.body}\n${p.tekst}` : p.tekst; changed.push('body'); }
         if (p.tags?.length) { patch.tags = [...new Set([...cur.tags, ...p.tags])]; changed.push('tags'); }
+        if (p.checklist?.length) {
+          const merged = mergeChecklist(cur.checklist, p.checklist);
+          if (merged.length !== cur.checklist.length) { patch.checklist = merged; changed.push('checklist'); }
+        }
         return patch;
       });
       await attachLinks(r.item.id, p.links, res.undo);
@@ -293,7 +297,7 @@ export async function applyProposals(rows: ProposalRow[], allRows: ProposalRow[]
         if (p.titel && p.titel !== cur.title) { patch.title = p.titel; changed.push('title'); }
         if (p.tekst !== undefined && p.tekst !== cur.body) { patch.body = p.tekst; changed.push('body'); }
         if (p.tags?.length) { patch.tags = [...new Set([...cur.tags, ...p.tags])]; changed.push('tags'); }
-        if (p.checklist?.length) { patch.checklist = [...cur.checklist, ...p.checklist.map((t) => entry(t))]; changed.push('checklist'); }
+        if (p.checklist?.length) { patch.checklist = mergeChecklist(cur.checklist, p.checklist); changed.push('checklist'); }
         return patch;
       });
       await attachLinks(r.item.id, p.links, res.undo);

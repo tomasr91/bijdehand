@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { suggestType } from '../data/classify';
 import { typeDef } from '../data/itemTypes';
 import type { Source, TypeKey } from '../data/model';
-import { addSource, capture, findSourceByUrl } from '../data/repo';
+import { addSource, capture, findSourceByUrl, mergeChecklist, thePackingList, updateItem } from '../data/repo';
 import { splitLines } from '../data/paste';
 import { findUrl, fold, formatDate, dayOf, isUrl, siteOf } from '../data/util';
 import { Segmented, Sheet, TypeIcon, AutoText } from '../components/ui';
@@ -114,6 +114,18 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
           toast(`Deze link heb je al bewaard bij "${item.title}"`, { action: { label: 'Openen', run: () => navigate(`/item/${item.id}`) } });
           return;
         }
+      }
+      // Er is één paklijst: nieuwe punten komen daarbij (D23).
+      const packing = type === 'packing' ? thePackingList(liveItems) : undefined;
+      if (packing) {
+        const add = mode === 'checklist' ? allLines() : splitLines(text);
+        const before = packing.checklist.length;
+        const after = await updateItem(packing.id, (cur) => ({ checklist: mergeChecklist(cur.checklist, add) }));
+        onClose();
+        navigate(`/item/${packing.id}`);
+        const n = (after?.checklist.length ?? before) - before;
+        toast(n ? `${n} ${n === 1 ? 'punt' : 'punten'} toegevoegd aan de paklijst` : 'Stond al allemaal op de paklijst');
+        return;
       }
       const body = mode === 'text' ? text.split('\n').slice(1).join('\n').trim() : '';
       const r = await capture({

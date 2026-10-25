@@ -127,27 +127,22 @@ test('checklist aanmaken, afvinken en terugvinden na herladen', async ({ page })
   await expect(page.getByRole('checkbox', { name: 'Brood' })).toHaveAttribute('aria-checked', 'false');
 });
 
-test('paklijst: hele lijst plakken, afvinken en alles uitvinken', async ({ page }) => {
-  await page.goto('/#/verzameling/packing');
-  await addBtn(page).click();
-  const sheet = page.getByRole('dialog', { name: 'Nieuw: paklijst' });
-  await sheet.getByLabel('Naam van de lijst').fill('Vakantie');
+test('paklijst: één lijst, hele lijst plakken, afvinken, alles uitvinken, aanvullen via Toevoegen', async ({ page }) => {
   // Een geplakte lijst met meerdere regels wordt per regel een punt (niet samengevoegd in één veld).
-  const paste = async (label: string, text: string, scope = page) => {
-    await scope.getByLabel(label).focus();
-    await scope.getByLabel(label).evaluate((el, t) => {
+  const paste = async (field: ReturnType<Page['getByLabel']>, text: string) => {
+    await field.focus();
+    await field.evaluate((el, t) => {
       const dt = new DataTransfer();
       dt.setData('text/plain', t);
       el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
     }, text);
   };
-  await paste('Punt toevoegen', '- Paspoorten\nZonnebrand\n\nOplader telefoon', sheet as unknown as Page);
-  await expect(sheet.getByText('Oplader telefoon')).toBeVisible();
-  await sheet.getByRole('button', { name: 'Bewaren' }).click();
-  await settle(page);
-  await expect(page.getByText('0 van 3 ingepakt')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Tags' })).toHaveCount(0); // paklijst: alleen de checklist
-  await paste('Punt toevoegen', 'Slippers\nPet');
+  await page.goto('/#/verzameling/packing');
+  await page.getByRole('button', { name: 'Paklijst maken' }).click();
+  await expect(page.getByText('Nog geen punten')).toBeVisible();
+  await expect(addBtn(page)).toHaveCount(0); // geen ronde + op de paklijst
+  await expect(page.getByRole('heading', { name: 'Tags' })).toHaveCount(0); // alleen de checklist
+  await paste(page.getByLabel('Punt toevoegen'), '- Paspoorten\nZonnebrand\n\nOplader telefoon\nSlippers\nPet');
   await expect(page.getByText('0 van 5 ingepakt')).toBeVisible();
   await page.getByRole('checkbox', { name: 'Paspoorten' }).click();
   await page.getByRole('checkbox', { name: 'Pet' }).click();
@@ -157,6 +152,24 @@ test('paklijst: hele lijst plakken, afvinken en alles uitvinken', async ({ page 
   await page.getByRole('button', { name: 'Ongedaan maken' }).click();
   await expect(page.getByText('2 van 5 ingepakt')).toBeVisible();
   await touchTargetsOk(page);
+
+  // Hoofdscherm: de tegel opent meteen de paklijst (geen tussenscherm).
+  await page.goto('/#/verzamelingen');
+  await page.getByRole('button', { name: /^Paklijst/ }).click();
+  await expect(page.getByText('2 van 5 ingepakt')).toBeVisible();
+
+  // Toevoegen met soort Paklijst maakt geen tweede lijst maar vult deze aan (zonder dubbele punten).
+  await page.goto('/#/verzamelingen');
+  await addBtn(page).click();
+  const sheet = page.getByRole('dialog', { name: 'Iets bewaren' });
+  await sheet.getByLabel('Tekst').fill('Zonnebrand\nZwembroek');
+  await sheet.getByRole('button', { name: /^Soort:/ }).click();
+  await page.getByRole('dialog', { name: 'Soort kiezen' }).getByRole('button', { name: 'Paklijsten' }).click();
+  await page.getByRole('dialog', { name: 'Nieuw: paklijst' }).getByRole('button', { name: 'Bewaren' }).click();
+  await expect(page.getByText('1 punt toegevoegd aan de paklijst')).toBeVisible();
+  await expect(page.getByText('2 van 6 ingepakt')).toBeVisible();
+  await page.goto('/#/verzameling/packing');
+  await expect(page.getByText('2 van 6 ingepakt')).toBeVisible(); // nog steeds dezelfde lijst
 });
 
 test('zoeken met een vraag en met filters', async ({ page }) => {

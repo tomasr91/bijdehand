@@ -238,3 +238,17 @@ describe('aanvullen verbetert eerder door Claude ingevulde eigen velden', () => 
     expect(await run('Ergens anders 1')).toBe('Haarlemsestraatweg 113');
   });
 });
+
+describe('paklijst aanvullen', () => {
+  it('voegt punten toe aan de bestaande paklijst zonder dubbele', async () => {
+    const file = (v: unknown[]) => JSON.stringify({ format: 'bijdehand-voorstellen', formatVersion: 1, voorstellen: v });
+    const list = await repo.createItem({ type: 'packing', title: 'Vakantie', checklist: [repo.entry('Paspoorten', true)] });
+    const r = parseProposals(file([{ actie: 'aanvullen', type: 'packing', itemId: list.id, checklist: ['paspoorten', 'Zonnebrand', 'Zonnebrand'] }]), await db.items.toArray());
+    if (!r.ok) throw new Error(r.error);
+    expect(r.value.rows[0].status).toBe('ok');
+    const res = await applyProposals(r.value.rows);
+    expect((await db.items.get(list.id))?.checklist.map((e) => [e.text, e.done])).toEqual([['Paspoorten', true], ['Zonnebrand', false]]);
+    await undoApply(res.undo);
+    expect((await db.items.get(list.id))?.checklist).toHaveLength(1);
+  });
+});

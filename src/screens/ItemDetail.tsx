@@ -50,7 +50,7 @@ function ItemEditor({ item }: { item: Item }) {
   return (
     <div className="screen detail">
       <TopBar
-        back={item.type ? `/verzameling/${item.type}` : '/inbox'}
+        back={item.type === 'packing' ? '/verzamelingen' : item.type ? `/verzameling/${item.type}` : '/inbox'}
         title={def?.label ?? 'Inbox'}
         actions={
           <>

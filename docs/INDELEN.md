@@ -47,7 +47,7 @@ herkent nu alleen de restaurantnotatie; bij andere soorten wordt daar elke regel
 | Album | `Album: Titel - Artiest` | `Album: Blue - Joni Mitchell (opnieuw)` | artist, status |
 | Game | `Game: Titel (platform)` | `Game: Hades II (pc)` | platform, status (standaard *verlanglijst*) |
 | Kleermaat | `Maat Persoon: kledingtype maat merk` | `Maat ik: broek 32/34 Levi's 511` | person, garment, size, brand, date (= vandaag als niets staat) |
-| Paklijst | `Paklijst Naam:` + één punt per regel | `Paklijst skiën:` / `- skibril` | checklist (één punt per regel) |
+| Paklijst | `Paklijst Naam:` + één punt per regel | `Paklijst skiën:` / `- skibril` | checklist (één punt per regel). Er is **één** paklijst: bestaat die al, dan `aanvullen` met `itemId` en `checklist` (dubbele punten slaat de app over) en de Inbox-notitie met `verwijderen` naar de prullenbak |
 | Klus | `Klus: wat (prio, deadline, materiaal)` | `Klus: kraan maken (hoog, 15-11, kraanleertjes)` | status (standaard *open*), priority, due, materials |
 | Plant | `Plant Naam: locatie, elke N dagen water` | `Plant Monstera: woonkamer, elke 7 dagen` | location, care, intervalDays |
 

@@ -67,8 +67,9 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
 function Fab({ route, collectionType, onAdd }: { route: Route; collectionType: TypeKey | null; onAdd: (o?: AddOptions) => void }) {
   const { itemById } = useData();
   const [p, id] = route.path;
-  const onRestaurant = (p === 'verzameling' && id === 'restaurant') || (p === 'item' && itemById.get(id)?.type === 'restaurant');
-  if (onRestaurant) return null;
+  // Geen ronde + op restaurantschermen en op de paklijst (daar voeg je punten toe in de lijst zelf).
+  const own = (t: string) => (p === 'verzameling' && id === t) || (p === 'item' && itemById.get(id)?.type === t);
+  if (own('restaurant') || own('packing')) return null;
   return (
     <button type="button" className="fab" aria-label="Toevoegen" onClick={() => onAdd(collectionType ? { type: collectionType, openAfter: true } : {})}>
       <Plus size={30} strokeWidth={2.4} />

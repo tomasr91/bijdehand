@@ -4,7 +4,7 @@ import { db } from './db';
 import { migrateItem } from './migrate';
 import { defaultFields, TYPE_MAP } from './itemTypes';
 import { SCHEMA_VERSION, type ChecklistEntry, type EntityKind, type FieldValue, type Item, type Link, type Origin, type Source, type Suggestion, type TypeKey } from './model';
-import { addDays, localDate, newId, normalizeUrl, nowIso, siteOf } from './util';
+import { addDays, fold, localDate, newId, normalizeUrl, nowIso, siteOf } from './util';
 
 /** Wijzigingen binnen dit venster vallen samen tot één revisie (geen revisie per toetsaanslag). */
 const REVISION_WINDOW_MS = 2 * 60 * 1000;
@@ -140,6 +140,23 @@ export function entry(text: string, done = false): ChecklistEntry {
 
 export async function toggleEntry(itemId: string, entryId: string): Promise<void> {
   await updateItem(itemId, (cur) => ({ checklist: cur.checklist.map((e) => (e.id === entryId ? { ...e, done: !e.done } : e)) }));
+}
+
+/** Nieuwe punten achteraan; punten die er al staan (zelfde tekst, hoofdletters maken niet uit) worden overgeslagen. */
+export function mergeChecklist(cur: ChecklistEntry[], lines: string[]): ChecklistEntry[] {
+  const seen = new Set(cur.map((e) => fold(e.text)));
+  const add: ChecklistEntry[] = [];
+  for (const l of lines.map((x) => x.trim()).filter(Boolean)) {
+    if (seen.has(fold(l))) continue;
+    seen.add(fold(l));
+    add.push(entry(l));
+  }
+  return [...cur, ...add];
+}
+
+/** Er is één paklijst (D23): de eerst gemaakte die niet in de prullenbak staat. */
+export function thePackingList(items: Item[]): Item | undefined {
+  return items.filter((i) => i.type === 'packing' && !i.deletedAt).sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
 }
 
 // ---------- Planten ----------

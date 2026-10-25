@@ -1,5 +1,5 @@
 import { ChevronRight, CircleAlert, ClipboardPaste, Cloud, CloudOff, Settings, Inbox as InboxIcon, Plus, Search, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { fold } from '../data/util';
 import { PasteSheet } from './PasteSheet';
 import { RestaurantCollection } from './Restaurants';
@@ -12,6 +12,8 @@ import { isDone, statusOf, TYPE_MAP, TYPES } from '../data/itemTypes';
 import type { Item, TypeKey } from '../data/model';
 import { useAdd, useData } from '../ui/context';
 import { navigate } from '../ui/router';
+import * as repo from '../data/repo';
+import { thePackingList } from '../data/repo';
 
 /** Hoofdscherm: alleen soorten waar iets in zit (grootste eerst); lege soorten niet (kiezen kan bij Toevoegen). Inbox alleen als er iets in staat. */
 export function Collections() {
@@ -22,6 +24,7 @@ export function Collections() {
     return m;
   }, [liveItems]);
   const inbox = counts.get('inbox') ?? 0;
+  const packing = thePackingList(liveItems);
   const trash = items.filter((i) => i.deletedAt).length + sources.filter((s) => s.deletedAt).length;
   const used = TYPES.filter((t) => counts.get(t.key)).sort((a, b) => (counts.get(b.key) ?? 0) - (counts.get(a.key) ?? 0) || a.plural.localeCompare(b.plural, 'nl'));
 
@@ -43,9 +46,9 @@ export function Collections() {
       ) : (
         <div className="tiles">
           {used.map((t) => (
-            <button key={t.key} type="button" className="tile" onClick={() => navigate(`/verzameling/${t.key}`)}>
+            <button key={t.key} type="button" className="tile" onClick={() => navigate(t.key === 'packing' && packing ? `/item/${packing.id}` : `/verzameling/${t.key}`)}>
               <TypeIcon type={t.key} size={22} />
-              <span className="tile-label">{t.plural}</span>
+              <span className="tile-label">{t.key === 'packing' ? t.label : t.plural}</span>
               <span className="tile-count">{counts.get(t.key)}</span>
             </button>
           ))}
@@ -117,7 +120,28 @@ function sortItems(type: TypeKey, list: Item[]): Item[] {
 
 export function Collection({ type }: { type: TypeKey }) {
   if (type === 'restaurant') return <RestaurantCollection />;
+  if (type === 'packing') return <PackingStart />;
   return <GenericCollection type={type} />;
+}
+
+/** Er is één paklijst (D23): meteen openen; is er nog geen, dan er één maken. */
+function PackingStart() {
+  const { liveItems } = useData();
+  const packing = thePackingList(liveItems);
+  useEffect(() => {
+    if (packing) navigate(`/item/${packing.id}`, { replace: true });
+  }, [packing?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (packing) return null;
+  const create = async () => {
+    const item = await repo.createItem({ type: 'packing', title: 'Vakantie' });
+    navigate(`/item/${item.id}`, { replace: true });
+  };
+  return (
+    <div className="screen">
+      <TopBar back="/verzamelingen" title="Paklijst" />
+      <Empty icon={<TypeIcon type="packing" size={28} />} title="Nog geen paklijst" text="Eén vakantiepaklijst: afvinken tijdens het inpakken en daarna alles weer uitvinken." action={<button type="button" className="btn btn-primary" onClick={() => void create()}><Plus size={18} /> Paklijst maken</button>} />
+    </div>
+  );
 }
 
 function GenericCollection({ type }: { type: TypeKey }) {
