@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { hasBeen } from '../data/itemTypes';
 import { hasLocation } from '../data/geocode';
 import type { Item } from '../data/model';
-import { formatScore } from '../data/util';
+import { fold, formatScore } from '../data/util';
 import { traitsLine } from '../components/cards';
 
 const NL: L.LatLngExpression = [52.2, 5.3];
@@ -43,7 +43,7 @@ export function RestaurantMap({ items, onOpen, onLocateError }: { items: Item[];
 
   useEffect(() => {
     if (!el.current) return;
-    const m = L.map(el.current, { center: NL, zoom: 7, zoomControl: true, attributionControl: true });
+    const m = L.map(el.current, { center: NL, zoom: 7, zoomSnap: 0.5, zoomControl: true, attributionControl: true });
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
@@ -83,8 +83,15 @@ export function RestaurantMap({ items, onOpen, onLocateError }: { items: Item[];
     const ids = located.map((i) => i.id).sort().join(',');
     if (located.length && ids !== fittedFor.current) {
       fittedFor.current = ids;
-      const bounds = L.latLngBounds(located.map((i) => [i.fields.lat as number, i.fields.lng as number] as L.LatLngTuple));
-      m.fitBounds(bounds, { padding: [32, 32], maxZoom: 15 });
+      // Start op de plaats met de meeste restaurants (zoals de lijst); de rest is een veeg of zoom verder.
+      const byCity = new Map<string, Item[]>();
+      for (const i of located) {
+        const c = fold(String(i.fields.city ?? ''));
+        byCity.set(c, [...(byCity.get(c) ?? []), i]);
+      }
+      const focus = [...byCity.values()].sort((a, b) => b.length - a.length)[0];
+      const bounds = L.latLngBounds(focus.map((i) => [i.fields.lat as number, i.fields.lng as number] as L.LatLngTuple));
+      m.fitBounds(bounds, { padding: [24, 24], maxZoom: 15 });
     }
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 

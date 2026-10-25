@@ -539,7 +539,7 @@ body.no-scroll .toast-region { bottom: auto; top: calc(env(safe-area-inset-top) 
 .sheet-sub + .chips { margin-bottom: 12px; }
 
 /* Kaartpunten */
-.map-pin { position: relative; display: grid; place-items: center; }
+.map-pin { display: grid; place-items: center; } /* geen position: Leaflet zet markers absoluut neer */
 .map-pin .pin-shape { position: absolute; inset: 6px; background: var(--surface); border: 3px solid var(--accent); border-radius: 50%; box-shadow: 0 1px 4px rgb(0 0 0 / 0.35); }
 .map-pin.been .pin-shape { background: var(--accent); border-color: #fff; inset: 1px; }
 .map-pin .pin-score { position: relative; color: #fff; font-weight: 750; font-size: 11.5px; line-height: 1; }

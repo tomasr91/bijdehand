@@ -447,6 +447,11 @@ test('kaart met restaurants: locaties opzoeken, punten, openen; zonder adres apa
   await page.getByRole('button', { name: 'Kaart tonen' }).click();
   await expect(page.getByRole('region', { name: 'Kaart met restaurants' })).toBeVisible();
   await expect(page.locator('.map-pin')).toHaveCount(2, { timeout: 10_000 });
+  // Punten staan op hun plek (bug: ze stonden onder elkaar gestapeld): Groen ligt noordoostelijk van Pamir.
+  const pin = async (t: string) => (await page.locator(`.map-pin[title="${t}"]`).boundingBox())!;
+  const [pamir, groen] = [await pin('Pamir'), await pin('Groen')];
+  expect(groen.x).toBeGreaterThan(pamir.x);
+  expect(groen.y).toBeLessThan(pamir.y);
   await expect.poll(() => [...asked].sort()).toEqual(['Breestraat 10, Leiden', 'Haarlemmerstraat 5, Leiden', 'Wisselende locatie, Leiden']);
   await expect(page.getByText(/Locaties opzoeken/)).toHaveCount(0); // klaar met opzoeken
   await page.getByRole('button', { name: '1 zonder locatie' }).click();
