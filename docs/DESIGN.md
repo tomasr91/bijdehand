@@ -17,6 +17,9 @@ Status: **[Gebouwd]** tenzij anders vermeld. De tokens staan bovenaan `src/style
 
 ## Visuele stijl
 
+- **Merkkop:** op het hoofdscherm en bij Restaurants een donker terracotta vlak (`--brand #6b2d16`, donker thema `#3b1e12`)
+  met titel, cursieve ondertitel en een lijntekening op lage dekking; scrolt weg. Het lichte blok met de bediening schuift er
+  overheen en blijft bovenaan plakken. Idee overgenomen van *Uit in 030*, in de eigen kleur. Kopjes in `--heading`.
 - **Kleuren:** warm off-white (`--bg #f7f3ec`), crèmekleurige kaarten en één accentkleur terracotta
   (`--accent #b5532a`). Groepkleuren alleen in iconen: Inspiratie terracotta, Praktisch groen, Naslag
   blauw, Bronnen paars, Inbox grijs. Donkere modus volgt het systeem.
@@ -56,7 +59,8 @@ hoofdscherm, ook startpagina en `start_url`), **Instellingen** (tandwiel rechtsb
 
 ## Hoofdscherm
 
-- Kop **Bijdehand** met tandwiel.
+- **Merkkop** (D24): donker terracotta vlak (`--brand`) met **Bijdehand**, ondertitel *Alles wat je wilt onthouden.*,
+  een eigen lijntekening (notitieboek) en het tandwiel. De inhoud schuift er met een afgeronde bovenkant overheen.
 - **Inbox** als balk, alleen als er iets in staat.
 - **Tegels** alleen voor soorten waar iets in zit, grootste eerst.
 - Lege soorten staan er niet. Bij *Soort kiezen* (Toevoegen) staan eerst de soorten die je gebruikt; de rest ingeklapt
@@ -99,7 +103,7 @@ verbanden, tags, eerdere versies en metadata.
 | Paklijst | Er is **één** paklijst (D23): de tegel op het hoofdscherm opent hem meteen, zonder tussenscherm; is er nog geen, dan een knop *Paklijst maken*. Geen ronde +; Toevoegen met soort Paklijst vult de bestaande lijst aan (dubbele punten overgeslagen). Detail: alleen naam, checklist en notities; bovenaan **Alles uitvinken** (met *Ongedaan maken*). Een geplakte lijst met meerdere regels wordt per regel een punt, ook bij Toevoegen (D22) |
 | Klussen | Open eerst, dan prioriteit en deadline; afvinkknop op de kaart |
 | Planten | Op volgende verzorgingsdatum; "verzorgd"-knop op de kaart |
-| Restaurants | Eigen scherm (`src/screens/Restaurants.tsx`). Eén filterrij **Alle · Nog niet · Geweest** (afgeleid van je cijfer); labelfilter via de filterknop in de kopbalk (sheet met labels; actief filter als chip met ✕, stip op de knop). Per plaats één blok met rijen en dunne scheidingslijnen; grootste plaats eerst. Rij: **naam** (geen symbolen), daaronder de **eerste 3 labels** (plek, keuken, dan onderscheiding of hoe je eet; zie `INDELEN.md`); bij fine dining is **Fine dining** het eerste label; rechts **hartje** en **je cijfer**, of niets als je er nog niet was. Filter (kopbalk): labels, ook "fine dining". Volgorde: favorieten, dan cijfer hoog → laag, dan nog niet geweest (op naam). **Kaart** via het kaarticoon (D16): start ingezoomd op de plaats met de meeste restaurants; alle punten rond, gevuld met cijfer = geweest, open = nog niet, met uitleg onder de kaart; tik → popup met *Openen*; knop *Waar ben ik*; daaronder "N zonder locatie" |
+| Restaurants | Eigen scherm (`src/screens/Restaurants.tsx`). Eén filterrij **Alle · Nog niet · Geweest** (afgeleid van je cijfer); labelfilter via de filterknop in de kopbalk (sheet met labels; actief filter als chip met ✕, stip op de knop). Merkkop met *N plekken · N geweest* en de knoppen zoeken, kaart en filter; het filterblok (met aantallen: *Alle 30 · Nog niet 15 · Geweest 15*) plakt bovenaan. Per plaats een kop in de merkkleur (*Utrecht · 26*), grootste plaats eerst, daaronder **losse kaarten**: bovenaan het eerste label als etiket (*Fine dining*, *Eetcafé*), dan de **naam**, dan nog twee labels (zie `INDELEN.md`); rechts **hartje** en **je cijfer**, of niets als je er nog niet was. Filter (kopbalk): labels, ook "fine dining". Volgorde: favorieten, dan cijfer hoog → laag, dan nog niet geweest (op naam). **Kaart** via het kaarticoon (D16): start ingezoomd op de plaats met de meeste restaurants; alle punten rond, gevuld met cijfer = geweest, open = nog niet, met uitleg onder de kaart; tik → popup met *Openen*; knop *Waar ben ik*; daaronder "N zonder locatie" |
 | Boeken, Albums, Games | Statusfilter-chips, sterren in de kaart |
 | Nachtjes weg | Bestemming, prijsindicatie en status |
 

@@ -378,8 +378,9 @@ test('restaurant: websiteknop in detail, cijfers en prijsniveau (tijdelijk) niet
   const card = page.getByRole('button', { name: /Pamir/ });
   await expect(card).not.toContainText('Afghaans restaurant'); // kaartje: geen samenvatting
   await expect(card).not.toContainText('Wil proberen');
-  // Kaartje: de eerste drie labels (fine dining vooraan), geen symbolen.
-  await expect(card).toContainText('Fine dining, afghaans, set menu');
+  // Kaartje: eerste label als etiket (fine dining), daaronder nog twee labels; geen symbolen.
+  await expect(card.locator('.r-row-tag')).toHaveText('fine dining');
+  await expect(card).toContainText('afghaans · set menu');
   await expect(card).not.toContainText('bib gourmand');
   await expect(card.getByRole('img')).toHaveCount(0);
   await expect(card).not.toContainText('4,7');
@@ -441,7 +442,7 @@ test('synchroniseren met privé GitHub-repo: koppelen, voorstel van Claude autom
   await expect(page.getByText(/Claude verwerkte 2 items/)).toBeVisible();
   expect(files.has('voorstellen/2026-10-25.json')).toBe(false);
   await page.goto('/#/verzameling/restaurant');
-  await expect(page.getByRole('button', { name: /Pamir/ })).toContainText('Afghaans');
+  await expect(page.getByRole('button', { name: /Pamir/ })).toContainText(/afghaans/i);
   await touchTargetsOk(page);
   // Andere soorten: "Ingevuld door Claude" tot je het controleert.
   await page.goto('/#/verzameling/book');

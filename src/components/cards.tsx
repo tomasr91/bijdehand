@@ -78,21 +78,18 @@ export function RestaurantMark({ item }: { item: Item }) {
   );
 }
 
-/** Eén regel in de restaurantlijst (binnen een blok per plaats). */
+/** Eén restaurantkaart: bovenaan het eerste label als etiket (wat voor plek), dan de naam, dan nog twee labels. Rechts hartje en cijfer. */
 export function RestaurantRow({ item }: { item: Item }) {
-  const traits = traitsLine(item, 3);
+  const labels = labelsOf(item);
+  const [tag, ...rest] = labels;
   const closed = item.fields.openStatus === 'gesloten';
+  const sub = [closed ? 'Permanent gesloten' : '', rest.slice(0, 2).join(' · ')].filter(Boolean).join(' · ');
   return (
     <button type="button" className="r-row" onClick={() => navigate(`/item/${item.id}`)}>
       <span className="r-row-text">
-        <span className="r-row-title">
-          {item.title || 'Zonder titel'}
-        </span>
-        {(traits || closed) && (
-          <span className="r-row-sub">
-            {[closed ? 'Permanent gesloten' : '', traits].filter(Boolean).join(' · ')}
-          </span>
-        )}
+        {tag && <span className="r-row-tag">{tag}</span>}
+        <span className="r-row-title">{item.title || 'Zonder titel'}</span>
+        {sub && <span className="r-row-sub">{sub}</span>}
       </span>
       <RestaurantMark item={item} />
     </button>

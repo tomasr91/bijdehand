@@ -37,6 +37,56 @@ export function TopBar({ title, back, actions, sub }: { title: ReactNode; back?:
   );
 }
 
+/** Lijntekeningen voor de merkkop (eigen, eenvoudig). */
+function BrandArt({ art }: { art: 'home' | 'restaurant' }) {
+  return (
+    <svg className="brand-art" viewBox="0 0 120 100" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {art === 'home' ? (
+        <>
+          {/* Opengeslagen notitieboek met potlood */}
+          <path d="M14 30c14-6 28-6 44 2v56c-16-8-30-8-44-2z" />
+          <path d="M102 30c-14-6-28-6-44 2v56c16-8 30-8 44-2z" />
+          <path d="M24 44c8-2 16-2 24 2M24 56c8-2 16-2 24 2M24 68c8-2 16-2 24 2M68 46c8-4 16-4 24-2M68 58c8-4 16-4 24-2" />
+          <path d="M86 6l14 14-30 30-16 4 4-16z" />
+          <path d="M80 12l14 14" />
+        </>
+      ) : (
+        <>
+          {/* Bord met vork en mes */}
+          <circle cx="60" cy="52" r="30" />
+          <circle cx="60" cy="52" r="20" />
+          <path d="M14 22v22c0 5 3 8 6 8v38M8 22v16M20 22v16" />
+          <path d="M106 22c-8 6-10 18-10 30h10v38" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+/** Merkkop: donker vlak met naam, ondertitel en lijntekening. Scrolt weg; de bediening eronder (BrandPanel) blijft plakken. */
+export function BrandHeader({ title, sub, back, actions, art }: { title: ReactNode; sub?: ReactNode; back?: string; actions?: ReactNode; art: 'home' | 'restaurant' }) {
+  return (
+    <header className={`brand ${back !== undefined ? 'stacked' : ''}`}>
+      <BrandArt art={art} />
+      {back !== undefined && (
+        <button type="button" className="icon-btn brand-back" aria-label="Terug" onClick={() => goBack(back)}>
+          <ChevronLeft size={24} />
+        </button>
+      )}
+      {actions && <div className="brand-actions">{actions}</div>}
+      <div className="brand-title">
+        <h1>{title}</h1>
+        {sub && <p className="brand-sub">{sub}</p>}
+      </div>
+    </header>
+  );
+}
+
+/** Wit blok dat over de merkkop schuift; plakt bovenaan tijdens scrollen als het bediening bevat. */
+export function BrandPanel({ children, sticky = false }: { children?: ReactNode; sticky?: boolean }) {
+  return <div className={`brand-panel ${sticky ? 'sticky' : ''}`}>{children}</div>;
+}
+
 export function Sheet({ open, onClose, title, children, footer, labelledBy }: {
   open: boolean;
   onClose: () => void;

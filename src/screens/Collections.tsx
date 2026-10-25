@@ -4,7 +4,7 @@ import { fold } from '../data/util';
 import { PasteSheet } from './PasteSheet';
 import { RestaurantCollection } from './Restaurants';
 import { ItemCard } from '../components/cards';
-import { ChipGroup, Empty, Section, TopBar, TypeIcon } from '../components/ui';
+import { BrandHeader, BrandPanel, ChipGroup, Empty, Section, TopBar, TypeIcon } from '../components/ui';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { getSyncStatus } from '../data/sync';
 import { formatDateTime } from '../data/util';
@@ -30,10 +30,13 @@ export function Collections() {
 
   return (
     <div className="screen">
-      <TopBar
+      <BrandHeader
+        art="home"
         title="Bijdehand"
+        sub="Alles wat je wilt onthouden."
         actions={<button type="button" className="icon-btn" aria-label="Instellingen" onClick={() => navigate('/instellingen')}><Settings size={22} /></button>}
       />
+      <BrandPanel />
       {inbox > 0 && (
         <button type="button" className="banner banner-inbox" onClick={() => navigate('/inbox')}>
           <InboxIcon size={20} />

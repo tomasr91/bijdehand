@@ -3,7 +3,7 @@
 import { ChevronDown, ClipboardPaste, List, ListFilter, Map as MapIcon, Plus, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { labelsOf, RestaurantRow } from '../components/cards';
-import { ChipGroup, Empty, Section, Segmented, Sheet, TopBar, TypeIcon } from '../components/ui';
+import { BrandHeader, BrandPanel, ChipGroup, Empty, Section, Segmented, Sheet, TypeIcon } from '../components/ui';
 import { hasBeen, TYPE_MAP } from '../data/itemTypes';
 import type { Item } from '../data/model';
 import { fold } from '../data/util';
@@ -82,15 +82,20 @@ export function RestaurantCollection() {
     for (const i of all) for (const t of traitsOf(i)) m.set(t, (m.get(t) ?? 0) + 1);
     return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'nl'));
   }, [all]);
-  const shown = all.filter((i) => (seen === 'alle' || (seen === 'geweest') === hasBeen(i)) && (!trait || traitsOf(i).includes(trait)));
+  const byTrait = all.filter((i) => !trait || traitsOf(i).includes(trait));
+  const byTraitBeen = byTrait.filter(hasBeen).length;
+  const beenCount = all.filter(hasBeen).length;
+  const shown = byTrait.filter((i) => seen === 'alle' || (seen === 'geweest') === hasBeen(i));
   const groups = groupByCity(shown);
   const newOne = () => add({ type: 'restaurant', openAfter: true, mode: 'text' });
 
   return (
     <div className="screen">
-      <TopBar
+      <BrandHeader
+        art="restaurant"
         back="/verzamelingen"
         title={def.plural}
+        sub={all.length ? `${all.length} plekken · ${beenCount} geweest` : 'Waar wil je nog eten?'}
         actions={
           <>
             <button type="button" className="icon-btn" aria-label="Zoeken in Restaurants" onClick={() => navigate('/zoeken?type=restaurant')}><Search size={22} /></button>
@@ -107,6 +112,7 @@ export function RestaurantCollection() {
           </>
         }
       />
+      <BrandPanel sticky={all.length > 0}>
       {all.length > 0 && (
         <div className="r-filters">
           <Segmented<Seen>
@@ -114,9 +120,9 @@ export function RestaurantCollection() {
             value={seen}
             onChange={setSeen}
             options={[
-              { value: 'alle', label: 'Alle' },
-              { value: 'niet', label: <span aria-label="Nog niet geweest">Nog niet</span> },
-              { value: 'geweest', label: 'Geweest' },
+              { value: 'alle', label: <>Alle <span className="seg-count" aria-hidden="true">{byTrait.length}</span></> },
+              { value: 'niet', label: <><span aria-label="Nog niet geweest">Nog niet</span> <span className="seg-count" aria-hidden="true">{byTrait.length - byTraitBeen}</span></> },
+              { value: 'geweest', label: <>Geweest <span className="seg-count" aria-hidden="true">{byTraitBeen}</span></> },
             ]}
           />
           {trait && (
@@ -126,6 +132,7 @@ export function RestaurantCollection() {
           )}
         </div>
       )}
+      </BrandPanel>
       {all.length === 0 ? (
         <Empty
           icon={<TypeIcon type="restaurant" size={28} />}
@@ -167,7 +174,7 @@ export function RestaurantCollection() {
         </>
       ) : (
         groups.map((g) => (
-          <Section key={g.title} title={<>{g.title} <span className="group-count">· {g.items.length}</span></>}>
+          <Section key={g.title} className="city" title={<>{g.title} <span className="group-count">· {g.items.length}</span></>}>
             <div className="r-block">{g.items.map((i) => <RestaurantRow key={i.id} item={i} />)}</div>
           </Section>
         ))
