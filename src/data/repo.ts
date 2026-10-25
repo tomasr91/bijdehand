@@ -4,7 +4,7 @@ import { db } from './db';
 import { migrateItem } from './migrate';
 import { defaultFields, TYPE_MAP } from './itemTypes';
 import { SCHEMA_VERSION, type ChecklistEntry, type EntityKind, type FieldValue, type Item, type Link, type Origin, type Source, type Suggestion, type TypeKey } from './model';
-import { addDays, fold, localDate, newId, normalizeUrl, nowIso, siteOf } from './util';
+import { fold, newId, normalizeUrl, nowIso, siteOf } from './util';
 
 /** Wijzigingen binnen dit venster vallen samen tot één revisie (geen revisie per toetsaanslag). */
 const REVISION_WINDOW_MS = 2 * 60 * 1000;
@@ -157,15 +157,6 @@ export function mergeChecklist(cur: ChecklistEntry[], lines: string[]): Checklis
 /** Er is één paklijst (D23): de eerst gemaakte die niet in de prullenbak staat. */
 export function thePackingList(items: Item[]): Item | undefined {
   return items.filter((i) => i.type === 'packing' && !i.deletedAt).sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
-}
-
-// ---------- Planten ----------
-
-export async function markPlantCared(id: string, today = localDate()): Promise<void> {
-  await updateItem(id, (cur) => {
-    const interval = Number(cur.fields.intervalDays);
-    return { fields: { ...cur.fields, lastCare: today, nextCare: interval > 0 ? addDays(today, interval) : null } };
-  });
 }
 
 // ---------- Bronnen ----------

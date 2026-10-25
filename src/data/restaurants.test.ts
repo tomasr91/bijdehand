@@ -90,7 +90,7 @@ describe('schema v4: restaurantstatus volgt uit het cijfer, favoriet wordt een h
     expect(m({ status: 'geweest' })).toEqual({ visited: true });
     expect(m({ status: 'favoriet', score: 9 })).toEqual({ score: 9, favorite: true });
     expect(m({ status: 'favoriet' })).toEqual({ favorite: true, visited: true });
-    expect(migrateItem({ ...base, type: 'book', fields: { status: 'wil' } }).fields).toEqual({ status: 'wil' });
+    expect(migrateItem({ ...base, type: 'book' as never, fields: { status: 'wil' } })).toMatchObject({ type: null, fields: { status: 'wil' } }); // v5: verwijderde soort → Inbox, velden blijven
   });
 
   it('afgeleide status: filter en zoeken', async () => {
@@ -106,7 +106,7 @@ describe('schema v4: restaurantstatus volgt uit het cijfer, favoriet wordt een h
 });
 
 describe('schema v3: restaurant-sterren worden een eigen cijfer 1–10', () => {
-  it('zet sterren × 2 om bij openen; andere soorten houden hun sterren', async () => {
+  it('zet sterren × 2 om bij openen; andere soorten houden hun sterren (verwijderde soort → Inbox)', async () => {
     const old = new Dexie('migratie-2');
     const stores = { items: 'id, type, updatedAt, createdAt, deletedAt', sources: 'id, normalizedUrl, updatedAt, deletedAt', links: 'id, aId, bId, deletedAt', revisions: 'id, entityId, [entityId+changedAt]', meta: 'key' };
     old.version(1).stores(stores);
@@ -119,8 +119,8 @@ describe('schema v3: restaurant-sterren worden een eigen cijfer 1–10', () => {
     const nieuw = new BijdehandDB('migratie-2');
     expect((await nieuw.items.get('r1'))?.fields).toEqual({ city: 'Zwolle', score: 8 });
     expect((await nieuw.items.get('r2'))?.fields).toEqual({ city: 'Haarlem' });
-    expect((await nieuw.items.get('b1'))?.fields).toEqual({ rating: 4 });
-    expect((await nieuw.items.get('r1'))?.schemaVersion).toBe(4);
+    expect((await nieuw.items.get('b1'))).toMatchObject({ type: null, fields: { rating: 4 }, body: 'Was: Boek (rating: 4)' });
+    expect((await nieuw.items.get('r1'))?.schemaVersion).toBe(5);
     nieuw.close();
   });
 
@@ -148,8 +148,8 @@ describe('schema v2: restaurant "location" wordt "city"', () => {
     const nieuw = new BijdehandDB('migratie-1');
     const r = await nieuw.items.get('r1');
     expect(r?.fields).toEqual({ city: 'Zwolle', favorite: true, visited: true });
-    expect(r?.schemaVersion).toBe(4);
-    expect((await nieuw.items.get('p1'))?.fields).toEqual({ location: 'Woonkamer' }); // planten houden "location"
+    expect(r?.schemaVersion).toBe(5);
+    expect((await nieuw.items.get('p1'))).toMatchObject({ type: null, fields: { location: 'Woonkamer' } }); // planten houden "location", nu in de Inbox
   });
 
   it('migreert een back-up uit versie 1 bij het terugzetten', () => {

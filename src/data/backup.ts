@@ -1,7 +1,7 @@
 // Export en herstel. Formaat beschreven in docs/DATA_MODEL.md → Back-upformaat.
 // Herstellen schrijft pas na validatie, in één transactie: alles of niets.
 import { db } from './db';
-import { isTypeKey } from './itemTypes';
+import { isTypeKey, LEGACY_TYPES } from './itemTypes';
 import { migrateItem } from './migrate';
 import { SCHEMA_VERSION, type Item, type Link, type Revision, type Source } from './model';
 import { normalizeUrl, nowIso, siteOf } from './util';
@@ -9,7 +9,7 @@ import { normalizeUrl, nowIso, siteOf } from './util';
 export const BACKUP_FORMAT = 'bijdehand-backup';
 export const BACKUP_FORMAT_VERSION = 1;
 /** Versie van de app die de back-up maakte (informatief; ophogen bij een functie die nieuwe velden of acties kent). */
-export const APP_VERSION = '2026-10-25.4-een-paklijst';
+export const APP_VERSION = '2026-10-25.5-drie-soorten';
 
 export interface Backup {
   format: typeof BACKUP_FORMAT;
@@ -60,7 +60,8 @@ function cleanFields(f: Record<string, unknown>): Item['fields'] {
 
 function normItem(r: unknown, i: number): Item {
   if (!isObj(r) || !isStr(r.id) || !isStr(r.createdAt) || !isStr(r.updatedAt)) throw new Error(`Item ${i + 1}: id of datums ontbreken`);
-  if (r.type !== null && r.type !== undefined && !isTypeKey(r.type)) throw new Error(`Item ${i + 1}: onbekende soort "${String(r.type)}" (back-up van een nieuwere versie?)`);
+  // Verwijderde soorten (D25) mogen; migrateItem zet ze in de Inbox.
+  if (r.type !== null && r.type !== undefined && !isTypeKey(r.type) && !(isStr(r.type) && LEGACY_TYPES[r.type])) throw new Error(`Item ${i + 1}: onbekende soort "${String(r.type)}" (back-up van een nieuwere versie?)`);
   return {
     id: r.id,
     type: (r.type as Item['type']) ?? null,
@@ -74,7 +75,7 @@ function normItem(r: unknown, i: number): Item {
     deletedAt: isStr(r.deletedAt) ? r.deletedAt : null,
     rev: typeof r.rev === 'number' ? r.rev : 1,
     origin: isObj(r.origin) ? (r.origin as unknown as Item['origin']) : null,
-    suggestion: isObj(r.suggestion) && isTypeKey(r.suggestion.type) ? (r.suggestion as unknown as Item['suggestion']) : null,
+    suggestion: isObj(r.suggestion) && (isTypeKey(r.suggestion.type) || (isStr(r.suggestion.type) && LEGACY_TYPES[r.suggestion.type])) ? (r.suggestion as unknown as Item['suggestion']) : null,
     ...(isObj(r.filledBy) && isStr(r.filledBy.at) && Array.isArray(r.filledBy.fields)
       ? { filledBy: { by: 'claude' as const, at: r.filledBy.at, fields: (r.filledBy.fields as unknown[]).filter(isStr) } }
       : {}),

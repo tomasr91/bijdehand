@@ -293,7 +293,7 @@ function EntryRow({ e, onToggle, onText, onRemove }: { e: ChecklistEntry; onTogg
   );
 }
 
-export function ChecklistEditor({ item }: { item: Item }) {
+export function ChecklistEditor({ item, hideHead = false }: { item: Item; hideHead?: boolean }) {
   const toast = useToast();
   const [draft, setDraft] = useState('');
   const list = item.checklist;
@@ -326,15 +326,15 @@ export function ChecklistEditor({ item }: { item: Item }) {
 
   return (
     <div className="checklist">
-      <div className="checklist-head">
+      {!hideHead && <div className="checklist-head">
         <span>{list.length ? `${done} van ${list.length} ${isPacking ? 'ingepakt' : 'afgevinkt'}` : 'Nog geen punten'}</span>
         {done > 0 && (
           <button type="button" className="btn btn-small" onClick={() => setAll((l) => l.map((x) => ({ ...x, done: false })), 'Alles uitgevinkt')}>
             <RotateCcw size={16} /> Alles uitvinken
           </button>
         )}
-      </div>
-      <ul>
+      </div>}
+      {list.length > 0 && <ul>
         {list.map((e) => (
           <EntryRow
             key={e.id}
@@ -344,7 +344,7 @@ export function ChecklistEditor({ item }: { item: Item }) {
             onRemove={() => setAll((l) => l.filter((x) => x.id !== e.id), `"${e.text}" verwijderd`)}
           />
         ))}
-      </ul>
+      </ul>}
       <form className="entry-add" onSubmit={(ev) => { ev.preventDefault(); void add(); }}>
         <Plus size={20} aria-hidden="true" />
         <input value={draft} onChange={(e) => setDraft(e.target.value)} onPaste={onPaste} placeholder={list.length ? 'Punt toevoegen' : 'Punt toevoegen of hele lijst plakken'} aria-label="Punt toevoegen" enterKeyHint="enter" onBlur={() => void add()} />
@@ -356,6 +356,31 @@ export function ChecklistEditor({ item }: { item: Item }) {
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Paklijst: voortgang en "Alles uitvinken", plakt bovenaan tijdens het scrollen door een lange lijst. */
+export function PackingBar({ item }: { item: Item }) {
+  const toast = useToast();
+  const list = item.checklist;
+  const done = list.filter((e) => e.done).length;
+  const reset = () => {
+    const before = list;
+    void tracked(repo.updateItem(item.id, (cur) => ({ checklist: cur.checklist.map((x) => ({ ...x, done: false })) })));
+    toast('Alles uitgevinkt', { action: { label: 'Ongedaan maken', run: () => void repo.updateItem(item.id, { checklist: before }) } });
+  };
+  return (
+    <div className="packing-bar">
+      <div className="packing-bar-row">
+        <span className="packing-count">{list.length ? `${done} van ${list.length} ingepakt` : 'Nog geen punten'}</span>
+        {done > 0 && (
+          <button type="button" className="btn btn-small" onClick={reset}>
+            <RotateCcw size={16} /> Alles uitvinken
+          </button>
+        )}
+      </div>
+      {list.length > 0 && <span className="progress" aria-hidden="true"><span style={{ width: `${(done / list.length) * 100}%` }} /></span>}
     </div>
   );
 }

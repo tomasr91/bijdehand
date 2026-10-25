@@ -10,10 +10,9 @@ import { useData } from '../ui/context';
 import { currentPath, navigate, type Route } from '../ui/router';
 
 const EXAMPLES = [
-  'Welke cadeaus had ik voor mijn partner bedacht?',
   'Welke restaurants wilde ik nog proberen?',
-  'Welke games staan nog op mijn verlanglijst?',
-  'Welke klussen moeten nog gebeuren?',
+  'Welke albums wil ik nog ontdekken?',
+  'Fine dining in Utrecht',
 ];
 
 export function SearchScreen({ route }: { route: Route }) {

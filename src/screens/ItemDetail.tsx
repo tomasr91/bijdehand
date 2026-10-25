@@ -1,7 +1,7 @@
-import { Bot, ChevronDown, Droplets, EllipsisVertical, ExternalLink, Globe, Lightbulb, ListChecks, Trash2 } from 'lucide-react';
+import { Bot, ChevronDown, EllipsisVertical, ExternalLink, Globe, Lightbulb, ListChecks, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { ChecklistEditor, FieldsEditor, HistorySection, LinksSection, SaveStatus, TagEditor, TypePicker } from '../components/editors';
-import { AutoText, Empty, Section, Sheet, TopBar, TypeIcon } from '../components/ui';
+import { ChecklistEditor, FieldsEditor, PackingBar, HistorySection, LinksSection, SaveStatus, TagEditor, TypePicker } from '../components/editors';
+import { AutoText, BrandHeader, BrandPanel, Empty, Section, Sheet, TopBar, TypeIcon } from '../components/ui';
 import { typeDef } from '../data/itemTypes';
 import type { Item } from '../data/model';
 import * as repo from '../data/repo';
@@ -49,16 +49,30 @@ function ItemEditor({ item }: { item: Item }) {
 
   return (
     <div className="screen detail">
-      <TopBar
-        back={item.type === 'packing' ? '/verzamelingen' : item.type ? `/verzameling/${item.type}` : '/inbox'}
-        title={def?.label ?? 'Inbox'}
-        actions={
-          <>
-            <SaveStatus />
-            <button type="button" className="icon-btn" aria-label="Meer acties" onClick={() => setMenu(true)}><EllipsisVertical size={22} /></button>
-          </>
-        }
-      />
+      {simple ? (
+        <>
+          {/* Paklijst: hoofdscherm met merkkop (D25); naam en voortgang in de kop. */}
+          <BrandHeader
+            art="packing"
+            back="/verzamelingen"
+            title={item.title || def?.label || 'Paklijst'}
+            sub="Vakantiepaklijst"
+            actions={<button type="button" className="icon-btn" aria-label="Meer acties" onClick={() => setMenu(true)}><EllipsisVertical size={22} /></button>}
+          />
+          <BrandPanel sticky><PackingBar item={item} /></BrandPanel>
+        </>
+      ) : (
+        <TopBar
+          back={item.type ? `/verzameling/${item.type}` : '/inbox'}
+          title={def?.label ?? 'Inbox'}
+          actions={
+            <>
+              <SaveStatus />
+              <button type="button" className="icon-btn" aria-label="Meer acties" onClick={() => setMenu(true)}><EllipsisVertical size={22} /></button>
+            </>
+          }
+        />
+      )}
 
       {item.type === null && (
         <div className="banner banner-suggest">
@@ -93,11 +107,15 @@ function ItemEditor({ item }: { item: Item }) {
           </div>
         )}
 
-        <button type="button" className="type-select" onClick={() => setPicking(true)} aria-label={`Soort: ${def?.label ?? 'Inbox'}. Wijzigen`}>
-          <TypeIcon type={item.type} size={18} /> <span>{def?.label ?? 'Inbox'}</span> <ChevronDown size={18} />
-        </button>
+        {!simple && (
+          <button type="button" className="type-select" onClick={() => setPicking(true)} aria-label={`Soort: ${def?.label ?? 'Inbox'}. Wijzigen`}>
+            <TypeIcon type={item.type} size={18} /> <span>{def?.label ?? 'Inbox'}</span> <ChevronDown size={18} />
+          </button>
+        )}
 
-        <AutoText className="title-input" value={title} onChange={(e) => setTitle(e.target.value.replace(/\n/g, ' '))} onBlur={flushTitle} placeholder={def?.titlePlaceholder ?? 'Titel'} aria-label={def?.titleLabel ?? 'Titel'} minRows={1} enterKeyHint="done" />
+        {!simple && (
+          <AutoText className="title-input" value={title} onChange={(e) => setTitle(e.target.value.replace(/\n/g, ' '))} onBlur={flushTitle} placeholder={def?.titlePlaceholder ?? 'Titel'} aria-label={def?.titleLabel ?? 'Titel'} minRows={1} enterKeyHint="done" />
+        )}
 
         {typeof item.fields.summary === 'string' && item.fields.summary.trim() && (
           <div className="summary-box">
@@ -112,16 +130,11 @@ function ItemEditor({ item }: { item: Item }) {
           </a>
         )}
 
-        {item.type === 'plant' && (
-          <button type="button" className="btn btn-primary btn-block" onClick={async () => { await tracked(repo.markPlantCared(item.id)); toast(`${item.title} verzorgd`); }}>
-            <Droplets size={18} /> Vandaag verzorgd
-          </button>
-        )}
 
         <FieldsEditor item={item} />
 
         {(showChecklist || wantChecklist) && (
-          <Section title="Checklist"><ChecklistEditor item={item} /></Section>
+          <Section title={simple ? undefined : 'Checklist'}><ChecklistEditor item={item} hideHead={simple} /></Section>
         )}
 
         <Section title="Mijn notities">

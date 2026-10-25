@@ -7,8 +7,8 @@ staan in eigen bestanden (bijv. `CLAUDE.md`) en mogen deze regels niet tegenspre
 ## Wat is dit project?
 
 Bijdehand (werknaam) is een persoonlijke, mobile-first app die Google Keep vervangt: een
-persoonlijk geheugen met tien soorten informatie (cadeaus, nachtjes weg, restaurants, boeken, albums,
-kleermaten, games, paklijsten, klussen, planten), bronnen en een Inbox. Eén gebruiker. Primair
+persoonlijk geheugen met drie soorten informatie (restaurants, albums en één paklijst), bronnen en een Inbox.
+Nieuwe soorten komen erbij als de eigenaar ze wil (D25). Eén gebruiker. Primair
 Android, desktop aanvullend.
 
 ## Huidige status
@@ -40,7 +40,7 @@ Werk deze sectie bij zodra de status verandert.
 
 | Bestand | Beantwoordt |
 |---|---|
-| `docs/PRODUCT.md` | Waarom en wat: visie, behoefte, functies, de tien informatiesoorten, wat het níet is |
+| `docs/PRODUCT.md` | Waarom en wat: visie, behoefte, functies, de informatiesoorten, wat het níet is |
 | `docs/DATA_MODEL.md` | Welke gegevens: entiteiten, itemtypen, velden, relaties, metadata, historie |
 | `docs/ARCHITECTURE.md` | Hoe technisch: opslag, sync, auth, back-ups, integraties, beslissingslog |
 | `docs/DESIGN.md` | Hoe het eruitziet en voelt: stijl, navigatie, aanraakvlakken, componenten |

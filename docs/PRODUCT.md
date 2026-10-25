@@ -27,24 +27,18 @@ huishoudelijk dashboard. Het is geen generieke notitie-app en geen projectmanage
 6. Originele informatie en bronlinks gaan nooit ongemerkt verloren.
 7. De app is gebouwd voor langdurig gebruik, niet als demo.
 
-## De tien soorten informatie — **[Gebouwd]**
+## De soorten informatie — **[Gebouwd]**
 
-Bevestigd door de eigenaar (besluit D02). Velden staan in `DATA_MODEL.md`.
+Oorspronkelijk tien (D02); op verzoek van de eigenaar teruggebracht tot wat hij gebruikt (D25). Een soort komt
+terug als de eigenaar hem wil. Velden staan in `DATA_MODEL.md`.
 
 | # | Soort | Groep | Eigen weergave |
 |---|---|---|---|
-| 1 | Cadeaus | Inspiratie | Gegroepeerd per persoon; gelegenheid, budget, status |
-| 2 | Nachtjes weg | Inspiratie | Bestemming, prijsindicatie, status; redenen en links in detail |
-| 3 | Restaurants | Inspiratie | Gegroepeerd per plaats; keuken, kenmerken (bijv. fancy, vegetarisch, zingende bediening), eigen cijfer 1–10 (leeg = nog niet geweest), favoriet (hartje), website en route; filter op geweest en op label; sober lijst en detail |
-| 4 | Boeken | Inspiratie | Auteur, status (wil lezen / bezig / gelezen), sterren |
-| 5 | Albums | Inspiratie | Artiest, status (ontdekken / beluisteren / opnieuw / geluisterd) |
-| 6 | Kleermaten | Naslag | Per persoon gegroepeerd: kledingtype, maat, merk, datum; eerdere versies |
-| 7 | Games | Inspiratie | Platform, status (verlanglijst / spelen / uitgespeeld) |
-| 8 | Paklijsten | Praktisch | Vakantiepaklijst als checklist: hele lijst plakken, afvinken, alles uitvinken |
-| 9 | Klussen en to-do's | Praktisch | Status, prioriteit, deadline, materialen; snel afvinken |
-| 10 | Plantenonderhoud | Naslag | Locatie, verzorging, interval, volgende datum; "verzorgd" met één tik |
+| 1 | Restaurants | Inspiratie | Gegroepeerd per plaats; keuken, kenmerken (bijv. fancy, vegetarisch, zingende bediening), eigen cijfer 1–10 (leeg = nog niet geweest), favoriet (hartje), website en route; filter op geweest en op label; sober lijst en detail |
+| 2 | Albums | Inspiratie | Artiest, status (ontdekken / beluisteren / opnieuw / geluisterd) |
+| 3 | Paklijst | Praktisch | Vakantiepaklijst als checklist: hele lijst plakken, afvinken, alles uitvinken |
 
-De groepering (Inspiratie, Praktisch, Naslag) en de soorten staan in één register
+De groepering (Inspiratie, Praktisch) en de soorten staan in één register
 (`src/data/itemTypes.ts`). Daardoor is uitbreiden mogelijk zonder het gegevensmodel te wijzigen.
 
 ## Hoofdschermen

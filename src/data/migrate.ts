@@ -1,6 +1,7 @@
 // Omzetten van oudere records naar het huidige schema. Gebruikt door de database-upgrade,
 // het herstellen van back-ups en het terugzetten van oude revisies. Nooit gegevens weggooien:
 // een veld dat verhuist, blijft bewaard onder zijn nieuwe naam.
+import { LEGACY_TYPES } from './itemTypes';
 import { SCHEMA_VERSION, type Item } from './model';
 
 export function migrateItem(item: Item): Item {
@@ -27,6 +28,20 @@ export function migrateItem(item: Item): Item {
     if (st === 'favoriet') next.fields.favorite = true;
     if ((st === 'geweest' || st === 'favoriet') && typeof next.fields.score !== 'number') next.fields.visited = true;
     delete next.fields.status;
+  }
+  if (v < 5) {
+    // v5: verwijderde soorten (D25) gaan naar de Inbox. Alle velden blijven bewaard (ook in back-ups);
+    // de soort en de ingevulde velden komen als leesbare regel in de notities, zodat niets uit beeld verdwijnt.
+    const legacy = next.type as string | null;
+    if (legacy && LEGACY_TYPES[legacy]) {
+      const filled = Object.entries(next.fields)
+        .filter(([, val]) => val !== null && val !== '' && !(Array.isArray(val) && !val.length))
+        .map(([k, val]) => `${k}: ${Array.isArray(val) ? val.join(', ') : String(val)}`);
+      const note = `Was: ${LEGACY_TYPES[legacy]}${filled.length ? ` (${filled.join('; ')})` : ''}`;
+      next.body = next.body ? `${next.body}\n\n${note}` : note;
+      next.type = null;
+    }
+    if (next.suggestion && LEGACY_TYPES[next.suggestion.type as string]) next.suggestion = null;
   }
   next.schemaVersion = SCHEMA_VERSION;
   return next;

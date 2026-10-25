@@ -12,7 +12,7 @@ beforeEach(async () => {
 
 async function setup() {
   const note = await repo.createItem({ type: null, title: 'Pamir Leiden', body: 'Afghaans, aanrader van Sanne' });
-  const multi = await repo.createItem({ type: null, title: 'Lezen', body: 'Project Hail Mary - Andy Weir\nKlara and the Sun' });
+  const multi = await repo.createItem({ type: null, title: 'Luisteren', body: 'In Rainbows - Radiohead\nBlue' });
   const done = await repo.createItem({ type: 'restaurant', title: 'Erfgoed', fields: { city: 'Leiden', traits: ['fancy'] } });
   const { source } = await repo.addSource({ url: 'https://example.org/boeken' });
   await repo.linkRecords('item', multi.id, 'source', source.id);
@@ -22,10 +22,10 @@ async function setup() {
 describe('voorstellen controleren', () => {
   it('controleert velden tegen het register', () => {
     expect(checkFields('restaurant', { city: 'Leiden', favorite: true, traits: ['fancy'], score: 7.5 }).problems).toEqual([]);
-    expect(checkFields('book', { status: 'misschien' }).problems[0]).toMatch(/geen geldige keuze/);
+    expect(checkFields('album', { status: 'misschien' }).problems[0]).toMatch(/geen geldige keuze/);
     expect(checkFields('restaurant', { kleur: 'rood' }).problems[0]).toMatch(/onbekend veld/);
-    expect(checkFields('book', { rating: 7 }).problems[0]).toMatch(/1 t\/m 5/);
-    expect(checkFields('todo', { due: '24-10-2026' }).problems[0]).toMatch(/JJJJ-MM-DD/);
+    expect(checkFields('album', { rating: 7 }).problems[0]).toMatch(/1 t\/m 5/);
+    expect(checkFields('restaurant', { checkedAt: '24-10-2026' }).problems[0]).toMatch(/JJJJ-MM-DD/);
   });
 
   it('herkent fouten, gewijzigde items en twijfel', async () => {
@@ -36,13 +36,14 @@ describe('voorstellen controleren', () => {
     const r = parseProposals(file([
       { actie: 'indelen', itemId: note.id, type: 'restaurant', velden: { city: 'Leiden' } },
       { actie: 'indelen', itemId: done.id, type: 'restaurant', velden: {} },
-      { actie: 'indelen', itemId: 'bestaat-niet', type: 'book', velden: {} },
+      { actie: 'indelen', itemId: 'bestaat-niet', type: 'album', velden: {} },
+      { actie: 'nieuw', type: 'book', titel: 'Verwijderde soort' },
       { actie: 'nieuw', type: 'raket', titel: 'x' },
       { actie: 'laten', itemId: note.id, reden: 'Welke stad?' },
     ]), items);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.value.rows.map((x) => x.status)).toEqual(['gewijzigd', 'gewijzigd', 'fout', 'fout', 'laten']);
+    expect(r.value.rows.map((x) => x.status)).toEqual(['gewijzigd', 'gewijzigd', 'fout', 'fout', 'fout', 'laten']);
   });
 });
 
@@ -54,8 +55,8 @@ describe('voorstellen toepassen', () => {
       format: 'bijdehand-voorstellen', formatVersion: 1, gebaseerdOp: new Date(Date.now() + 1000).toISOString(),
       voorstellen: [
         { id: 'a', actie: 'indelen', itemId: note.id, type: 'restaurant', titel: 'Pamir', velden: { city: 'Leiden', cuisine: 'Afghaans' }, reden: 'restaurant + plaats' },
-        { id: 'b', actie: 'nieuw', itemId: multi.id, type: 'book', titel: 'Project Hail Mary', velden: { author: 'Andy Weir', status: 'wil' } },
-        { id: 'c', actie: 'nieuw', itemId: multi.id, type: 'book', titel: 'Klara and the Sun', velden: { status: 'wil' } },
+        { id: 'b', actie: 'nieuw', itemId: multi.id, type: 'album', titel: 'In Rainbows', velden: { artist: 'Radiohead', status: 'ontdekken' } },
+        { id: 'c', actie: 'nieuw', itemId: multi.id, type: 'album', titel: 'Blue', velden: { status: 'ontdekken' } },
       ],
     }), items);
     if (!r.ok) throw new Error(r.error);
@@ -67,9 +68,9 @@ describe('voorstellen toepassen', () => {
     expect(pamir).toMatchObject({ type: 'restaurant', title: 'Pamir', body: 'Afghaans, aanrader van Sanne' });
     expect(pamir?.fields).toMatchObject({ city: 'Leiden', cuisine: 'Afghaans' });
     expect(pamir?.filledBy?.fields).toEqual(expect.arrayContaining(['type', 'title', 'city', 'cuisine']));
-    const books = (await db.items.toArray()).filter((i) => i.type === 'book');
-    expect(books.map((b) => b.title).sort()).toEqual(['Klara and the Sun', 'Project Hail Mary']);
-    expect(books[0].origin?.ref).toContain('Project Hail Mary - Andy Weir');
+    const books = (await db.items.toArray()).filter((i) => i.type === 'album');
+    expect(books.map((b) => b.title).sort()).toEqual(['Blue', 'In Rainbows']);
+    expect(books[0].origin?.ref).toContain('In Rainbows - Radiohead');
     const bookLinks = (await db.links.toArray()).filter((l) => l.bId === source.id && books.some((b) => b.id === l.aId));
     expect(bookLinks).toHaveLength(2);
     expect((await db.items.get(multi.id))?.deletedAt).toBeTruthy(); // aantekening naar prullenbak, niet weg
@@ -77,7 +78,7 @@ describe('voorstellen toepassen', () => {
     await undoApply(res.undo);
     expect((await db.items.get(note.id))).toMatchObject({ type: null, title: 'Pamir Leiden' });
     expect((await db.items.get(note.id))?.filledBy).toBeUndefined();
-    expect((await db.items.toArray()).filter((i) => i.type === 'book')).toHaveLength(0);
+    expect((await db.items.toArray()).filter((i) => i.type === 'album')).toHaveLength(0);
     expect((await db.items.get(multi.id))?.deletedAt).toBeNull();
   });
 });
@@ -88,9 +89,9 @@ describe('gedeeltelijk splitsen', () => {
     const r = parseProposals(JSON.stringify({
       format: 'bijdehand-voorstellen', formatVersion: 1,
       voorstellen: [
-        { actie: 'nieuw', itemId: multi.id, type: 'book', titel: 'A' },
-        { actie: 'nieuw', itemId: multi.id, type: 'book', titel: 'B' },
-        { actie: 'nieuw', itemId: multi.id, type: 'book', titel: 'C', velden: { kleur: 'x' } },
+        { actie: 'nieuw', itemId: multi.id, type: 'album', titel: 'A' },
+        { actie: 'nieuw', itemId: multi.id, type: 'album', titel: 'B' },
+        { actie: 'nieuw', itemId: multi.id, type: 'album', titel: 'C', velden: { kleur: 'x' } },
       ],
     }), await db.items.toArray());
     if (!r.ok) throw new Error(r.error);

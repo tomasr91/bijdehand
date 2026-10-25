@@ -40,16 +40,9 @@ Werk dit document bij in dezelfde wijziging als die bestanden.
 
 | Soort (`type`) | Velden in `fields` |
 |---|---|
-| Cadeaus (`gift`) | `person`, `occasion`, `budget` (€, getal), `status`: idee/gekocht/gegeven |
-| Nachtjes weg (`trip`) | `destination`, `accommodation`, `price` (tekst), `reasons`, `status`: idee/gepland/geweest |
 | Restaurants (`restaurant`) | `city` (plaats), `cuisine` (keuken), `traits` (labels, lijst), `score` (eigen cijfer 1–10, één decimaal), `favorite` (ja/nee), `venue` (soort zaak: finedining/restaurant/bistro/casual), `experience` (ja/nee, beleving), `visited` (verborgen; "geweest" zonder cijfer uit v3). **Geen statusveld:** de status "geweest" wordt afgeleid (`derivedStatus`: cijfer of `visited`), `address` (adres of buurt, voor de kaart), `dishes`. **Opgezocht** (`external`): `summary` (samenvatting), `website` (link), `priceLevel` €–€€€€, `googleRating`/`googleCount`, `theforkRating`/`theforkCount`, `tripadvisorRating`/`tripadvisorCount`, `michelin`, `openStatus`, `checkedAt`, `ratingSource`, `uncertain`; verborgen locatie `lat`, `lng`, `geoFor` (door de app opgezocht uit het adres, D16) |
-| Boeken (`book`) | `author`, `status`: wil/bezig/gelezen, `rating` |
 | Albums (`album`) | `artist`, `status`: ontdekken/luisteren/opnieuw/geluisterd, `rating` |
-| Kleermaten (`size`) | `person`, `garment`, `size`, `brand`, `date` |
-| Games (`game`) | `platform`, `status`: verlanglijst/spelen/uitgespeeld, `rating` |
 | Paklijsten (`packing`) | alleen `checklist` (D22); oude velden `isTemplate`, `tripDate` verborgen bewaard |
-| Klussen (`todo`) | `status`: open/bezig/klaar, `priority`: laag/normaal/hoog, `due`, `materials` |
-| Planten (`plant`) | `location`, `care`, `intervalDays`, `nextCare`, `lastCare` |
 
 Veldwaarden zijn tekst, getal, ja/nee, `null` of een lijst met teksten (`kind: 'list'`, bijv. kenmerken).
 Een `url`-veld (`kind: 'url'`, bijv. `website`) is tekst die met `http://` of `https://` begint.
@@ -128,6 +121,7 @@ het typen worden steeds opnieuw berekend.
 |---|---|
 | 1 → 2 | Restaurant: `location` heet nu `city`; nieuw `cuisine`, `traits`, `address`. Lijstwaarden in `fields` toegestaan. Planten en andere soorten houden hun velden |
 | 2 → 3 | Restaurant: sterren `rating` (1–5) worden eigen cijfer `score` = sterren × 2. Boeken, albums en games houden hun sterren |
+| 4 → 5 | Verwijderde soorten (cadeau, nachtje weg, boek, kleermaat, game, klus, plant; D25) gaan naar de **Inbox** (`type: null`). Alle velden blijven bewaard (ook in back-ups); de oude soort en de ingevulde velden komen als regel *Was: Boek (author: …)* in de notities. Een voorstel van een verwijderde soort vervalt. Back-ups met zulke items worden geaccepteerd en zo omgezet |
 | 3 → 4 | Restaurant: `status` vervalt. *favoriet* → `favorite: true`; *geweest*/*favoriet* zonder cijfer → `visited: true`; *proberen* → niets (= nog niet geweest) |
 
 De omzetting staat in `src/data/migrate.ts` en wordt gebruikt bij het openen van de database (Dexie

@@ -1,5 +1,5 @@
 import {
-  Backpack, BedDouble, BookOpen, ChevronLeft, Disc3, Gamepad2, Gift, Inbox, Link2, Shirt, Sprout, Star, UtensilsCrossed, Wrench, X,
+  Backpack, ChevronLeft, Disc3, Inbox, Link2, Star, UtensilsCrossed, X,
   type LucideIcon,
 } from 'lucide-react';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
@@ -7,7 +7,7 @@ import { typeDef, type IconName } from '../data/itemTypes';
 import type { TypeKey } from '../data/model';
 import { goBack, useBackToClose } from '../ui/router';
 
-const ICONS: Record<IconName, LucideIcon> = { Gift, BedDouble, UtensilsCrossed, BookOpen, Disc3, Shirt, Gamepad2, Backpack, Wrench, Sprout };
+const ICONS: Record<IconName, LucideIcon> = { UtensilsCrossed, Disc3, Backpack };
 
 export function TypeIcon({ type, size = 20, source = false }: { type: TypeKey | null; size?: number; source?: boolean }) {
   const def = typeDef(type);
@@ -38,10 +38,34 @@ export function TopBar({ title, back, actions, sub }: { title: ReactNode; back?:
 }
 
 /** Lijntekeningen voor de merkkop (eigen, eenvoudig). */
-function BrandArt({ art }: { art: 'home' | 'restaurant' }) {
+export type BrandArtName = 'home' | 'restaurant' | 'album' | 'packing' | 'inbox';
+
+function BrandArt({ art }: { art: BrandArtName }) {
   return (
     <svg className="brand-art" viewBox="0 0 120 100" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      {art === 'home' ? (
+      {art === 'album' ? (
+        <>
+          {/* Plaat met arm */}
+          <circle cx="54" cy="54" r="38" />
+          <circle cx="54" cy="54" r="26" />
+          <circle cx="54" cy="54" r="8" />
+          <path d="M104 10v40l-22 22" />
+          <circle cx="104" cy="10" r="4" />
+        </>
+      ) : art === 'packing' ? (
+        <>
+          {/* Koffer */}
+          <rect x="18" y="30" width="84" height="62" rx="8" />
+          <path d="M44 30V18h32v12M18 52h84M40 30v62M80 30v62" />
+        </>
+      ) : art === 'inbox' ? (
+        <>
+          {/* Bakje met briefjes */}
+          <path d="M10 56l16-34h68l16 34v34H10z" />
+          <path d="M10 56h30l6 12h28l6-12h30" />
+          <path d="M40 40h40M44 30h32" />
+        </>
+      ) : art === 'home' ? (
         <>
           {/* Opengeslagen notitieboek met potlood */}
           <path d="M14 30c14-6 28-6 44 2v56c-16-8-30-8-44-2z" />
@@ -64,7 +88,7 @@ function BrandArt({ art }: { art: 'home' | 'restaurant' }) {
 }
 
 /** Merkkop: donker vlak met naam, ondertitel en lijntekening. Scrolt weg; de bediening eronder (BrandPanel) blijft plakken. */
-export function BrandHeader({ title, sub, back, actions, art }: { title: ReactNode; sub?: ReactNode; back?: string; actions?: ReactNode; art: 'home' | 'restaurant' }) {
+export function BrandHeader({ title, sub, back, actions, art }: { title: ReactNode; sub?: ReactNode; back?: string; actions?: ReactNode; art: BrandArtName }) {
   return (
     <header className={`brand ${back !== undefined ? 'stacked' : ''}`}>
       <BrandArt art={art} />

@@ -172,8 +172,11 @@ bevat geen geheimen.
 - **D20 — 2026-10-25 — Opgeruimd wat niet meer gebruikt wordt.** Weg: handmatig *Delen met Claude* / *Voorstellen openen*
   (vervangen door de sync, D14), voorbeeldgegevens in Instellingen, de proefversie als artifact (`build:artifact`, `seed.ts`,
   `VITE_PREVIEW`). Testgegevens staan nu in `src/data/testdata.ts` en worden in e2e als back-up teruggezet. Lege soorten
-  staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; de code van alle tien soorten
-  blijft. E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
+  staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; (sinds D25 zijn de ongebruikte soorten helemaal weg). E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
+- **D25 — 2026-10-25 — Alleen restaurants, albums en de paklijst; één lijn in de opmaak.** De zeven ongebruikte soorten zijn uit
+  de code. Schema v5: oude items van die soorten gaan naar de Inbox met alle velden bewaard en een *Was: …*-regel in de notities
+  (ook bij terugzetten van een back-up). Alle hoofdschermen krijgen de merkkop en losse kaarten; de paklijst een plakkende
+  voortgangsbalk. Een soort komt terug als de eigenaar hem wil (definitie in `itemTypes.ts` + `TypeKey`).
 - **D24 — 2026-10-25 — Merkkop en losse kaarten (naar Uit in 030).** Donkere terracotta kop met lijntekening op het hoofdscherm
   en bij Restaurants; plakkend filterblok met aantallen; restaurants als losse kaarten (labels gewoon onder de naam; het etiket bovenaan is op verzoek weer weg); plaatskoppen
   in de merkkleur. Eigen kleur behouden, geen extra iconen.

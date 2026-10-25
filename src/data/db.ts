@@ -39,6 +39,12 @@ export class BijdehandDB extends Dexie {
         Object.assign(item, migrateItem(item));
       });
     });
+    // v5: verwijderde soorten gaan naar de Inbox, met behoud van alle velden (zie migrate.ts, D25).
+    this.version(5).stores({}).upgrade(async (tx) => {
+      await tx.table('items').toCollection().modify((item: Item) => {
+        Object.assign(item, migrateItem(item));
+      });
+    });
   }
 }
 

@@ -80,7 +80,7 @@ describe('synchroniseren', () => {
     const old = await repo.createItem({ type: 'restaurant', title: 'Pamir', fields: { city: 'Leiden' } });
     gh.put(DATA_PATH, JSON.stringify(await exportBackup()));
     switchDb(`sync-${++k}`); // nieuw toestel, met al één eigen item
-    await repo.createItem({ type: 'book', title: 'Klara and the Sun' });
+    await repo.createItem({ type: 'album', title: 'Klara and the Sun' });
     await connect('tomas/data', TOKEN);
     const r = await syncNow();
     expect(r.merged?.items).toBe(1);
@@ -111,7 +111,7 @@ describe('synchroniseren', () => {
     gh.put('voorstellen/2026-10-25.json', JSON.stringify({
       format: 'bijdehand-voorstellen', formatVersion: 1, gebaseerdOp: exportedAt, voorstellen: [
         { id: 'v1', actie: 'indelen', itemId: note.id, type: 'restaurant', titel: 'Pamir', velden: { city: 'Leiden', cuisine: 'Afghaans', traits: ['afghaans'], website: 'https://pamir.example/' } },
-        { id: 'v2', actie: 'indelen', itemId: fresh.id, type: 'book' },
+        { id: 'v2', actie: 'indelen', itemId: fresh.id, type: 'album' },
       ],
     }));
     gh.put('voorstellen/kapot.json', '{ geen json');
@@ -138,10 +138,10 @@ describe('synchroniseren', () => {
     });
     await connect('tomas/data', TOKEN);
     await syncNow();
-    gh.put('voorstellen/a.json', JSON.stringify({ format: 'bijdehand-voorstellen', formatVersion: 1, voorstellen: [{ actie: 'nieuw', type: 'book', titel: 'Klara and the Sun' }] }));
+    gh.put('voorstellen/a.json', JSON.stringify({ format: 'bijdehand-voorstellen', formatVersion: 1, voorstellen: [{ actie: 'nieuw', type: 'album', titel: 'Klara and the Sun' }] }));
     await expect(syncNow()).rejects.toThrow(); // verwijderen mislukt → ronde mislukt, maar het bestand is al toegepast
     await syncNow(); // tweede ronde: bestand overslaan en opruimen
-    const books = (await db.items.toArray()).filter((i) => i.type === 'book');
+    const books = (await db.items.toArray()).filter((i) => i.type === 'album');
     expect(books).toHaveLength(1);
     expect(gh.files.has('voorstellen/a.json')).toBe(false);
   });
@@ -151,18 +151,18 @@ describe('synchroniseren', () => {
     setFetcher(gh.fetch);
     await connect('tomas/data', TOKEN);
     await syncNow();
-    gh.put('voorstellen/nieuw.json', JSON.stringify({ format: 'bijdehand-voorstellen', formatVersion: 1, voorstellen: [{ actie: 'nieuw', type: 'book', titel: 'X', velden: { veldUitDeToekomst: 1 } }] }));
+    gh.put('voorstellen/nieuw.json', JSON.stringify({ format: 'bijdehand-voorstellen', formatVersion: 1, voorstellen: [{ actie: 'nieuw', type: 'album', titel: 'X', velden: { veldUitDeToekomst: 1 } }] }));
     const r = await syncNow();
     expect(r.skippedFiles).toEqual(['nieuw.json']);
     expect(gh.files.has('voorstellen/nieuw.json')).toBe(true);
-    expect((await db.items.toArray()).filter((i) => i.type === 'book')).toHaveLength(0);
+    expect((await db.items.toArray()).filter((i) => i.type === 'album')).toHaveLength(0);
   });
 
   it('meldt een fout en onthoudt die in de status; ontkoppelen laat de gegevens staan', async () => {
     const gh = fakeGitHub();
     setFetcher(gh.fetch);
     await connect('tomas/data', TOKEN);
-    await repo.createItem({ type: 'book', title: 'Boek' });
+    await repo.createItem({ type: 'album', title: 'Album' });
     setFetcher(async () => { throw new TypeError('offline'); });
     await expect(syncNow()).rejects.toThrow(/Geen verbinding/);
     expect((await getSyncStatus()).error).toMatch(/Geen verbinding/);

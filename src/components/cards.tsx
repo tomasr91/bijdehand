@@ -1,13 +1,9 @@
-import { Check, Droplets, Heart, Lightbulb } from 'lucide-react';
+import { Check, Heart, Lightbulb } from 'lucide-react';
 import { isDone, optionLabel, statusOf, typeDef } from '../data/itemTypes';
 import type { Item, Source } from '../data/model';
-import { markPlantCared, setField } from '../data/repo';
-import { dayOf, daysBetween, formatDate, formatScore, localDate, relativeDay } from '../data/util';
-import { useToast } from '../ui/context';
+import { dayOf, formatDate, formatScore } from '../data/util';
 import { navigate } from '../ui/router';
 import { Stars, TypeIcon } from './ui';
-
-const euro = (v: unknown) => (typeof v === 'number' && v > 0 ? `€ ${v.toLocaleString('nl-NL')}` : '');
 
 /** Korte samenvatting per soort: de velden die je in een lijst wilt zien. */
 export function summary(item: Item): string[] {
@@ -15,35 +11,21 @@ export function summary(item: Item): string[] {
   const s = (k: string) => (typeof f[k] === 'string' ? (f[k] as string).trim() : '');
   const status = item.type && statusOf(item) ? optionLabel(item.type, typeDef(item.type)!.statusKey!, statusOf(item)!) : '';
   switch (item.type) {
-    case 'gift': return [s('person'), s('occasion'), euro(f.budget), status];
-    case 'trip': return [s('destination'), s('price'), status];
     case 'restaurant': {
       // Sober: naam, hoogstens 3 kenmerken, rechts cijfer en hartje (RestaurantMark). Geen status: het cijfer zegt of je er was.
       return [traitsLine(item), f.openStatus === 'gesloten' ? 'Permanent gesloten' : ''];
     }
-    case 'book': return [s('author'), status];
     case 'album': return [s('artist'), status];
-    case 'game': return [s('platform'), status];
-    case 'size': return [[s('garment'), s('size')].filter(Boolean).join(': '), s('brand'), f.date ? formatDate(String(f.date)) : ''];
     case 'packing': {
       const done = item.checklist.filter((e) => e.done).length;
       return [`${done} van ${item.checklist.length} ingepakt`];
     }
-    case 'todo': return [status, s('priority') === 'hoog' ? 'Hoge prioriteit' : '', f.due ? `Deadline ${relativeDay(String(f.due))}` : ''];
-    case 'plant': return [s('location'), f.nextCare ? `Verzorgen ${relativeDay(String(f.nextCare))}` : ''];
     default: {
       const first = item.body.split('\n').find((l) => l.trim()) ?? '';
       const list = item.checklist.length ? `${item.checklist.length} punten` : '';
       return [first, list];
     }
   }
-}
-
-function dueTone(item: Item): string {
-  const date = item.type === 'todo' ? item.fields.due : item.type === 'plant' ? item.fields.nextCare : null;
-  if (typeof date !== 'string' || !date || isDone(item)) return '';
-  const diff = daysBetween(localDate(), date);
-  return diff < 0 ? 'tone-late' : diff === 0 ? 'tone-today' : '';
 }
 
 /** Labels van een restaurant: "Fine dining" (alleen die soort zaak) komt eerst, daarna de kenmerken (keuken, vega, …). */
@@ -94,43 +76,10 @@ export function RestaurantRow({ item }: { item: Item }) {
   );
 }
 
-export function ItemCard({ item, showType = true, quick = true }: { item: Item; showType?: boolean; quick?: boolean }) {
-  const toast = useToast();
+export function ItemCard({ item, showType = true }: { item: Item; showType?: boolean }) {
   const parts = summary(item).filter(Boolean);
   const rating = typeof item.fields.rating === 'number' ? item.fields.rating : 0;
   const done = isDone(item);
-  const quickAction =
-    !quick ? null
-    : item.type === 'todo' && !done ? (
-      <button
-        type="button"
-        className="card-quick"
-        aria-label={`${item.title} afronden`}
-        onClick={async (e) => {
-          e.stopPropagation();
-          const prev = statusOf(item) ?? 'open';
-          await setField(item.id, 'status', 'klaar');
-          toast('Klus afgerond', { action: { label: 'Ongedaan maken', run: () => void setField(item.id, 'status', prev) } });
-        }}
-      >
-        <Check size={20} />
-      </button>
-    ) : item.type === 'plant' && item.fields.nextCare ? (
-      <button
-        type="button"
-        className="card-quick"
-        aria-label={`${item.title} verzorgd`}
-        onClick={async (e) => {
-          e.stopPropagation();
-          const prev = { nextCare: item.fields.nextCare ?? null, lastCare: item.fields.lastCare ?? null };
-          await markPlantCared(item.id);
-          toast(`${item.title} verzorgd`, { action: { label: 'Ongedaan maken', run: async () => { await setField(item.id, 'nextCare', prev.nextCare); await setField(item.id, 'lastCare', prev.lastCare); } } });
-        }}
-      >
-        <Droplets size={20} />
-      </button>
-    ) : null;
-
   return (
     <div className={`card ${done ? 'card-done' : ''}`}>
       <button type="button" className="card-main" onClick={() => navigate(`/item/${item.id}`)}>
@@ -138,7 +87,7 @@ export function ItemCard({ item, showType = true, quick = true }: { item: Item; 
         <span className="card-text">
           <span className="card-title">{item.title || 'Zonder titel'}</span>
           {(parts.length > 0 || rating > 0) && (
-            <span className={`card-sub ${dueTone(item)}`}>
+            <span className="card-sub">
               {rating > 0 && <Stars value={rating} small />}
               {parts.join(' · ')}
             </span>
@@ -156,7 +105,6 @@ export function ItemCard({ item, showType = true, quick = true }: { item: Item; 
         </span>
         {item.type === 'restaurant' && <RestaurantMark item={item} />}
       </button>
-      {quickAction}
     </div>
   );
 }

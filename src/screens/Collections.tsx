@@ -4,11 +4,11 @@ import { fold } from '../data/util';
 import { PasteSheet } from './PasteSheet';
 import { RestaurantCollection } from './Restaurants';
 import { ItemCard } from '../components/cards';
-import { BrandHeader, BrandPanel, ChipGroup, Empty, Section, TopBar, TypeIcon } from '../components/ui';
+import { BrandHeader, BrandPanel, Empty, Section, Segmented, TypeIcon } from '../components/ui';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { getSyncStatus } from '../data/sync';
 import { formatDateTime } from '../data/util';
-import { isDone, statusOf, TYPE_MAP, TYPES } from '../data/itemTypes';
+import { isDone, TYPE_MAP, TYPES } from '../data/itemTypes';
 import type { Item, TypeKey } from '../data/model';
 import { useAdd, useData } from '../ui/context';
 import { navigate } from '../ui/router';
@@ -110,15 +110,8 @@ function groupItems(type: TypeKey, list: Item[]): { title: string; items: Item[]
   return [{ title: '', items: list }];
 }
 
-function sortItems(type: TypeKey, list: Item[]): Item[] {
-  const prio: Record<string, number> = { hoog: 0, normaal: 1, laag: 2 };
-  const s = [...list];
-  if (type === 'todo') {
-    return s.sort((a, b) => Number(isDone(a)) - Number(isDone(b)) || (prio[String(a.fields.priority)] ?? 1) - (prio[String(b.fields.priority)] ?? 1) || String(a.fields.due || '9').localeCompare(String(b.fields.due || '9')));
-  }
-  if (type === 'plant') return s.sort((a, b) => String(a.fields.nextCare || '9').localeCompare(String(b.fields.nextCare || '9')));
-  if (type === 'size') return s.sort((a, b) => String(a.fields.garment ?? '').localeCompare(String(b.fields.garment ?? ''), 'nl'));
-  return s.sort((a, b) => Number(isDone(a)) - Number(isDone(b)) || b.updatedAt.localeCompare(a.updatedAt));
+function sortItems(list: Item[]): Item[] {
+  return [...list].sort((a, b) => Number(isDone(a)) - Number(isDone(b)) || b.updatedAt.localeCompare(a.updatedAt));
 }
 
 export function Collection({ type }: { type: TypeKey }) {
@@ -141,72 +134,52 @@ function PackingStart() {
   };
   return (
     <div className="screen">
-      <TopBar back="/verzamelingen" title="Paklijst" />
+      <BrandHeader art="packing" back="/verzamelingen" title="Paklijst" />
+      <BrandPanel />
       <Empty icon={<TypeIcon type="packing" size={28} />} title="Nog geen paklijst" text="Eén vakantiepaklijst: afvinken tijdens het inpakken en daarna alles weer uitvinken." action={<button type="button" className="btn btn-primary" onClick={() => void create()}><Plus size={18} /> Paklijst maken</button>} />
     </div>
   );
 }
 
+type Done = 'alle' | 'open' | 'klaar';
+
+/** Verzameling zonder eigen scherm (nu: albums). Merkkop, plakkend filter met aantallen, losse kaarten. */
 function GenericCollection({ type }: { type: TypeKey }) {
   const { liveItems } = useData();
   const add = useAdd();
   const def = TYPE_MAP[type];
-  const [status, setStatus] = useState('');
-  const [trait, setTrait] = useState('');
+  const [done, setDone] = useState<Done>('alle');
   const [pasting, setPasting] = useState(false);
-  const [allTraits, setAllTraits] = useState(false);
   const all = liveItems.filter((i) => i.type === type);
-  const statusField = def.statusKey ? def.fields.find((f) => f.key === def.statusKey) : undefined;
-  const traitsOf = (i: Item): string[] => (def.filterKey && Array.isArray(i.fields[def.filterKey]) ? (i.fields[def.filterKey] as string[]) : []);
-  const traitCounts = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const i of all) for (const t of traitsOf(i)) m.set(t, (m.get(t) ?? 0) + 1);
-    return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'nl'));
-  }, [all]); // eslint-disable-line react-hooks/exhaustive-deps
-  const shown = all.filter((i) => (!status || statusOf(i) === status) && (!trait || traitsOf(i).includes(trait)));
-  const groups = groupItems(type, sortItems(type, shown));
+  const doneCount = all.filter(isDone).length;
+  const [openLabel, doneLabel] = def.filterLabels ?? ['Nog open', 'Klaar'];
+  const shown = all.filter((i) => done === 'alle' || (done === 'klaar') === isDone(i));
+  const groups = groupItems(type, sortItems(shown));
+  const art = type === 'album' ? 'album' : 'home';
 
   return (
     <div className="screen">
-      <TopBar
+      <BrandHeader
+        art={art}
         back="/verzamelingen"
         title={def.plural}
-        actions={
-          <>
-            <button type="button" className="icon-btn" aria-label={`Zoeken in ${def.plural}`} onClick={() => navigate(`/zoeken?type=${type}`)}><Search size={22} /></button>
-          </>
-        }
+        sub={all.length ? `${all.length} ${all.length === 1 ? def.label.toLowerCase() : def.plural.toLowerCase()} · ${doneCount} ${doneLabel.toLowerCase()}` : undefined}
+        actions={<button type="button" className="icon-btn" aria-label={`Zoeken in ${def.plural}`} onClick={() => navigate(`/zoeken?type=${type}`)}><Search size={22} /></button>}
       />
-      {statusField?.options && all.length > 0 && (
-        <ChipGroup
-          label="Filter op status"
-          value={status}
-          onChange={setStatus}
-          options={[
-            { value: '', label: 'Alle', count: all.length },
-            // Statussen zonder items weglaten (rustiger op een telefoon), behalve als ze gekozen zijn.
-            ...statusField.options
-              .map((o) => ({ value: o.value, label: o.label, count: all.filter((i) => statusOf(i) === o.value).length }))
-              .filter((o) => o.count > 0 || o.value === status),
-          ]}
-        />
-      )}
-      {traitCounts.length > 0 && (
-        <ChipGroup
-          label="Filter op kenmerk"
-          value={trait}
-          onChange={setTrait}
-          options={[
-            { value: '', label: 'Elk kenmerk' },
-            ...traitCounts.filter(([t], i) => allTraits || i < 4 || t === trait).map(([t, n]) => ({ value: t, label: t, count: n })),
-          ]}
-          extra={traitCounts.length > 4 && (
-            <button type="button" className="chip chip-add" aria-expanded={allTraits} onClick={() => setAllTraits(!allTraits)}>
-              {allTraits ? 'Minder' : `+${traitCounts.length - 4} meer`}
-            </button>
-          )}
-        />
-      )}
+      <BrandPanel sticky={all.length > 0 && !!def.doneStatuses}>
+        {all.length > 0 && def.doneStatuses && (
+          <Segmented<Done>
+            label="Filter op status"
+            value={done}
+            onChange={setDone}
+            options={[
+              { value: 'alle', label: <>Alle <span className="seg-count" aria-hidden="true">{all.length}</span></> },
+              { value: 'open', label: <>{openLabel} <span className="seg-count" aria-hidden="true">{all.length - doneCount}</span></> },
+              { value: 'klaar', label: <>{doneLabel} <span className="seg-count" aria-hidden="true">{doneCount}</span></> },
+            ]}
+          />
+        )}
+      </BrandPanel>
       {all.length === 0 ? (
         <Empty
           icon={<TypeIcon type={type} size={28} />}
@@ -220,10 +193,10 @@ function GenericCollection({ type }: { type: TypeKey }) {
           }
         />
       ) : shown.length === 0 ? (
-        <Empty title="Niets gevonden met deze filters" />
+        <Empty title="Niets gevonden met dit filter" />
       ) : (
         groups.map((g) => (
-          <Section key={g.title || 'all'} title={g.title ? (<>{g.title} <span className="group-count">· {g.items.length}</span></>) : undefined} className={type === 'size' ? 'size-group' : ''}>
+          <Section key={g.title || 'all'} className="city" title={g.title ? (<>{g.title} <span className="group-count">· {g.items.length}</span></>) : undefined}>
             <div className="list">{g.items.map((i) => <ItemCard key={i.id} item={i} showType={false} />)}</div>
           </Section>
         ))
@@ -243,7 +216,8 @@ export function InboxScreen() {
 
   return (
     <div className="screen">
-      <TopBar back="/verzamelingen" title="Inbox" sub="Alles wat nog geen soort heeft · Claude deelt elke ochtend in" />
+      <BrandHeader art="inbox" back="/verzamelingen" title="Inbox" sub={list.length ? `${list.length} nog in te delen · Claude deelt elke ochtend in` : 'Claude deelt elke ochtend in'} />
+      <BrandPanel />
       {list.length === 0 ? (
         <Empty icon={<InboxIcon size={28} />} title="De Inbox is leeg" text="Wat je zonder soort bewaart, komt hier. Claude deelt het elke ochtend in, of je doet het zelf." action={<button type="button" className="btn" onClick={() => add()}>Iets bewaren</button>} />
       ) : (

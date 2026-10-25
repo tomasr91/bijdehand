@@ -41,8 +41,8 @@ describe('util', () => {
 describe('classificatie (regels)', () => {
   it('stelt soorten voor op basis van woorden en websites', () => {
     expect(suggestType('Nieuw restaurant in Utrecht proberen')?.type).toBe('restaurant');
-    expect(suggestType('Hotel in Gent', 'https://www.booking.com/hotel/be/x.html')?.type).toBe('trip');
-    expect(suggestType('cadeau voor mama')?.type).toBe('gift');
+    expect(suggestType('nieuw album van Radiohead', 'https://open.spotify.com/album/x')?.type).toBe('album');
+    expect(suggestType('cadeau voor mama')).toBeNull(); // verwijderde soort
     expect(suggestType('paklijst skivakantie', null, 3)?.type).toBe('packing');
     expect(suggestType('iets willekeurigs')).toBeNull();
   });
@@ -50,20 +50,20 @@ describe('classificatie (regels)', () => {
 
 describe('repository', () => {
   it('maakt, wijzigt, verwijdert en herstelt met historie', async () => {
-    const item = await repo.createItem({ type: 'size', title: 'Broek', fields: { person: 'Ik', size: '32/34' } });
-    await repo.setField(item.id, 'size', '33/34');
+    const item = await repo.createItem({ type: 'album', title: 'Blue', fields: { artist: 'Joni', status: 'ontdekken' } });
+    await repo.setField(item.id, 'artist', 'Joni Mitchell');
     const cur = await db.items.get(item.id);
-    expect(cur?.fields.size).toBe('33/34');
+    expect(cur?.fields.artist).toBe('Joni Mitchell');
     expect(cur?.rev).toBe(2);
     const revs = await db.revisions.where('entityId').equals(item.id).toArray();
     expect(revs).toHaveLength(1);
-    expect((revs[0].snapshot as typeof cur)!.fields.size).toBe('32/34');
+    expect((revs[0].snapshot as typeof cur)!.fields.artist).toBe('Joni');
     await repo.deleteItem(item.id);
     expect((await db.items.get(item.id))?.deletedAt).toBeTruthy();
     await repo.restoreItem(item.id);
     expect((await db.items.get(item.id))?.deletedAt).toBeNull();
     await repo.restoreRevision(revs[0].id);
-    expect((await db.items.get(item.id))?.fields.size).toBe('32/34');
+    expect((await db.items.get(item.id))?.fields.artist).toBe('Joni');
   });
 
   it('bewaart een link één keer (duplicaat herkend) en koppelt hem', async () => {
@@ -75,14 +75,6 @@ describe('repository', () => {
     expect(await db.sources.count()).toBe(1);
     expect(await db.links.count()).toBe(2);
   });
-
-  it('plant verzorgd zet de volgende datum', async () => {
-    const p = await repo.createItem({ type: 'plant', title: 'Monstera', fields: { intervalDays: 7 } });
-    await repo.markPlantCared(p.id, '2026-10-24');
-    const cur = await db.items.get(p.id);
-    expect(cur?.fields.nextCare).toBe('2026-10-31');
-    expect(cur?.fields.lastCare).toBe('2026-10-24');
-  });
 });
 
 describe('zoeken', () => {
@@ -90,17 +82,14 @@ describe('zoeken', () => {
     await loadSampleData();
     const data = await all();
     const titles = (q: string) => search(data, q).hits.map((h) => (h.kind === 'item' ? h.item.title : h.source.title));
-    expect(titles('Welke restaurants wilde ik nog proberen?')).toEqual(['Bar Basiliek']);
-    const gifts = titles('Welke cadeaus had ik voor mijn partner bedacht?');
-    expect(gifts.slice(0, 2).sort()).toEqual(['Lego Botanicals bonsai', 'Pasta-cursus voor twee']);
-    expect(gifts).not.toContain('Kaarsenpakket bijenwas');
-    expect(titles('Welke games staan nog op mijn verlanglijst?')).toEqual(['Hades II']);
-    expect(titles('klussen').sort()).toEqual(['Fietsverlichting vervangen', 'Lekkende kraan badkamer', 'Schilderijen ophangen gang']);
-    expect(titles('gent')).toContain('Weekend Gent');
-    expect(titles('graslei')).toContain('Hotel aan de Graslei');
+    expect(titles('Welke restaurants wilde ik nog proberen?').sort()).toEqual(['Bar Basiliek', 'Het Groene Bord']);
+    expect(titles('Welke albums wil ik nog ontdekken?')).toEqual(['In Rainbows']);
+    expect(titles('radiohead')).toEqual(['In Rainbows']);
+    expect(titles('gent')).toContain('Eetcafé De Graslei');
+    expect(titles('maand')).toContain('Het Groene Bord'); // notitie bij de gekoppelde link
     expect(titles('tiramisu')).toEqual(['Trattoria Da Marco']);
     expect(search(data, '', { type: 'inbox' }).hits).toHaveLength(2);
-    expect(search(data, '', { type: 'book', status: 'wil' }).hits).toHaveLength(1);
+    expect(search(data, '', { type: 'album', status: 'geluisterd' }).hits).toHaveLength(1);
   });
 });
 
@@ -108,7 +97,7 @@ describe('back-up', () => {
   it('export → lege app → herstel geeft identieke gegevens', async () => {
     await loadSampleData();
     const it = (await db.items.toArray())[0];
-    await repo.setField(it.id, 'status', 'gekocht');
+    await repo.setField(it.id, 'dishes', 'Bitterballen');
     const before = await snapshot();
     const text = JSON.stringify(await exportBackup());
     switchDb(`test-${++n}-leeg`);
@@ -127,7 +116,7 @@ describe('back-up', () => {
   });
 
   it('samenvoegen overschrijft nooit nieuwere lokale wijzigingen en verwijdert niets', async () => {
-    const a = await repo.createItem({ type: 'book', title: 'Oud' });
+    const a = await repo.createItem({ type: 'album', title: 'Oud' });
     const backup = await exportBackup();
     await repo.updateItem(a.id, { title: 'Nieuw lokaal' });
     const extra = await repo.createItem({ type: null, title: 'Alleen lokaal' });
@@ -160,10 +149,24 @@ describe('back-up', () => {
     expect(bad.ok).toBe(false);
   });
 
+  it('schema v5: items van verwijderde soorten gaan naar de Inbox, met alle gegevens bewaard', async () => {
+    const r = parseBackup(JSON.stringify({ format: 'bijdehand-backup', formatVersion: 1, data: { items: [
+      { id: 'b', type: 'book', title: 'Klara and the Sun', body: 'Van Sanne', fields: { author: 'Kazuo Ishiguro', status: 'wil' }, createdAt: 'a', updatedAt: 'a', schemaVersion: 4 },
+      { id: 'n', type: null, title: 'Notitie', suggestion: { type: 'gift', reason: 'woord', by: 'regels' }, createdAt: 'a', updatedAt: 'a', schemaVersion: 4 },
+    ], sources: [], links: [] } }));
+    if (!r.ok) throw new Error(r.error);
+    const [book, note] = r.backup.data.items;
+    expect(book).toMatchObject({ type: null, title: 'Klara and the Sun', fields: { author: 'Kazuo Ishiguro', status: 'wil' }, schemaVersion: 5 });
+    expect(book.body).toBe('Van Sanne\n\nWas: Boek (author: Kazuo Ishiguro; status: wil)');
+    expect(note.suggestion).toBeNull();
+    await applyRestore(r.backup, 'merge');
+    expect((await db.items.get('b'))?.type).toBeNull();
+  });
+
   it('vervangen zet exact de back-up terug', async () => {
-    await repo.createItem({ type: 'book', title: 'In back-up' });
+    await repo.createItem({ type: 'album', title: 'In back-up' });
     const backup = await exportBackup();
-    await repo.createItem({ type: 'book', title: 'Na back-up' });
+    await repo.createItem({ type: 'album', title: 'Na back-up' });
     const plan = await applyRestore(backup, 'replace');
     expect(plan.removed.items).toBe(2);
     expect((await db.items.toArray()).map((i) => i.title)).toEqual(['In back-up']);

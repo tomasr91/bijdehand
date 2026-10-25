@@ -1,18 +1,8 @@
 // Gegevensmodel — zie docs/DATA_MODEL.md. Wijzig dit bestand alleen samen met die doc.
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
-export type TypeKey =
-  | 'gift'
-  | 'trip'
-  | 'restaurant'
-  | 'book'
-  | 'album'
-  | 'size'
-  | 'game'
-  | 'packing'
-  | 'todo'
-  | 'plant';
+export type TypeKey = 'restaurant' | 'album' | 'packing';
 
 export type FieldValue = string | number | boolean | string[] | null;
 

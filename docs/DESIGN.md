@@ -17,7 +17,10 @@ Status: **[Gebouwd]** tenzij anders vermeld. De tokens staan bovenaan `src/style
 
 ## Visuele stijl
 
-- **Merkkop:** op het hoofdscherm en bij Restaurants een donker terracotta vlak (`--brand #6b2d16`, donker thema `#3b1e12`)
+- **Eén lijn (D25):** hoofdschermen (beginscherm, Restaurants, Albums, Paklijst, Inbox) hebben de merkkop; detailschermen,
+  Instellingen, Zoeken en Prullenbak een lichte kopbalk. Overal losse kaarten (titel 17 px vet, grijze regel eronder) en
+  sectiekoppen in `--heading`.
+- **Merkkop:** op de hoofdschermen een donker terracotta vlak (`--brand #6b2d16`, donker thema `#3b1e12`)
   met titel, cursieve ondertitel en een lijntekening op lage dekking; scrolt weg. Het lichte blok met de bediening schuift er
   overheen en blijft bovenaan plakken. Idee overgenomen van *Uit in 030*, in de eigen kleur. Kopjes in `--heading`.
 - **Kleuren:** warm off-white (`--bg #f7f3ec`), crèmekleurige kaarten en één accentkleur terracotta
@@ -99,13 +102,10 @@ verbanden, tags, eerdere versies en metadata.
 
 | Soort | Lijstweergave |
 |---|---|
-| Cadeaus, Kleermaten | Gegroepeerd per persoon |
-| Paklijst | Er is **één** paklijst (D23): de tegel op het hoofdscherm opent hem meteen, zonder tussenscherm; is er nog geen, dan een knop *Paklijst maken*. Geen ronde +; Toevoegen met soort Paklijst vult de bestaande lijst aan (dubbele punten overgeslagen). Detail: alleen naam, checklist en notities; bovenaan **Alles uitvinken** (met *Ongedaan maken*). Een geplakte lijst met meerdere regels wordt per regel een punt, ook bij Toevoegen (D22) |
-| Klussen | Open eerst, dan prioriteit en deadline; afvinkknop op de kaart |
-| Planten | Op volgende verzorgingsdatum; "verzorgd"-knop op de kaart |
+| Paklijst | Er is **één** paklijst (D23): de tegel op het hoofdscherm opent hem meteen, zonder tussenscherm; is er nog geen, dan een knop *Paklijst maken*. Geen ronde +; Toevoegen met soort Paklijst vult de bestaande lijst aan (dubbele punten overgeslagen). Detail: merkkop met de naam; daaronder plakt *N van M ingepakt* met voortgangsbalk en **Alles uitvinken** (met *Ongedaan maken*); de checklist als één kaart; daaronder notities. Een geplakte lijst met meerdere regels wordt per regel een punt, ook bij Toevoegen (D22) |
 | Restaurants | Eigen scherm (`src/screens/Restaurants.tsx`). Eén filterrij **Alle · Nog niet · Geweest** (afgeleid van je cijfer); labelfilter via de filterknop in de kopbalk (sheet met labels; actief filter als chip met ✕, stip op de knop). Merkkop met *N plekken · N geweest* en de knoppen zoeken, kaart en filter; het filterblok (met aantallen: *Alle 30 · Nog niet 15 · Geweest 15*) plakt bovenaan. Per plaats een kop in de merkkleur (*Utrecht · 26*), grootste plaats eerst, daaronder **losse kaarten**: de **naam**, daaronder de eerste drie labels (*Fine dining, frans, michelinster*; zie `INDELEN.md`); rechts **hartje** en **je cijfer**, of niets als je er nog niet was. Filter (kopbalk): labels, ook "fine dining". Volgorde: favorieten, dan cijfer hoog → laag, dan nog niet geweest (op naam). **Kaart** via het kaarticoon (D16): start ingezoomd op de plaats met de meeste restaurants; alle punten rond, gevuld met cijfer = geweest, open = nog niet, met uitleg onder de kaart; tik → popup met *Openen*; knop *Waar ben ik*; daaronder "N zonder locatie" |
-| Boeken, Albums, Games | Statusfilter-chips, sterren in de kaart |
-| Nachtjes weg | Bestemming, prijsindicatie en status |
+| Albums | Merkkop (*8 albums · 2 geluisterd*), plakkend filter **Alle · Nog niet · Geluisterd** met aantallen, losse kaarten (titel vet, *artiest · status*) |
+| Inbox | Merkkop (*N nog in te delen · Claude deelt elke ochtend in*), losse kaarten |
 
 Filterchips voor een status zonder items worden verborgen.
 

@@ -46,7 +46,7 @@ test('hoofdschermen: geen horizontaal scrollen, ruime aanraakvlakken, geen foute
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await loadSamples(page);
-  for (const path of ['/verzamelingen', '/verzameling/restaurant', '/verzameling/size', '/verzameling/packing', '/verzameling/todo', '/inbox', '/zoeken?q=gent', '/instellingen', '/prullenbak']) {
+  for (const path of ['/verzamelingen', '/verzameling/restaurant', '/verzameling/album', '/verzameling/packing', '/inbox', '/zoeken?q=gent', '/instellingen', '/prullenbak']) {
     await page.goto(`/#${path}`);
     await page.waitForTimeout(150);
     await noHorizontalScroll(page);
@@ -175,38 +175,38 @@ test('paklijst: één lijst, hele lijst plakken, afvinken, alles uitvinken, aanv
 test('zoeken met een vraag en met filters', async ({ page }) => {
   await loadSamples(page);
   await page.goto('/#/zoeken');
-  await page.getByRole('button', { name: 'Welke games staan nog op mijn verlanglijst?' }).click();
+  await page.getByRole('button', { name: 'Welke albums wil ik nog ontdekken?' }).click();
   await expect(page.getByText('1 resultaat')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Hades II/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /In Rainbows/ })).toBeVisible();
   await page.getByLabel('Zoeken', { exact: true }).fill('');
   await page.getByRole('button', { name: 'Alle soorten' }).click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Boeken' }).click();
-  await page.getByRole('radio', { name: 'Gelezen' }).click();
-  await expect(page.getByRole('button', { name: /De avond is ongemak/ })).toBeVisible();
+  await page.getByRole('dialog').getByRole('button', { name: 'Albums' }).click();
+  await page.getByRole('radio', { name: 'Geluisterd' }).click();
+  await expect(page.getByRole('button', { name: /Kind of Blue/ })).toBeVisible();
   await expect(page.getByText('1 resultaat')).toBeVisible();
 });
 
 test('verwijderen, ongedaan maken en terugzetten uit de prullenbak', async ({ page }) => {
   await loadSamples(page);
-  await page.goto('/#/verzameling/book');
-  await page.getByRole('button', { name: /Project Hail Mary/ }).click();
+  await page.goto('/#/verzameling/album');
+  await page.getByRole('button', { name: /Hounds of Love/ }).click();
   await page.getByRole('button', { name: 'Meer acties' }).click();
   await page.getByRole('button', { name: 'Naar prullenbak' }).click();
-  await expect(page.getByRole('button', { name: /Project Hail Mary/ })).toHaveCount(0);
-  await expect(page.getByRole('heading', { name: 'Boeken' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Hounds of Love/ })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Albums' })).toBeVisible();
   await page.getByRole('button', { name: 'Ongedaan maken' }).click();
-  await expect(page.getByRole('button', { name: /Project Hail Mary/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Hounds of Love/ })).toBeVisible();
 
-  await page.getByRole('button', { name: /Project Hail Mary/ }).click();
+  await page.getByRole('button', { name: /Hounds of Love/ }).click();
   await page.getByRole('button', { name: 'Meer acties' }).click();
   await page.getByRole('button', { name: 'Naar prullenbak' }).click();
-  await expect(page.getByRole('heading', { name: 'Boeken' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Project Hail Mary/ })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Albums' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Hounds of Love/ })).toHaveCount(0);
   await page.goto('/#/prullenbak');
-  await page.getByRole('button', { name: 'Project Hail Mary terugzetten' }).click();
-  await expect(page.getByText('"Project Hail Mary" teruggezet')).toBeVisible();
-  await page.goto('/#/verzameling/book');
-  await expect(page.getByRole('button', { name: /Project Hail Mary/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Hounds of Love terugzetten' }).click();
+  await expect(page.getByText('"Hounds of Love" teruggezet')).toBeVisible();
+  await page.goto('/#/verzameling/album');
+  await expect(page.getByRole('button', { name: /Hounds of Love/ })).toBeVisible();
 });
 
 test('back-up exporteren en in een lege app terugzetten', async ({ page, browser }, info) => {
@@ -217,7 +217,7 @@ test('back-up exporteren en in een lege app terugzetten', async ({ page, browser
   await download.saveAs(file);
   const json = JSON.parse(readFileSync(file, 'utf8'));
   expect(json.format).toBe('bijdehand-backup');
-  expect(json.data.items).toHaveLength(28);
+  expect(json.data.items).toHaveLength(12);
   await expect(page.getByText('Laatste back-up: nog nooit')).toHaveCount(0);
 
   // Schone browser = leeg apparaat.
@@ -226,9 +226,9 @@ test('back-up exporteren en in een lege app terugzetten', async ({ page, browser
   await fresh.goto('/#/instellingen');
   await fresh.getByLabel('Back-upbestand kiezen').setInputFiles(file);
   const dlg = fresh.getByRole('dialog', { name: 'Back-up terugzetten' });
-  await expect(dlg.getByText('28 nieuwe items')).toBeVisible();
+  await expect(dlg.getByText('12 nieuwe items')).toBeVisible();
   await dlg.getByRole('button', { name: 'Samenvoegen' }).last().click();
-  await expect(fresh.getByText(/Samengevoegd: 28 nieuw/)).toBeVisible();
+  await expect(fresh.getByText(/Samengevoegd: 12 nieuw/)).toBeVisible();
   await fresh.goto('/#/verzameling/restaurant');
   await expect(fresh.getByRole('button', { name: /Trattoria Da Marco/ })).toBeVisible();
   await fresh.goto('/#/zoeken?q=Graslei');
@@ -277,12 +277,12 @@ test('link via deelmenu-parameters komt in de Inbox en wordt niet dubbel bewaard
 test('terugknop sluit eerst de sheet, daarna terug naar vorig scherm', async ({ page }) => {
   await loadSamples(page);
   await page.goto('/#/verzamelingen');
-  await page.getByRole('button', { name: /Boeken/ }).click();
+  await page.getByRole('button', { name: /Albums/ }).click();
   await addBtn(page).click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.goBack();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(page.getByRole('heading', { name: 'Boeken' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Albums' })).toBeVisible();
   await page.goBack();
   await expect(page.getByRole('heading', { name: 'Bijdehand' })).toBeVisible();
 });
@@ -434,7 +434,7 @@ test('synchroniseren met privé GitHub-repo: koppelen, voorstel van Claude autom
     format: 'bijdehand-voorstellen', formatVersion: 1, gebaseerdOp: stored.exportedAt,
     voorstellen: [
       { id: 'v1', actie: 'indelen', itemId: note.id, type: 'restaurant', titel: 'Pamir', velden: { city: 'Leiden', cuisine: 'Afghaans', traits: ['afghaans'] } },
-      { id: 'v2', actie: 'nieuw', itemId: lezen.id, type: 'book', titel: 'Klara and the Sun', velden: { status: 'wil' } },
+      { id: 'v2', actie: 'nieuw', itemId: lezen.id, type: 'album', titel: 'Klara and the Sun', velden: { status: 'ontdekken' } },
     ],
   }) });
   await page.getByRole('button', { name: 'Nu synchroniseren' }).click();
@@ -444,7 +444,7 @@ test('synchroniseren met privé GitHub-repo: koppelen, voorstel van Claude autom
   await expect(page.getByRole('button', { name: /Pamir/ })).toContainText(/afghaans/i);
   await touchTargetsOk(page);
   // Andere soorten: "Ingevuld door Claude" tot je het controleert.
-  await page.goto('/#/verzameling/book');
+  await page.goto('/#/verzameling/album');
   await page.getByRole('button', { name: /Klara and the Sun/ }).click();
   await expect(page.getByText(/Ingevuld door Claude/)).toBeVisible();
   await page.getByRole('button', { name: 'Gecontroleerd' }).click();

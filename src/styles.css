@@ -19,7 +19,6 @@
   --danger-soft: #fbe4e1;
   --g-inspiratie: #b5532a;
   --g-praktisch: #3d7a4e;
-  --g-naslag: #3a6a96;
   --g-inbox: #6e6359;
   --g-bron: #7a5aa6;
   --radius: 14px;
@@ -55,7 +54,6 @@
     --danger-soft: #4a2522;
     --g-inspiratie: #e08257;
     --g-praktisch: #7cc493;
-    --g-naslag: #8ab6e0;
     --g-inbox: #b3a79b;
     --g-bron: #b99ae0;
     --shadow: none;
@@ -86,7 +84,6 @@
     --danger-soft: #4a2522;
     --g-inspiratie: #e08257;
     --g-praktisch: #7cc493;
-    --g-naslag: #8ab6e0;
     --g-inbox: #b3a79b;
     --g-bron: #b99ae0;
     --shadow: none;
@@ -177,7 +174,7 @@ img { max-width: 100%; }
 
 .section { display: flex; flex-direction: column; gap: 10px; }
 .section-head { display: flex; align-items: center; justify-content: space-between; }
-.section h2 { font-size: 15px; font-weight: 650; color: var(--muted); }
+.section h2 { font-size: 16px; font-weight: 700; color: var(--heading); }
 .section > p { overflow-wrap: anywhere; }
 
 /* ---------- Knoppen ---------- */
@@ -266,7 +263,7 @@ input[type='search']::-webkit-search-cancel-button { display: none; }
 
 /* ---------- Kaarten en lijsten ---------- */
 
-.list { display: flex; flex-direction: column; gap: 8px; }
+.list { display: flex; flex-direction: column; gap: 10px; }
 .card {
   display: flex; align-items: center; gap: 4px;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
@@ -274,27 +271,22 @@ input[type='search']::-webkit-search-cancel-button { display: none; }
 }
 .card-main {
   flex: 1; min-width: 0; display: flex; align-items: flex-start; gap: 12px;
-  min-height: 60px; padding: 12px 6px 12px 12px; border: 0; background: none; text-align: left; border-radius: var(--radius);
+  min-height: 64px; padding: 12px 10px 12px 16px; border: 0; background: none; text-align: left; border-radius: var(--radius);
 }
 .card-main:active { background: var(--surface-2); }
 .card-main.static { cursor: default; }
 .card-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.card-title { font-weight: 600; overflow-wrap: anywhere; }
+.card-title { font-size: 17px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
 .card-sub { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
 .card-note { font-size: 14px; color: var(--text); font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card-suggest { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--accent); }
 .card-done .card-title { color: var(--muted); }
-.card-quick { flex: none; width: var(--tap); height: var(--tap); border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); display: grid; place-items: center; color: var(--muted); }
-.card-quick:active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
-.tone-late { color: var(--danger); }
-.tone-today { color: var(--accent); }
 .progress { display: block; height: 4px; border-radius: 2px; background: var(--surface-2); margin-top: 6px; overflow: hidden; }
 .progress span { display: block; height: 100%; background: var(--ok); }
 
 .type-icon { display: inline-grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 10px; background: color-mix(in srgb, var(--g) 13%, transparent); color: var(--g); }
 .g-inspiratie { --g: var(--g-inspiratie); }
 .g-praktisch { --g: var(--g-praktisch); }
-.g-naslag { --g: var(--g-naslag); }
 .g-inbox { --g: var(--g-inbox); }
 .g-bron { --g: var(--g-bron); }
 
@@ -588,3 +580,10 @@ body.no-scroll .toast-region { bottom: auto; top: calc(env(safe-area-inset-top) 
 .section.city .group-count { color: var(--muted); font-size: 15px; }
 .seg-count { font-weight: 500; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .brand:not(.stacked) .brand-art { right: 66px; bottom: 12px; width: 84px; height: 70px; }
+
+/* Paklijst: voortgang in het plakkende blok; checklist als kaart */
+.packing-bar { display: flex; flex-direction: column; gap: 8px; }
+.packing-bar-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--tap); }
+.packing-count { font-weight: 650; }
+.checklist > ul { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 0 12px; }
+.checklist > ul > li:last-child { border-bottom: 0; }

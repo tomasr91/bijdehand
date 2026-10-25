@@ -41,18 +41,11 @@ herkent nu alleen de restaurantnotatie; bij andere soorten wordt daar elke regel
 | Soort | Notatie | Voorbeeld | Velden |
 |---|---|---|---|
 | Restaurant | `Plaats - Naam (keuken, kenmerken)` | `Leiden - Pamir (Afghaans, reserveren)` | city, cuisine, traits (labels). Geen status: "geweest" volgt uit je eigen cijfer; dat en `favorite` vult Claude nooit in |
-| Cadeau | `Cadeau Persoon: idee (gelegenheid, €budget)` | `Cadeau Sanne: fotoboek (verjaardag, €40)` | person, occasion, budget, status (standaard *idee*) |
-| Nachtje weg | `Weg Plaats: accommodatie (prijs, waarom)` | `Weg Gent: hotel aan de Graslei (€140/nacht, mooie binnenstad)` | destination, accommodation, price, reasons |
-| Boek | `Boek: Titel - Auteur (status)` | `Boek: Klara and the Sun - Kazuo Ishiguro` | author, status (standaard *wil*) |
 | Album | `Album: Titel - Artiest` | `Album: Blue - Joni Mitchell (opnieuw)` | artist, status |
-| Game | `Game: Titel (platform)` | `Game: Hades II (pc)` | platform, status (standaard *verlanglijst*) |
-| Kleermaat | `Maat Persoon: kledingtype maat merk` | `Maat ik: broek 32/34 Levi's 511` | person, garment, size, brand, date (= vandaag als niets staat) |
 | Paklijst | `Paklijst Naam:` + één punt per regel | `Paklijst skiën:` / `- skibril` | checklist (één punt per regel). Er is **één** paklijst: bestaat die al, dan `aanvullen` met `itemId` en `checklist` (dubbele punten slaat de app over) en de Inbox-notitie met `verwijderen` naar de prullenbak |
-| Klus | `Klus: wat (prio, deadline, materiaal)` | `Klus: kraan maken (hoog, 15-11, kraanleertjes)` | status (standaard *open*), priority, due, materials |
-| Plant | `Plant Naam: locatie, elke N dagen water` | `Plant Monstera: woonkamer, elke 7 dagen` | location, care, intervalDays |
 
-Herkenningswoorden zonder vaste notatie (een greep): *cadeau, kado, verjaardag* → Cadeau;
-*hotel, b&b, weekendje* → Nachtje weg; *boek, lezen* → Boek; *klus, repareren, ophangen* → Klus.
+Er zijn alleen deze drie soorten (D25). Past iets nergens bij (bijv. een boek of cadeau-idee), dan `laten`: het blijft in de
+Inbox. Stel nooit een soort voor die er niet is; de app weigert dat voorstel.
 
 **[Aanname] — nog te bepalen door de eigenaar:**
 
