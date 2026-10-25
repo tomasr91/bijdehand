@@ -90,18 +90,19 @@ function BrandArt({ art }: { art: BrandArtName }) {
 /** Merkkop: donker vlak met naam, ondertitel en lijntekening. Scrolt weg; de bediening eronder (BrandPanel) blijft plakken. */
 export function BrandHeader({ title, sub, back, actions, art }: { title: ReactNode; sub?: ReactNode; back?: string; actions?: ReactNode; art: BrandArtName }) {
   return (
-    <header className={`brand ${back !== undefined ? 'stacked' : ''}`}>
+    <header className="brand">
       <BrandArt art={art} />
       {back !== undefined && (
         <button type="button" className="icon-btn brand-back" aria-label="Terug" onClick={() => goBack(back)}>
           <ChevronLeft size={24} />
         </button>
       )}
-      {actions && <div className="brand-actions">{actions}</div>}
       <div className="brand-title">
         <h1>{title}</h1>
-        {sub && <p className="brand-sub">{sub}</p>}
+        {/* Altijd een ondertitelregel, zodat elke merkkop even hoog is. */}
+        <p className="brand-sub">{sub ?? '\u00a0'}</p>
       </div>
+      {actions && <div className="brand-actions">{actions}</div>}
     </header>
   );
 }

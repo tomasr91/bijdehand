@@ -216,7 +216,7 @@ export function InboxScreen() {
 
   return (
     <div className="screen">
-      <BrandHeader art="inbox" back="/verzamelingen" title="Inbox" sub={list.length ? `${list.length} nog in te delen · Claude deelt elke ochtend in` : 'Claude deelt elke ochtend in'} />
+      <BrandHeader art="inbox" back="/verzamelingen" title="Inbox" sub={list.length ? `${list.length} nog in te delen` : 'Claude deelt elke ochtend in'} />
       <BrandPanel />
       {list.length === 0 ? (
         <Empty icon={<InboxIcon size={28} />} title="De Inbox is leeg" text="Wat je zonder soort bewaart, komt hier. Claude deelt het elke ochtend in, of je doet het zelf." action={<button type="button" className="btn" onClick={() => add()}>Iets bewaren</button>} />

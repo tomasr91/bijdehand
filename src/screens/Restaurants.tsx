@@ -104,27 +104,29 @@ export function RestaurantCollection() {
                 {view === 'kaart' ? <List size={22} /> : <MapIcon size={22} />}
               </button>
             )}
-            {traitCounts.length > 0 && (
-              <button type="button" className="icon-btn" aria-label={trait ? 'Filter (actief)' : 'Filter op label'} aria-haspopup="dialog" onClick={() => setPicking(true)}>
-                <ListFilter size={22} />{trait && <span className="badge-dot" aria-hidden="true" />}
-              </button>
-            )}
           </>
         }
       />
       <BrandPanel sticky={all.length > 0}>
       {all.length > 0 && (
         <div className="r-filters">
-          <Segmented<Seen>
-            label="Filter op geweest"
-            value={seen}
-            onChange={setSeen}
-            options={[
-              { value: 'alle', label: <>Alle <span className="seg-count" aria-hidden="true">{byTrait.length}</span></> },
-              { value: 'niet', label: <><span aria-label="Nog niet geweest">Nog niet</span> <span className="seg-count" aria-hidden="true">{byTrait.length - byTraitBeen}</span></> },
-              { value: 'geweest', label: <>Geweest <span className="seg-count" aria-hidden="true">{byTraitBeen}</span></> },
-            ]}
-          />
+          <div className="r-filter-row">
+            <Segmented<Seen>
+              label="Filter op geweest"
+              value={seen}
+              onChange={setSeen}
+              options={[
+                { value: 'alle', label: <>Alle <span className="seg-count" aria-hidden="true">{byTrait.length}</span></> },
+                { value: 'niet', label: <><span aria-label="Nog niet geweest">Nog niet</span> <span className="seg-count" aria-hidden="true">{byTrait.length - byTraitBeen}</span></> },
+                { value: 'geweest', label: <>Geweest <span className="seg-count" aria-hidden="true">{byTraitBeen}</span></> },
+              ]}
+            />
+            {traitCounts.length > 0 && (
+              <button type="button" className="icon-btn filter-btn" aria-label={trait ? 'Filter (actief)' : 'Filter op label'} aria-haspopup="dialog" onClick={() => setPicking(true)}>
+                <ListFilter size={22} />{trait && <span className="badge-dot" aria-hidden="true" />}
+              </button>
+            )}
+          </div>
           {trait && (
             <div className="r-active">
               {trait && <button type="button" className="chip on" aria-label={`Filter ${trait} weghalen`} onClick={() => setTrait('')}>{trait} <X size={16} /></button>}
