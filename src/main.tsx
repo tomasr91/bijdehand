@@ -14,7 +14,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 // Service worker alleen in de productiebuild: offline openen + installeerbaar.
-if ('serviceWorker' in navigator && import.meta.env.PROD && import.meta.env.VITE_PREVIEW !== '1') {
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch((e) => console.warn('Service worker niet geregistreerd', e));
   });

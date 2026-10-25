@@ -1,83 +1,12 @@
-// Route 1 (zie docs/INDELEN.md): Inbox delen met Claude → voorstellenbestand terug → zelf beoordelen.
-// Claude schrijft nooit rechtstreeks in de gegevens; alles loopt via goedgekeurde voorstellen.
+// Voorstellen van Claude (zie docs/INDELEN.md): controleren en toepassen. Komen binnen via de sync (sync.ts).
+// Claude schrijft nooit rechtstreeks in de gegevens; alles loopt via voorstellen die de app controleert.
 import { db } from './db';
-import { TYPE_MAP, TYPES, isTypeKey, type FieldDef } from './itemTypes';
-import type { FieldValue, Item, Link, Source, TypeKey } from './model';
+import { TYPE_MAP, isTypeKey } from './itemTypes';
+import type { FieldValue, Item, TypeKey } from './model';
 import { addSource, buildItem, entry, linkRecords, updateItem } from './repo';
 import { fold, nowIso } from './util';
 
-// ---------- Inbox-export ----------
-
-export const INBOX_FORMAT = 'bijdehand-inbox';
 export const PROPOSALS_FORMAT = 'bijdehand-voorstellen';
-
-export interface InboxExport {
-  format: typeof INBOX_FORMAT;
-  formatVersion: 1;
-  exportedAt: string;
-  instructies: string;
-  soorten: { type: TypeKey; naam: string; velden: { veld: string; label: string; soort: string; opties?: string[]; voorbeeld?: string }[] }[];
-  /** Bestaande waarden, zodat Claude dezelfde schrijfwijze gebruikt (bijv. "Utrecht", "fancy"). */
-  bekend: Record<string, string[]>;
-  items: { id: string; titel: string; tekst: string; checklist: { tekst: string; klaar: boolean }[]; tags: string[]; links: { url: string; titel: string; notitie: string }[]; voorstelRegels?: string }[];
-}
-
-const INSTRUCTIES =
-  'Deel elk item in volgens docs/INDELEN.md (project Bijdehand). Antwoord met één JSON-bestand in het formaat "bijdehand-voorstellen" ' +
-  '(zie INDELEN.md → Voorstellenbestand). Gebruik alleen de soorten en velden hieronder. Bij twijfel: actie "laten" met een vraag in "reden". ' +
-  'Verzin geen gegevens die niet in de tekst staan.';
-
-const KIND_LABEL: Record<FieldDef['kind'], string> = {
-  text: 'tekst', textarea: 'tekst (meerdere regels)', number: 'getal', money: 'bedrag in euro (getal)', date: 'datum JJJJ-MM-DD',
-  select: 'keuze', rating: 'getal 1-5', boolean: 'ja/nee (true/false)', list: 'lijst met korte teksten', url: 'link (https://…)', score: 'cijfer 1-10, één decimaal (bijv. 7.5)',
-};
-
-export function buildInboxExport(items: Item[], sources: Source[], links: Link[]): InboxExport {
-  const live = items.filter((i) => !i.deletedAt);
-  const sourceById = new Map(sources.filter((s) => !s.deletedAt).map((s) => [s.id, s]));
-  const bekend: Record<string, Set<string>> = {};
-  const add = (k: string, v: unknown) => {
-    for (const x of Array.isArray(v) ? v : [v]) if (typeof x === 'string' && x.trim()) (bekend[k] ??= new Set()).add(x.trim());
-  };
-  for (const i of live) {
-    if (i.type === 'restaurant') { add('restaurant.city', i.fields.city); add('restaurant.cuisine', i.fields.cuisine); add('restaurant.traits', i.fields.traits); }
-    if (i.type === 'gift' || i.type === 'size') add(`${i.type}.person`, i.fields.person);
-    if (i.type === 'game') add('game.platform', i.fields.platform);
-    add('tags', i.tags);
-  }
-  return {
-    format: INBOX_FORMAT,
-    formatVersion: 1,
-    exportedAt: nowIso(),
-    instructies: INSTRUCTIES,
-    soorten: TYPES.map((t) => ({
-      type: t.key,
-      naam: t.plural,
-      velden: t.fields.map((f) => ({ veld: f.key, label: f.label, soort: KIND_LABEL[f.kind], ...(f.options ? { opties: f.options.map((o) => o.value) } : {}), ...(f.placeholder ? { voorbeeld: f.placeholder } : {}) })),
-    })),
-    bekend: Object.fromEntries(Object.entries(bekend).map(([k, v]) => [k, [...v].sort((a, b) => a.localeCompare(b, 'nl'))])),
-    items: live
-      .filter((i) => i.type === null)
-      .map((i) => ({
-        id: i.id,
-        titel: i.title,
-        tekst: i.body,
-        checklist: i.checklist.map((e) => ({ tekst: e.text, klaar: e.done })),
-        tags: i.tags,
-        links: links
-          .filter((l) => !l.deletedAt && (l.aId === i.id || l.bId === i.id))
-          .map((l) => sourceById.get(l.aId === i.id ? l.bId : l.aId))
-          .filter((s): s is Source => !!s)
-          .map((s) => ({ url: s.url, titel: s.title, notitie: s.note })),
-        ...(i.suggestion ? { voorstelRegels: i.suggestion.type } : {}),
-      })),
-  };
-}
-
-export function inboxFileName(d = new Date()): string {
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `bijdehand-inbox-${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.json`;
-}
 
 // ---------- Voorstellen ----------
 

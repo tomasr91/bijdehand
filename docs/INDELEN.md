@@ -1,24 +1,13 @@
 # INDELEN — aantekeningen laten indelen door Claude
 
-Status: werkwijze en app-ondersteuning **[Gebouwd]** (route 1). De notaties per soort zijn een **voorstel**
+Status: werkwijze en app-ondersteuning **[Gebouwd]** (via de privé repo). De notaties per soort zijn een **voorstel**
 dat de eigenaar bijschaaft. Claude volgt dit document; pas het aan als je iets anders wilt.
 
 ## Werkwijze
 
-**Route 1 (nu):**
+Zet aantekeningen ongesorteerd in Bijdehand (Toevoegen, zonder soort). Ze komen in de **Inbox**.
 
-1. Zet aantekeningen ongesorteerd in Bijdehand (Toevoegen, zonder soort). Ze komen in de **Inbox**.
-2. Inbox → **Delen met Claude**: deel het bestand `bijdehand-inbox-….json` naar een chat in het
-   Claude-project *Bijdehand*. Vraag bijvoorbeeld: "Deel deze Inbox in."
-3. Claude antwoordt met een bestand `bijdehand-voorstellen-….json` (formaat hieronder).
-4. Inbox → **Voorstellen openen** → kies het bestand. Bekijk de voorstellen, vink uit wat niet klopt
-   en tik op **Toepassen**. Alles is daarna nog te wijzigen of ongedaan te maken.
-
-**In de proefversie (artifact):** stuur je lijst in de chat. Claude bouwt de voorstellen in de proefversie
-in en publiceert die opnieuw; bij openen staan de items erin, zonder bestanden. De bestandskiezer werkt
-niet in elke artifact-weergave.
-
-**Route 2 [Gebouwd]:** de app staat gekoppeld aan de privé repo `bijdehand-data` (Instellingen → Synchronisatie) en
+**Hoe het werkt [Gebouwd]:** de app staat gekoppeld aan de privé repo `bijdehand-data` (Instellingen → Synchronisatie) en
 zet daar automatisch `data/bijdehand.json` neer. Claude zet voorstellen in `voorstellen/`. De app past bij de volgende
 synchronisatie alles toe wat **ok** is (zonder te vragen; met een melding en *Ongedaan maken*) en verwijdert het bestand.
 Wat "let op" of "kan niet" is, blijft gewoon in de Inbox staan.

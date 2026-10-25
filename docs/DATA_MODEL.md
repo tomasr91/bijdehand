@@ -92,9 +92,8 @@ De meta-tabel gaat **nooit** mee in een back-up (de sleutel blijft op het toeste
 
 ## Uitwisseling met Claude
 
-Twee bestandsformaten, beschreven in `INDELEN.md`: `bijdehand-inbox` (export van alleen de Inbox + veldenschema)
-en `bijdehand-voorstellen` (voorstellen van Claude). Voorstellen worden gecontroleerd tegen het register in
-`itemTypes.ts`; ze worden pas na goedkeuring via de gewone schrijfacties toegepast (met revisies).
+Eén bestandsformaat, beschreven in `INDELEN.md`: `bijdehand-voorstellen` (voorstellen van Claude, via de privé repo). Voorstellen worden gecontroleerd tegen het register in
+`itemTypes.ts`; wat in orde is, wordt via de gewone schrijfacties toegepast (met revisies).
 
 ## Afgeleid (niet opgeslagen)
 

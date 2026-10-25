@@ -1,7 +1,8 @@
-// Kleine set realistische voorbeeldgegevens. Alleen op verzoek geladen (Instellingen),
-// gemarkeerd met origin.system = 'sample' zodat ze weer verwijderd kunnen worden.
+// Testgegevens (verzonnen): alleen voor unit- en e2e-tests, niet in de app.
+// Gemarkeerd met origin.system = 'sample'.
+import { APP_VERSION, BACKUP_FORMAT, BACKUP_FORMAT_VERSION, type Backup } from './backup';
 import { db } from './db';
-import type { FieldValue, Item, Link, Origin, Source, TypeKey } from './model';
+import { SCHEMA_VERSION, type FieldValue, type Item, type Link, type Origin, type Source, type TypeKey } from './model';
 import { buildItem, buildSource, entry } from './repo';
 import { addDays, localDate, newId, nowIso } from './util';
 
@@ -51,7 +52,8 @@ export function sampleSpecs(today = localDate()): S[] {
   ];
 }
 
-export async function loadSampleData(): Promise<number> {
+/** Alle testgegevens als losse records (zonder database). */
+export function sampleRecords(): { items: Item[]; sources: Source[]; links: Link[] } {
   const origin: Origin = { system: 'sample', at: nowIso() };
   const items: Item[] = [];
   const sources: Source[] = [];
@@ -70,25 +72,26 @@ export async function loadSampleData(): Promise<number> {
       links.push({ id: newId(), aKind: 'item', aId: item.id, bKind: 'source', bId: src.id, createdAt: item.createdAt, updatedAt: item.createdAt, deletedAt: null });
     }
   });
+  return { items, sources, links };
+}
+
+/** Testgegevens als back-upbestand (voor de e2e-tests: terugzetten via Instellingen). */
+export function sampleBackup(): Backup {
+  const { items, sources, links } = sampleRecords();
+  return {
+    format: BACKUP_FORMAT, formatVersion: BACKUP_FORMAT_VERSION, schemaVersion: SCHEMA_VERSION, exportedAt: nowIso(), appVersion: APP_VERSION,
+    counts: { items: items.length, sources: sources.length, links: links.length, revisions: 0 },
+    data: { items, sources, links, revisions: [] },
+  };
+}
+
+/** Testgegevens in de database zetten (unit-tests). */
+export async function loadSampleData(): Promise<number> {
+  const { items, sources, links } = sampleRecords();
   await db.transaction('rw', db.items, db.sources, db.links, async () => {
     await db.items.bulkAdd(items);
     await db.sources.bulkAdd(sources);
     await db.links.bulkAdd(links);
   });
   return items.length;
-}
-
-/** Verwijdert voorbeeldgegevens die niet zijn aangepast. Aangepaste blijven bewaard. */
-export async function removeSampleData(): Promise<{ removed: number; kept: number }> {
-  return db.transaction('rw', db.items, db.sources, db.links, db.revisions, async () => {
-    const items = (await db.items.toArray()).filter((i) => i.origin?.system === 'sample');
-    const sources = (await db.sources.toArray()).filter((s) => s.origin?.system === 'sample');
-    const remove = [...items.filter((i) => i.rev === 1), ...sources.filter((s) => s.rev === 1)].map((r) => r.id);
-    const removeSet = new Set(remove);
-    await db.items.bulkDelete(remove);
-    await db.sources.bulkDelete(remove);
-    const links = (await db.links.toArray()).filter((l) => removeSet.has(l.aId) || removeSet.has(l.bId));
-    await db.links.bulkDelete(links.map((l) => l.id));
-    return { removed: remove.length, kept: items.length + sources.length - remove.length };
-  });
 }

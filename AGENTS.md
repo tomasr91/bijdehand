@@ -26,8 +26,8 @@ npm install
 npm run dev          # ontwikkelserver
 npm test             # unit-/integratietests gegevenslaag (Vitest)
 npm run build        # productiebuild naar dist/
-npm run test:e2e     # Playwright op 360 px, 412 px en desktop (gebruikt de build)
-npm run check        # alles: typecheck, unit, build, e2e
+npm run test:e2e     # Playwright: alles op 360 px; lay-out en kaart ook op 412 px en desktop (gebruikt de build)
+npm run check        # alles: unit, build (met typecheck), e2e
 ```
 
 Code: `src/data/` (model, opslag, zoeken, back-up — geen UI), `src/ui/` (router, contexten, autosave),

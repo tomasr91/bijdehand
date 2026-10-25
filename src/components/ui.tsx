@@ -212,17 +212,3 @@ export function AutoText(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
   return <textarea ref={ref} rows={minRows} {...rest} />;
 }
 
-export const IS_PREVIEW = import.meta.env.VITE_PREVIEW === '1';
-
-/** Melding in de proefversie (artifact): eerlijk over wat daar niet betrouwbaar werkt. */
-export function PreviewNotice() {
-  if (!IS_PREVIEW) return null;
-  return (
-    <div className="banner banner-warn preview-notice" role="note">
-      <span>
-        <b>Proefversie.</b> Om rond te kijken, met voorbeeldgegevens. Wat je hier bewaart kan verdwijnen, en een back-up
-        downloaden of delen werkt in deze weergave niet. Gebruik voor je eigen gegevens de geïnstalleerde app.
-      </span>
-    </div>
-  );
-}

@@ -51,7 +51,7 @@ voorbeeldgegevens; installeerbaar en offline; ontvangst via het deelmenu (code).
 | Geplande taak: nieuwe restaurants aanvullen via Google Places API (zie `GOOGLE_PLACES.md`) | Privé-repo, Google-sleutel | Nieuw restaurant krijgt binnen een dag cijfer, aantal, prijsniveau, adres, website, kenmerkende labels, samenvatting en links; maandelijkse verversing; sleutel alleen als geheim |
 | Opgezochte cijfers en prijsniveau weer tonen. **Nu op verzoek van de eigenaar verborgen** (`hidden` in het register); de waarden blijven bewaard. Het kaartje toont nu alleen naam, kenmerken en je eigen cijfer | Besluit eigenaar (waar: kaartje of detail?) | `hidden` weghalen; weergave opnieuw bouwen (de oude ★ · € · keuken-regel staat in de git-geschiedenis); samenvattingen bevatten zelf geen cijfers of prijzen |
 | Kaart met restaurants — **gebouwd** (D16) | — | Gedaan: locaties via OpenStreetMap, kaart op 360 px getest, correctie via adres, lijst werkt offline. Open: controle op het eigen toestel |
-| Claude-route 2: voorstellen ophalen uit privé-repo — **gebouwd** (D14) | — | Gedaan: automatisch synchroniseren, voorstellen automatisch toepassen met *Ongedaan maken*; token alleen op het toestel; zonder koppeling blijft route 1 werken. Open: controle op het eigen toestel |
+| Claude-route 2: voorstellen ophalen uit privé-repo — **gebouwd** (D14) | — | Gedaan: automatisch synchroniseren, voorstellen automatisch toepassen met *Ongedaan maken*; token alleen op het toestel; de handmatige route is verwijderd (D20). Open: controle op het eigen toestel |
 | Verbanden voorstellen | — | Voorstellen zijn herkenbaar en worden nooit automatisch gekoppeld |
 | Verbeterd zoeken | — | Zoeken op synoniemen/meervoud en op datum; voorbeeldvragen blijven werken |
 | Automatische classificatie, samenvattingen, bronverrijking (AI) | B3, B11 | Werkt via een server of proxy zonder sleutels in de app; AI-tekst gemarkeerd; app blijft zonder AI bruikbaar |
@@ -78,8 +78,8 @@ Leg de uitkomst vast in deze sectie, en bij het deelmenu ook in `ARCHITECTURE.md
 
 | Niveau | Wat | Bestand | Commando |
 |---|---|---|---|
-| Unit/integratie | Claude-route (export, controle voorstellen, toepassen, splitsen, ongedaan maken), lijst plakken (met een realistische (verzonnen) restaurantlijst), schemamigratie v1→v2, URL-normalisatie, datums, classificatie, repository (revisies, prullenbak, duplicaten, paklijst kopiëren, planten), zoeken op voorbeeldvragen, back-up-roundtrip, samenvoegen, ongeldige bestanden, voorbeeldgegevens | `src/data/*.test.ts` | `npm test` |
-| End-to-end | Kernstromen op **360 px, 412 px en 1280 px**; per scherm geen horizontaal scrollen en geen aanraakvlak onder 44 px | `tests/e2e/app.spec.ts` | `npm run test:e2e` |
+| Unit/integratie | Claude-voorstellen (controle, toepassen, splitsen, ongedaan maken, sync), lijst plakken (met een realistische (verzonnen) restaurantlijst), schemamigratie v1→v2, URL-normalisatie, datums, classificatie, repository (revisies, prullenbak, duplicaten, paklijst kopiëren, planten), zoeken op voorbeeldvragen, back-up-roundtrip, samenvoegen, ongeldige bestanden | `src/data/*.test.ts` | `npm test` |
+| End-to-end | Kernstromen op **360 px**; lay-out (geen horizontaal scrollen, geen aanraakvlak onder 44 px) en kaart ook op **412 px en 1280 px**. Testgegevens: `src/data/testdata.ts` (verzonnen), teruggezet als back-up | `tests/e2e/app.spec.ts` | `npm run test:e2e` |
 | Alles | Typecheck + unit + build + e2e | — | `npm run check` |
 | Handmatig | Toestelcontrole hierboven | — | Bij elke fase-afronding |
 

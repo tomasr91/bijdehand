@@ -4,8 +4,8 @@ import { applyRestore, exportBackup, parseBackup, planRestore } from './backup';
 import { suggestType } from './classify';
 import { db, switchDb } from './db';
 import * as repo from './repo';
-import { loadSampleData, removeSampleData } from './sample';
 import { search } from './search';
+import { loadSampleData } from './testdata';
 import { addDays, daysBetween, findUrl, isUrl, normalizeUrl, relativeDay } from './util';
 
 let n = 0;
@@ -174,17 +174,5 @@ describe('back-up', () => {
     const plan = await applyRestore(backup, 'replace');
     expect(plan.removed.items).toBe(2);
     expect((await db.items.toArray()).map((i) => i.title)).toEqual(['In back-up']);
-  });
-});
-
-describe('voorbeeldgegevens', () => {
-  it('verwijdert alleen ongewijzigde voorbeelden', async () => {
-    const count = await loadSampleData();
-    const first = (await db.items.toArray())[0];
-    await repo.updateItem(first.id, { title: 'Aangepast' });
-    const r = await removeSampleData();
-    expect(r.kept).toBe(1);
-    expect(await db.items.count()).toBe(1);
-    expect(r.removed).toBeGreaterThan(count - 1);
   });
 });

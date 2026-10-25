@@ -1,10 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Download, HardDrive, RotateCcw, Share2, Smartphone, Trash2, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { ConfirmDialog, Empty, PreviewNotice, Section, Segmented, Sheet, TopBar, TypeIcon } from '../components/ui';
+import { ConfirmDialog, Empty, Section, Segmented, Sheet, TopBar, TypeIcon } from '../components/ui';
 import { applyRestore, backupFileName, exportBackup, parseBackup, planRestore, type Backup, type RestoreMode, type RestorePlan } from '../data/backup';
 import * as repo from '../data/repo';
-import { loadSampleData, removeSampleData } from '../data/sample';
 import { formatDateTime } from '../data/util';
 import { useData, useToast } from '../ui/context';
 import { navigate } from '../ui/router';
@@ -56,7 +55,6 @@ export function Settings() {
   const [storage, setStorage] = useState<{ persisted: boolean | null; usage?: number; quota?: number }>({ persisted: null });
   const [canInstall, setCanInstall] = useState(!!window.__installPrompt);
   const canShareFiles = canShare();
-  const sampleCount = liveItems.filter((i) => i.origin?.system === 'sample').length;
   const trash = items.filter((i) => i.deletedAt).length + sources.filter((s) => s.deletedAt).length;
 
   const refreshStorage = async () => {
@@ -126,7 +124,6 @@ export function Settings() {
   return (
     <div className="screen">
       <TopBar back="/verzamelingen" title="Instellingen" />
-      <PreviewNotice />
 
       <SyncSettings />
 
@@ -168,17 +165,6 @@ export function Settings() {
 
       <Section title="Prullenbak">
         <button type="button" className="btn btn-block" onClick={() => navigate('/prullenbak')}><Trash2 size={18} /> Prullenbak openen ({trash})</button>
-      </Section>
-
-      <Section title="Voorbeeldgegevens">
-        {sampleCount > 0 ? (
-          <button type="button" className="btn btn-block" onClick={async () => { const r = await removeSampleData(); toast(`${r.removed} voorbeelden verwijderd${r.kept ? `, ${r.kept} aangepaste bewaard` : ''}`); }}>
-            <RotateCcw size={18} /> Voorbeeldgegevens verwijderen ({sampleCount})
-          </button>
-        ) : (
-          <button type="button" className="btn btn-block" onClick={async () => { const n = await loadSampleData(); toast(`${n} voorbeelditems geladen`); }}>Voorbeeldgegevens laden</button>
-        )}
-        <p className="hint">Voorbeelden die je hebt aangepast, blijven bij verwijderen bewaard.</p>
       </Section>
 
       <Section title="Wat nog niet kan">

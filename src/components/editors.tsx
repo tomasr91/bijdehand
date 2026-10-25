@@ -1,4 +1,4 @@
-import { Check, CircleAlert, ExternalLink, History, Info, Plus, RotateCcw, Search as SearchIcon, Star, X } from 'lucide-react';
+import { Check, ChevronDown, CircleAlert, ExternalLink, History, Info, Plus, RotateCcw, Search as SearchIcon, Star, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { GROUPS, TYPES, shownFields, typeDef, type FieldDef } from '../data/itemTypes';
 import type { ChecklistEntry, EntityKind, FieldValue, Item, Revision, Source, TypeKey } from '../data/model';
@@ -14,6 +14,7 @@ import { AutoText, Sheet, TypeIcon } from './ui';
 
 // ---------- Soort kiezen ----------
 
+/** Soort kiezen. Eerst de soorten die je gebruikt; de rest (nog leeg) staat ingeklapt onder "Andere soorten". */
 export function TypePicker({ open, value, onPick, onClose, allowInbox = true }: {
   open: boolean;
   value: TypeKey | null;
@@ -21,6 +22,18 @@ export function TypePicker({ open, value, onPick, onClose, allowInbox = true }: 
   onClose: () => void;
   allowInbox?: boolean;
 }) {
+  const { liveItems } = useData();
+  const [more, setMore] = useState(false);
+  const usedKeys = new Set<TypeKey>(liveItems.map((i) => i.type).filter((t): t is TypeKey => t !== null));
+  if (value) usedKeys.add(value);
+  const used = TYPES.filter((t) => usedKeys.has(t.key));
+  const rest = TYPES.filter((t) => !usedKeys.has(t.key));
+  const option = (t: (typeof TYPES)[number]) => (
+    <button key={t.key} type="button" className={`type-option ${value === t.key ? 'on' : ''}`} onClick={() => onPick(t.key)}>
+      <TypeIcon type={t.key} /> <span>{t.plural}</span>
+    </button>
+  );
+  const showRest = more || used.length === 0;
   return (
     <Sheet open={open} onClose={onClose} title="Soort kiezen">
       {allowInbox && (
@@ -28,18 +41,23 @@ export function TypePicker({ open, value, onPick, onClose, allowInbox = true }: 
           <TypeIcon type={null} /> <span>Inbox <small>later indelen</small></span>
         </button>
       )}
-      {GROUPS.map((g) => (
-        <div key={g.key} className="type-group">
-          <h3>{g.label}</h3>
-          <div className="type-grid">
-            {TYPES.filter((t) => t.group === g.key).map((t) => (
-              <button key={t.key} type="button" className={`type-option ${value === t.key ? 'on' : ''}`} onClick={() => onPick(t.key)}>
-                <TypeIcon type={t.key} /> <span>{t.plural}</span>
-              </button>
-            ))}
+      {used.length > 0 && <div className="type-grid">{used.map(option)}</div>}
+      {rest.length > 0 && used.length > 0 && (
+        <button type="button" className="btn btn-ghost r-edit-toggle" aria-expanded={showRest} onClick={() => setMore(!more)}>
+          <span className="empty-types-label">Andere soorten ({rest.length})</span>
+          <ChevronDown size={18} className={showRest ? 'rot' : ''} />
+        </button>
+      )}
+      {showRest && GROUPS.map((g) => {
+        const list = rest.filter((t) => t.group === g.key);
+        if (!list.length) return null;
+        return (
+          <div key={g.key} className="type-group">
+            <h3>{g.label}</h3>
+            <div className="type-grid">{list.map(option)}</div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </Sheet>
   );
 }

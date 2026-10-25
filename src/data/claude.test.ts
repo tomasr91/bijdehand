@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { applyProposals, buildInboxExport, checkFields, parseProposals, undoApply } from './claude';
+import { applyProposals, checkFields, parseProposals, undoApply } from './claude';
 import { db, switchDb } from './db';
 import * as repo from './repo';
 
@@ -18,19 +18,6 @@ async function setup() {
   await repo.linkRecords('item', multi.id, 'source', source.id);
   return { note, multi, done, source };
 }
-
-describe('Inbox delen met Claude', () => {
-  it('bevat alleen Inbox-items, het veldenschema en bekende waarden', async () => {
-    await setup();
-    const exp = buildInboxExport(await db.items.toArray(), await db.sources.toArray(), await db.links.toArray());
-    expect(exp.format).toBe('bijdehand-inbox');
-    expect(exp.items.map((i) => i.titel).sort()).toEqual(['Lezen', 'Pamir Leiden']);
-    expect(exp.items.find((i) => i.titel === 'Lezen')?.links[0].url).toBe('https://example.org/boeken');
-    expect(exp.soorten.find((s) => s.type === 'restaurant')?.velden.map((v) => v.veld)).toContain('traits');
-    expect(exp.bekend['restaurant.city']).toEqual(['Leiden']);
-    expect(exp.bekend['restaurant.traits']).toEqual(['fancy']);
-  });
-});
 
 describe('voorstellen controleren', () => {
   it('controleert velden tegen het register', () => {

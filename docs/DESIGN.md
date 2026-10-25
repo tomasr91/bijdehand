@@ -56,10 +56,11 @@ hoofdscherm, ook startpagina en `start_url`), **Instellingen** (tandwiel rechtsb
 
 ## Hoofdscherm
 
-- Kop **Bijdehand** met tandwiel. In de proefversie een melding.
+- Kop **Bijdehand** met tandwiel.
 - **Inbox** als balk, alleen als er iets in staat.
 - **Tegels** alleen voor soorten waar iets in zit, grootste eerst.
-- **Nog leeg: …** als één inklapbare regel; uitgeklapt als chips om een lege soort te openen.
+- Lege soorten staan er niet. Bij *Soort kiezen* (Toevoegen) staan eerst de soorten die je gebruikt; de rest ingeklapt
+  onder **Andere soorten**.
 - **Statusregel** synchronisatie: "Bijgewerkt <tijd> · Claude deelt elke ochtend in"; rood bij een fout; zonder
   koppeling "Alleen op dit toestel bewaard · GitHub koppelen".
 

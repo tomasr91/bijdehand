@@ -56,7 +56,7 @@ De groepering (Inspiratie, Praktisch, Naslag) en de soorten staan in één regis
 | Toevoegen | Ronde knop rechtsonder → bottom sheet: tekst, link of checklist; soort optioneel | [Gebouwd] |
 | Bronnen | Geen eigen scherm meer (D15): links horen bij een item en zijn daar te openen | [Gebouwd] |
 | Zoeken | Vergrootglas in een verzameling: tekst + filters binnen die soort | [Gebouwd]; semantisch zoeken [Gewenst] fase 2 |
-| Instellingen | Back-up/herstel, opslagstatus, installeren, prullenbak, voorbeeldgegevens, beperkingen | [Gebouwd] |
+| Instellingen | Synchronisatie, back-up/herstel, opslagstatus, installeren, prullenbak, beperkingen | [Gebouwd] |
 
 ## Belangrijkste functies en status
 
@@ -67,7 +67,7 @@ De groepering (Inspiratie, Praktisch, Naslag) en de soorten staan in één regis
 | Aanmaken, bekijken, wijzigen (autosave), verwijderen met ongedaan maken + prullenbak | [Gebouwd] |
 | Koppelingen item↔item en item↔bron | [Gebouwd] |
 | Lijst plakken: een Keep-lijstje (één regel per item) in één keer toevoegen, met voorbeeld, duplicaatcontrole en ongedaan maken; restaurants als "Plaats - Naam (kenmerken)" | [Gebouwd] |
-| Aantekeningen laten indelen door Claude (route 1): Inbox delen → voorstellenbestand → beoordelen en toepassen; ingevulde velden gemarkeerd | [Gebouwd] — werkwijze in `INDELEN.md` |
+| Aantekeningen laten indelen door Claude: via de privé repo, dagelijks; automatisch toegepast met *Ongedaan maken*; ingevulde velden gemarkeerd | [Gebouwd] — werkwijze in `INDELEN.md` |
 | Kaart met restaurants (en later andere plekken) | [Gebouwd] voor restaurants — zie `ARCHITECTURE.md` → Kaart |
 | Eerdere versies bekijken en terugzetten (o.a. kleermaten) | [Gebouwd] |
 | Duplicaatwaarschuwing (zelfde titel) en dezelfde link nooit dubbel als bron | [Gebouwd] |

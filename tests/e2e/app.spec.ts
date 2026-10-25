@@ -1,15 +1,24 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { sampleBackup } from '../../src/data/testdata';
 
-// Kernstromen uit ROADMAP.md → "Geslaagde eerste versie". Draait op 360 px, 412 px en desktop.
+// Kernstromen uit ROADMAP.md → "Geslaagde eerste versie". Draait op 360 px; lay-out ook op 412 px en desktop (playwright.config.ts).
 
 /** De ronde Toevoegen-knop rechtsonder (er is geen navigatiebalk meer). */
 const addBtn = (page: Page) => page.getByRole('button', { name: 'Toevoegen', exact: true });
 
+/** Verzonnen testgegevens (src/data/testdata.ts) terugzetten als back-up via Instellingen. */
 async function loadSamples(page: Page) {
+  // Vaste ASCII-bestandsnaam: bij mappen met bijv. "ë" kwam de bestandskeuze niet aan.
+  const file = join(tmpdir(), `bijdehand-testdata-${test.info().workerIndex}.json`);
+  writeFileSync(file, JSON.stringify(sampleBackup()));
   await page.goto('/#/instellingen');
-  await page.getByRole('button', { name: 'Voorbeeldgegevens laden' }).click();
-  await expect(page.getByText(/voorbeelditems geladen/)).toBeVisible();
+  await page.getByLabel('Back-upbestand kiezen').setInputFiles(file);
+  await page.getByRole('dialog', { name: 'Back-up terugzetten' }).getByRole('button', { name: 'Samenvoegen' }).last().click();
+  await expect(page.getByText(/Samengevoegd: \d+ nieuw/)).toBeVisible();
+  await settle(page);
 }
 
 /** Wacht tot een gesloten sheet zijn geschiedenis-item heeft opgeruimd (voorkomt races met reload/goto). */
@@ -272,65 +281,64 @@ test('restaurantlijst plakken: per plaats gegroepeerd, filter op kenmerk, kenmer
   await expect(page.getByRole('list', { name: 'Labels' }).getByText('vegetarisch')).toBeVisible();
 });
 
-test('Inbox delen met Claude en voorstellen beoordelen en toepassen', async ({ page }, info) => {
-  await page.goto('/');
-  for (const t of ['Pamir Leiden\nAfghaans, aanrader', 'Lezen\nKlara and the Sun\nProject Hail Mary']) {
-    await addBtn(page).click();
-    await page.getByRole('dialog').getByLabel('Tekst').fill(t);
-    await page.getByRole('dialog').getByRole('button', { name: 'Bewaren' }).click();
-    await settle(page);
-  }
-  await page.goto('/#/inbox');
-  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Delen met Claude' }).click()]);
-  const exp = JSON.parse(readFileSync(await download.path(), 'utf8'));
-  expect(exp.format).toBe('bijdehand-inbox');
-  const id = (t: string) => exp.items.find((i: { titel: string }) => i.titel === t).id;
+/** Nagebootste GitHub (Contents API) in het geheugen van de test. */
+async function fakeGitHub(page: Page) {
+  const files = new Map<string, { sha: string; text: string }>();
+  let n = 0;
+  const TOKEN = 'github_pat_e2e_0123456789abcdefghij';
+  await page.route('https://api.github.com/**', async (route) => {
+    const req = route.request();
+    const url = new URL(req.url());
+    const ok = (status: number, body: unknown) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
+    if (req.headers()['authorization'] !== `Bearer ${TOKEN}`) return ok(401, { message: 'Bad credentials' });
+    const m = url.pathname.match(/^\/repos\/[^/]+\/[^/]+(\/contents\/(.*))?$/);
+    if (!m) return ok(404, {});
+    if (!m[1]) return ok(200, { private: true });
+    const path = decodeURIComponent(m[2]);
+    const method = req.method();
+    if (method === 'GET') {
+      const f = files.get(path);
+      if (f) return ok(200, { sha: f.sha, content: Buffer.from(f.text).toString('base64'), encoding: 'base64' });
+      const dir = [...files.keys()].filter((p) => p.startsWith(path + '/'));
+      if (dir.length) return ok(200, dir.map((p) => ({ name: p.split('/').pop(), path: p, sha: files.get(p)!.sha, type: 'file' })));
+      return ok(404, { message: 'Not Found' });
+    }
+    const body = req.postDataJSON();
+    if (method === 'PUT') {
+      files.set(path, { sha: `s${++n}`, text: Buffer.from(body.content, 'base64').toString('utf8') });
+      return ok(201, {});
+    }
+    if (method === 'DELETE') { files.delete(path); return ok(200, {}); }
+    return ok(405, {});
+  });
+  return { files, TOKEN };
+}
 
-  // Zo zou Claude antwoorden (zie docs/INDELEN.md).
-  const file = info.outputPath('voorstellen.json');
-  writeFileSync(file, JSON.stringify({
-    format: 'bijdehand-voorstellen', formatVersion: 1, gemaaktOp: new Date().toISOString(), gebaseerdOp: exp.exportedAt,
-    voorstellen: [
-      { id: 'v1', actie: 'indelen', itemId: id('Pamir Leiden'), type: 'restaurant', titel: 'Pamir', velden: { city: 'Leiden', cuisine: 'Afghaans' }, tekst: 'Aanrader', reden: 'Plaats en keuken herkend' },
-      { id: 'v2', actie: 'nieuw', itemId: id('Lezen'), type: 'book', titel: 'Klara and the Sun', velden: { status: 'wil' } },
-      { id: 'v3', actie: 'nieuw', itemId: id('Lezen'), type: 'book', titel: 'Project Hail Mary', velden: { status: 'wil', kleur: 'blauw' } },
-    ],
-  }));
-  await page.getByLabel('Voorstellenbestand kiezen').setInputFiles(file);
-  const sheet = page.getByRole('dialog', { name: 'Voorstellen van Claude' });
-  await expect(sheet.getByText('onbekend veld "kleur"')).toBeVisible();
-  await expect(sheet.getByText('was: Pamir Leiden')).toBeVisible();
-  await sheet.getByRole('button', { name: '2 toepassen' }).click();
-  await expect(page.getByText('1 ingedeeld, 1 nieuw')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Lezen/ })).toBeVisible(); // niet volledig gesplitst? wel: 1 van 2 nieuw
-  await page.goto('/#/verzameling/restaurant');
-  await page.getByRole('button', { name: /Pamir/ }).click();
-  await expect(page.getByText('Leiden · Afghaans')).toBeVisible();
-  await expect(page.getByText(/Ingevuld door Claude/)).toHaveCount(0); // restaurants: sober detail
-  await page.goto('/#/verzameling/book');
-  await page.getByRole('button', { name: /Klara and the Sun/ }).click();
-  await expect(page.getByText(/Ingevuld door Claude/)).toBeVisible();
-  await page.getByRole('button', { name: 'Gecontroleerd' }).click();
-  await expect(page.getByText(/Ingevuld door Claude/)).toHaveCount(0);
-});
+/** Koppelen in Instellingen met de nagebootste GitHub. */
+async function connectSync(page: Page, TOKEN: string) {
+  await page.goto('/#/instellingen');
+  await page.getByLabel('Repo').fill('iemand/bijdehand-data');
+  await page.getByLabel('Sleutel (fine-grained token)').fill(TOKEN);
+  await page.getByRole('button', { name: 'Koppelen' }).click();
+  await expect(page.getByText(/Gekoppeld met/)).toBeVisible();
+}
 
-test('restaurant: websiteknop in detail, cijfers en prijsniveau (tijdelijk) niet in beeld', async ({ page }, info) => {
+test('restaurant: websiteknop in detail, cijfers en prijsniveau (tijdelijk) niet in beeld', async ({ page }) => {
   await page.goto('/#/verzameling/restaurant');
   await page.getByRole('button', { name: 'Lijst plakken' }).click();
   const paste = page.getByRole('dialog', { name: 'Lijst plakken in Restaurants' });
   await paste.getByLabel('Geplakte lijst').fill('Leiden - Pamir (Afghaans)');
   await paste.getByRole('button', { name: /toevoegen/ }).click();
   await settle(page);
-  const file = info.outputPath('aanvulling.json');
-  writeFileSync(file, JSON.stringify({
+  const { files, TOKEN } = await fakeGitHub(page);
+  await connectSync(page, TOKEN);
+  files.set('voorstellen/aanvulling.json', { sha: 'a1', text: JSON.stringify({
     format: 'bijdehand-voorstellen', formatVersion: 1, voorstellen: [
       { id: 'a1', actie: 'aanvullen', type: 'restaurant', zoek: { titel: 'Pamir', city: 'Leiden' }, velden: { website: 'http://pamir.example/', googleRating: 4.7, priceLevel: '€€', summary: 'Afghaans restaurant aan de Breestraat.', venue: 'finedining', michelin: 'Bib Gourmand', experience: true } },
     ],
-  }));
-  await page.goto('/#/inbox');
-  await page.getByLabel('Voorstellenbestand kiezen').setInputFiles(file);
-  await page.getByRole('dialog', { name: 'Voorstellen van Claude' }).getByRole('button', { name: '1 toepassen' }).click();
-  await settle(page);
+  }) });
+  await page.getByRole('button', { name: 'Nu synchroniseren' }).click();
+  await expect(page.getByText(/Claude verwerkte 1 item: Pamir/)).toBeVisible();
   await page.goto('/#/verzameling/restaurant');
   const card = page.getByRole('button', { name: /Pamir/ });
   await expect(card).not.toContainText('Afghaans'); // kaartje: alleen naam en kenmerken (+ eigen cijfer)
@@ -360,41 +368,15 @@ test('restaurant: websiteknop in detail, cijfers en prijsniveau (tijdelijk) niet
 });
 
 test('synchroniseren met privé GitHub-repo: koppelen, voorstel van Claude automatisch toepassen', async ({ page }) => {
-  // Nagebootste GitHub (Contents API) in het geheugen van de test.
-  const files = new Map<string, { sha: string; text: string }>();
-  let n = 0;
-  const TOKEN = 'github_pat_e2e_0123456789abcdefghij';
-  await page.route('https://api.github.com/**', async (route) => {
-    const req = route.request();
-    const url = new URL(req.url());
-    const ok = (status: number, body: unknown) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
-    if (req.headers()['authorization'] !== `Bearer ${TOKEN}`) return ok(401, { message: 'Bad credentials' });
-    const m = url.pathname.match(/^\/repos\/[^/]+\/[^/]+(\/contents\/(.*))?$/);
-    if (!m) return ok(404, {});
-    if (!m[1]) return ok(200, { private: true });
-    const path = decodeURIComponent(m[2]);
-    const method = req.method();
-    if (method === 'GET') {
-      const f = files.get(path);
-      if (f) return ok(200, { sha: f.sha, content: Buffer.from(f.text).toString('base64'), encoding: 'base64' });
-      const dir = [...files.keys()].filter((p) => p.startsWith(path + '/'));
-      if (dir.length) return ok(200, dir.map((p) => ({ name: p.split('/').pop(), path: p, sha: files.get(p)!.sha, type: 'file' })));
-      return ok(404, { message: 'Not Found' });
-    }
-    const body = req.postDataJSON();
-    if (method === 'PUT') {
-      files.set(path, { sha: `s${++n}`, text: Buffer.from(body.content, 'base64').toString('utf8') });
-      return ok(201, {});
-    }
-    if (method === 'DELETE') { files.delete(path); return ok(200, {}); }
-    return ok(405, {});
-  });
+  const { files, TOKEN } = await fakeGitHub(page);
 
   await page.goto('/');
-  await addBtn(page).click();
-  await page.getByRole('dialog').getByLabel('Tekst').fill('Pamir Leiden');
-  await page.getByRole('dialog').getByRole('button', { name: 'Bewaren' }).click();
-  await settle(page);
+  for (const t of ['Pamir Leiden', 'Lezen\nKlara and the Sun']) {
+    await addBtn(page).click();
+    await page.getByRole('dialog').getByLabel('Tekst').fill(t);
+    await page.getByRole('dialog').getByRole('button', { name: 'Bewaren' }).click();
+    await settle(page);
+  }
 
   await page.goto('/#/instellingen');
   await page.getByLabel('Repo').fill('iemand/bijdehand-data');
@@ -411,16 +393,26 @@ test('synchroniseren met privé GitHub-repo: koppelen, voorstel van Claude autom
 
   // Claude zet een voorstel klaar; bij de volgende synchronisatie wordt het automatisch toegepast.
   const note = stored.data.items.find((i: { title: string }) => i.title === 'Pamir Leiden');
+  const lezen = stored.data.items.find((i: { title: string }) => i.title.startsWith('Lezen'));
   files.set('voorstellen/2026-10-25.json', { sha: 'v1', text: JSON.stringify({
     format: 'bijdehand-voorstellen', formatVersion: 1, gebaseerdOp: stored.exportedAt,
-    voorstellen: [{ id: 'v1', actie: 'indelen', itemId: note.id, type: 'restaurant', titel: 'Pamir', velden: { city: 'Leiden', cuisine: 'Afghaans', traits: ['afghaans'] } }],
+    voorstellen: [
+      { id: 'v1', actie: 'indelen', itemId: note.id, type: 'restaurant', titel: 'Pamir', velden: { city: 'Leiden', cuisine: 'Afghaans', traits: ['afghaans'] } },
+      { id: 'v2', actie: 'nieuw', itemId: lezen.id, type: 'book', titel: 'Klara and the Sun', velden: { status: 'wil' } },
+    ],
   }) });
   await page.getByRole('button', { name: 'Nu synchroniseren' }).click();
-  await expect(page.getByText(/Claude verwerkte 1 item: Pamir/)).toBeVisible();
+  await expect(page.getByText(/Claude verwerkte 2 items/)).toBeVisible();
   expect(files.has('voorstellen/2026-10-25.json')).toBe(false);
   await page.goto('/#/verzameling/restaurant');
   await expect(page.getByRole('button', { name: /Pamir/ })).toContainText('afghaans');
   await touchTargetsOk(page);
+  // Andere soorten: "Ingevuld door Claude" tot je het controleert.
+  await page.goto('/#/verzameling/book');
+  await page.getByRole('button', { name: /Klara and the Sun/ }).click();
+  await expect(page.getByText(/Ingevuld door Claude/)).toBeVisible();
+  await page.getByRole('button', { name: 'Gecontroleerd' }).click();
+  await expect(page.getByText(/Ingevuld door Claude/)).toHaveCount(0);
 });
 
 test('kaart met restaurants: locaties opzoeken, punten, openen; zonder adres apart', async ({ page }) => {

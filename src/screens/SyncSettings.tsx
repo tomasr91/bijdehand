@@ -2,7 +2,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ChevronDown, CloudUpload, Link2Off, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
-import { IS_PREVIEW, Section } from '../components/ui';
+import { Section } from '../components/ui';
 import { connect, disconnect, getSyncStatus, syncNow, SyncError } from '../data/sync';
 import { formatDateTime } from '../data/util';
 import { useToast } from '../ui/context';
@@ -17,13 +17,6 @@ export function SyncSettings() {
   const [error, setError] = useState('');
   const [help, setHelp] = useState(false);
 
-  if (IS_PREVIEW) {
-    return (
-      <Section title="Synchronisatie">
-        <p className="hint">Koppelen met je privé GitHub-repo kan alleen in de geïnstalleerde app, niet in deze proefversie.</p>
-      </Section>
-    );
-  }
   if (!status) return null;
 
   const run = async () => {

@@ -2,11 +2,6 @@ import { Component, useCallback, useEffect, useState, type ReactNode } from 'rea
 import { Plus } from 'lucide-react';
 import { isTypeKey } from './data/itemTypes';
 import { findUrl } from './data/util';
-import { db } from './data/db';
-import { getMeta, setMeta } from './data/repo';
-import { loadSampleData } from './data/sample';
-import { applySeedBundles } from './data/seed';
-import { IS_PREVIEW } from './components/ui';
 import { AutoSync } from './ui/sync';
 import { AddCtx, DataProvider, ToastProvider, useData, type AddOptions } from './ui/context';
 import type { TypeKey } from './data/model';
@@ -88,26 +83,6 @@ export default function App() {
 
   const openAdd = useCallback((opts: AddOptions = {}) => setAdd({ open: true, opts }), []);
   const closeAdd = useCallback(() => setAdd((a) => ({ ...a, open: false })), []);
-
-  // Proefversie: lijsten die Claude heeft klaargezet (ingebouwd bij het bouwen) eenmalig toepassen.
-  // Zonder klaargezette lijsten: eenmalig voorbeeldgegevens, zodat er iets te zien is.
-  useEffect(() => {
-    if (!IS_PREVIEW) return;
-    void (async () => {
-      try {
-        const bundles = window.__BIJDEHAND_SEED ?? [];
-        if (bundles.length) {
-          await applySeedBundles(bundles);
-          return;
-        }
-        if ((await getMeta('previewSeeded')) || (await db.items.count()) > 0) return;
-        await setMeta('previewSeeded', '1');
-        await loadSampleData();
-      } catch (e) {
-        console.error(e);
-      }
-    })();
-  }, []);
 
   useEffect(() => {
     const shared = readShare();

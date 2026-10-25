@@ -11,7 +11,7 @@ het apparaat (IndexedDB), en de app werkt offline en is installeerbaar op Androi
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm run check      # typecheck, unit-tests, build, e2e (360 px, 412 px, desktop)
+npm run check      # unit-tests, build (met typecheck), e2e (360 px; lay-out ook 412 px en desktop)
 ```
 
 ## Op je telefoon zetten

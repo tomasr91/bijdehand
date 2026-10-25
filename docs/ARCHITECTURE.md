@@ -16,7 +16,7 @@ op het apparaat. De app werkt offline en kan op Android via Chrome worden geïns
 | Iconen | lucide-react |
 | Navigatie | Eigen hash-router met echte geschiedenis (`src/ui/router.ts`), zodat de Android-terugknop werkt; open sheets sluiten met "terug" |
 | Offline | Eigen service worker (`public/sw.js`): pagina eerst van het netwerk, bestanden eerst uit de cache |
-| Tests | Vitest + fake-indexeddb (gegevenslaag), Playwright (e2e op 360 px, 412 px en desktop) |
+| Tests | Vitest + fake-indexeddb (gegevenslaag), Playwright (e2e op 360 px; lay-out en kaart ook op 412 px en desktop) |
 
 ## Lagen
 
@@ -95,19 +95,6 @@ GitHub Pages, Netlify of Cloudflare Pages. HTTPS is nodig voor de service worker
 deelmenu. Er zijn geen geheimen of omgevingsvariabelen nodig. Let op: de gegevens horen bij het adres
 (origin). Een nieuw adres geeft een lege app; zet dan een back-up terug.
 
-## Proefversie als artifact — **[Gebouwd]**
-
-`npm run build:artifact` maakt `dist-artifact/bijdehand.html`: één zelfstandig bestand om als claude.ai-artifact
-te publiceren en rond te kijken. Hierin wijkt de app af (vlag `VITE_PREVIEW=1`): de navigatie staat in het
-geheugen (het frame heeft geen adresbalk), er is geen service worker, voorbeeldgegevens worden eenmalig
-geladen, en een melding zegt dat gegevens kunnen verdwijnen en dat een back-up downloaden of delen daar
-niet werkt.
-
-Lijsten die Claude in een chat indeelt, kan Claude in de proefversie **inbouwen**: voorstellenbestanden in
-`.local/seed/` (persoonlijke gegevens, nooit in git) gaan bij `build:artifact` mee als `window.__BIJDEHAND_SEED`.
-Bij openen past de proefversie elke bundel één keer toe (`src/data/seed.ts`), slaat dubbele titels over en
-haalt bij de eerste bundel ongewijzigde voorbeeldgegevens weg. Bewaarde gegevens blijven per browser.
-
 ## AI en externe bronnen — ontwerp, **[Gewenst]** fase 2
 
 - De app werkt volledig zonder AI. Het huidige voorstel voor een soort komt uit vaste woord- en
@@ -119,18 +106,17 @@ haalt bij de eerste bundel ongewijzigde voorbeeldgegevens weg. Bewaarde gegevens
 - AI-aanroepen en het ophalen van paginatitels hebben vrijwel zeker een kleine server of proxy nodig
   (vanwege CORS en API-sleutels, die nooit in de app horen). Dat valt samen met B3.
 
-## Claude laat aantekeningen indelen — route 1 **[Gebouwd]**, route 2 **[Gewenst]**
+## Claude laat aantekeningen indelen — **[Gebouwd]** (via de privé repo)
 
 Claude schrijft nooit rechtstreeks in de gegevens: alleen voorstellen, die de app controleert en toepast. Werkwijze en formaten
-staan in `INDELEN.md`; code in `src/data/claude.ts` en `src/screens/ProposalsSheet.tsx`.
+staan in `INDELEN.md`; code in `src/data/claude.ts` (controleren, toepassen, ongedaan maken) en `src/data/sync.ts`.
 
-- **Route 1:** Inbox → *Delen met Claude* (Web Share naar de Claude-app, anders downloaden) → Claude maakt
-  een voorstellenbestand → *Voorstellen openen* → beoordelen → toepassen. Toepassen loopt via
-  `updateItem`, dus met revisies, plus één knop "Ongedaan maken" voor de hele actie.
-- **Route 2 [Gebouwd] (D13, D14):** de app synchroniseert met de **privé** repo `bijdehand-data`; een geplande Claude-taak
-  (dagelijks en op verzoek) leest `data/bijdehand.json`, zet voorstellen in `voorstellen/`, en de app past ze automatisch toe.
-  Werkwijze van de taak: `INDELEN.md` → Dagelijkse taak; hulpscript `scripts/claude-taak.ts`.
-- Persoonsgegevens gaan alleen mee als de gebruiker deelt: alleen Inbox-items en bestaande schrijfwijzen.
+- De app synchroniseert met de **privé** repo `bijdehand-data` (D13, D14); een geplande Claude-taak (dagelijks en op verzoek)
+  leest `data/bijdehand.json`, zet voorstellen in `voorstellen/`, en de app past ze automatisch toe, met *Ongedaan maken*.
+  Toepassen loopt via de gewone schrijfacties, dus met revisies. Werkwijze van de taak: `INDELEN.md` → Dagelijkse taak;
+  hulpscript `scripts/claude-taak.ts`.
+- De vroegere handmatige route (Inbox delen als bestand, voorstellenbestand openen) en de proefversie als artifact zijn
+  verwijderd (D20).
 
 ## Kaart en adressen — **[Gebouwd]** (D16)
 
@@ -183,6 +169,11 @@ bevat geen geheimen.
 - **D05 — 2026-10-24 — Indelingsvoorstel via vaste regels, geen AI** in fase 1; altijd bevestigen door de gebruiker.
 - **D07 — 2026-10-24 — Restaurants per plaats, met keuken en kenmerken als lijst** (schema v2, migratie `location` → `city`). Kenmerken zijn een eigen lijstveld en geen algemene tags, zodat filteren per soort zinvol blijft.
 - **D08 — 2026-10-24 — Lijst plakken als eerste importroute.** Werkt per verzameling, bewaart de oorspronkelijke regel en is ook de basis voor de latere Keep-import.
+- **D20 — 2026-10-25 — Opgeruimd wat niet meer gebruikt wordt.** Weg: handmatig *Delen met Claude* / *Voorstellen openen*
+  (vervangen door de sync, D14), voorbeeldgegevens in Instellingen, de proefversie als artifact (`build:artifact`, `seed.ts`,
+  `VITE_PREVIEW`). Testgegevens staan nu in `src/data/testdata.ts` en worden in e2e als back-up teruggezet. Lege soorten
+  staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; de code van alle tien soorten
+  blijft. E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
 - **D19 — 2026-10-24 (bijgewerkt 2026-10-25) — Soort zaak en symbolen.** Restaurantveld `venue` (fine dining / restaurant / bistro / casual) en `experience`
   (🎭); ⭐/🌱 afgeleid. Op verzoek van de eigenaar toont de app alleen fine dining, als gewoon label "Fine dining" vóór de andere labels (geen ruiten,
   geen vorm per soort op de kaart); de andere waarden blijven bewaard. Claude vult `venue` standaard in. Voorstellen met velden of

@@ -8,18 +8,12 @@ export interface Route {
 
 const EVT = 'bijdehand:route';
 
-/**
- * Proefversie (artifact): de pagina draait in een afgeschermd frame zonder adresbalk.
- * Daar houdt de router de geschiedenis in het geheugen bij in plaats van in de browser.
- */
-const MEMORY = import.meta.env.VITE_PREVIEW === '1';
 /** Startpagina van de app. */
 export const HOME = '/verzamelingen';
-const stack: string[] = [HOME];
 
 /** Huidig pad inclusief query, bijv. "/zoeken?q=gent". */
 export function currentPath(): string {
-  return MEMORY ? stack[stack.length - 1] : '/' + location.hash.replace(/^#\/?/, '');
+  return '/' + location.hash.replace(/^#\/?/, '');
 }
 
 function parse(): Route {
@@ -33,19 +27,11 @@ function idx(): number {
 }
 
 export function initRouter(): void {
-  if (MEMORY) return;
   if (!location.hash) history.replaceState({ idx: 0 }, '', `${location.pathname}${location.search}#${HOME}`);
   else if (typeof history.state?.idx !== 'number') history.replaceState({ idx: 0 }, '', location.href);
 }
 
 export function navigate(to: string, opts: { replace?: boolean } = {}): void {
-  if (MEMORY) {
-    const path = to.startsWith('/') ? to : '/' + to;
-    if (opts.replace) stack[stack.length - 1] = path;
-    else stack.push(path);
-    window.dispatchEvent(new Event(EVT));
-    return;
-  }
   const url = `${location.pathname}${location.search}#${to.startsWith('/') ? to : '/' + to}`;
   // Staat er nog een open sheet in de geschiedenis, vervang die dan (anders zou sluiten "terug" doen).
   if (opts.replace || history.state?.sheet) history.replaceState({ idx: idx() }, '', url);
@@ -54,13 +40,6 @@ export function navigate(to: string, opts: { replace?: boolean } = {}): void {
 }
 
 export function goBack(fallback: string): void {
-  if (MEMORY) {
-    if (stack.length > 1) {
-      stack.pop();
-      window.dispatchEvent(new Event(EVT));
-    } else navigate(fallback, { replace: true });
-    return;
-  }
   if (idx() > 0) history.back();
   else navigate(fallback, { replace: true });
 }
@@ -86,7 +65,7 @@ let sheetCounter = 0;
 /** Laat een open sheet/dialoog meedoen met de terugknop: terug = sluiten. */
 export function useBackToClose(open: boolean, onClose: () => void): void {
   useEffect(() => {
-    if (!open || MEMORY) return;
+    if (!open) return;
     const id = ++sheetCounter;
     history.pushState({ ...history.state, sheet: id }, '', location.href);
     const onPop = () => {
@@ -105,7 +84,7 @@ export function useBackToClose(open: boolean, onClose: () => void): void {
 /** Wacht tot open sheets uit de geschiedenis zijn (hun "terug" is verwerkt), max. 500 ms. */
 export function afterSheetsClosed(): Promise<void> {
   return new Promise((resolve) => {
-    if (MEMORY || !history.state?.sheet) return resolve();
+    if (!history.state?.sheet) return resolve();
     const done = () => {
       window.removeEventListener('popstate', check);
       window.clearTimeout(t);

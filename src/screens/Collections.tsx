@@ -1,25 +1,21 @@
-import { ChevronDown, ChevronRight, CircleAlert, ClipboardPaste, Cloud, CloudOff, Settings, FileCheck, Inbox as InboxIcon, Plus, Search, Share2, Trash2 } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
-import { buildInboxExport, inboxFileName, parseProposals, type ParsedProposals } from '../data/claude';
-import { shareOrDownload } from '../ui/files';
-import { ProposalsSheet } from './ProposalsSheet';
+import { ChevronRight, CircleAlert, ClipboardPaste, Cloud, CloudOff, Settings, Inbox as InboxIcon, Plus, Search, Trash2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { fold } from '../data/util';
 import { PasteSheet } from './PasteSheet';
 import { RestaurantCollection } from './Restaurants';
 import { ItemCard } from '../components/cards';
-import { ChipGroup, Empty, IS_PREVIEW, PreviewNotice, Section, TopBar, TypeIcon } from '../components/ui';
+import { ChipGroup, Empty, Section, TopBar, TypeIcon } from '../components/ui';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { getSyncStatus } from '../data/sync';
 import { formatDateTime } from '../data/util';
 import { isDone, statusOf, TYPE_MAP, TYPES } from '../data/itemTypes';
 import type { Item, TypeKey } from '../data/model';
-import { useAdd, useData, useToast } from '../ui/context';
+import { useAdd, useData } from '../ui/context';
 import { navigate } from '../ui/router';
 
-/** Hoofdscherm: alleen soorten waar iets in zit (grootste eerst), lege soorten ingeklapt, Inbox alleen als er iets in staat. */
+/** Hoofdscherm: alleen soorten waar iets in zit (grootste eerst); lege soorten niet (kiezen kan bij Toevoegen). Inbox alleen als er iets in staat. */
 export function Collections() {
   const { liveItems, items, sources } = useData();
-  const [showEmpty, setShowEmpty] = useState(false);
   const counts = useMemo(() => {
     const m = new Map<string, number>();
     for (const i of liveItems) m.set(i.type ?? 'inbox', (m.get(i.type ?? 'inbox') ?? 0) + 1);
@@ -28,7 +24,6 @@ export function Collections() {
   const inbox = counts.get('inbox') ?? 0;
   const trash = items.filter((i) => i.deletedAt).length + sources.filter((s) => s.deletedAt).length;
   const used = TYPES.filter((t) => counts.get(t.key)).sort((a, b) => (counts.get(b.key) ?? 0) - (counts.get(a.key) ?? 0) || a.plural.localeCompare(b.plural, 'nl'));
-  const empty = TYPES.filter((t) => !counts.get(t.key));
 
   return (
     <div className="screen">
@@ -36,7 +31,6 @@ export function Collections() {
         title="Bijdehand"
         actions={<button type="button" className="icon-btn" aria-label="Instellingen" onClick={() => navigate('/instellingen')}><Settings size={22} /></button>}
       />
-      <PreviewNotice />
       {inbox > 0 && (
         <button type="button" className="banner banner-inbox" onClick={() => navigate('/inbox')}>
           <InboxIcon size={20} />
@@ -57,23 +51,6 @@ export function Collections() {
           ))}
         </div>
       )}
-      {empty.length > 0 && (
-        <div className="empty-types">
-          <button type="button" className="btn btn-ghost r-edit-toggle" aria-expanded={showEmpty} onClick={() => setShowEmpty(!showEmpty)}>
-            <span className="empty-types-label">Nog leeg: {empty.map((t) => t.plural).join(', ')}</span>
-            <ChevronDown size={18} className={showEmpty ? 'rot' : ''} />
-          </button>
-          {showEmpty && (
-            <div className="chips">
-              {empty.map((t) => (
-                <button key={t.key} type="button" className="chip" onClick={() => navigate(`/verzameling/${t.key}`)}>
-                  <TypeIcon type={t.key} size={16} /> {t.plural}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
       <SyncLine />
       {trash > 0 && (
         <button type="button" className="btn btn-ghost" onClick={() => navigate('/prullenbak')}>
@@ -87,7 +64,7 @@ export function Collections() {
 /** Eén regel onderaan het hoofdscherm: is alles veilig opgeslagen? */
 function SyncLine() {
   const st = useLiveQuery(getSyncStatus, []);
-  if (IS_PREVIEW || !st) return null;
+  if (!st) return null;
   if (!st.connected) {
     return (
       <button type="button" className="home-status warn" onClick={() => navigate('/instellingen')}>
@@ -238,47 +215,18 @@ function GenericCollection({ type }: { type: TypeKey }) {
 }
 
 export function InboxScreen() {
-  const { liveItems, items, sources, links } = useData();
+  const { liveItems } = useData();
   const add = useAdd();
-  const toast = useToast();
-  const fileInput = useRef<HTMLInputElement>(null);
-  const [proposals, setProposals] = useState<ParsedProposals | null>(null);
-  const [error, setError] = useState('');
   const list = liveItems.filter((i) => i.type === null).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-
-  const share = async () => {
-    const exp = buildInboxExport(items, sources, links);
-    const file = new File([JSON.stringify(exp, null, 1)], inboxFileName(), { type: 'application/json' });
-    const r = await shareOrDownload(file, 'Bijdehand Inbox');
-    if (r !== 'geannuleerd') toast(r === 'gedeeld' ? `${exp.items.length} items gedeeld` : `Opgeslagen als ${file.name}`);
-  };
-  const open = async (f: File | undefined) => {
-    setError('');
-    if (!f) return;
-    const r = parseProposals(await f.text(), items);
-    if (fileInput.current) fileInput.current.value = '';
-    if (!r.ok) setError(r.error);
-    else setProposals(r.value);
-  };
 
   return (
     <div className="screen">
-      <TopBar back="/verzamelingen" title="Inbox" sub="Alles wat nog geen soort heeft" />
-      <div className="claude-row">
-        <button type="button" className="btn btn-small" disabled={!list.length} onClick={() => void share()}><Share2 size={16} /> Delen met Claude</button>
-        {/* Een echt label om de invoer heen: werkt ook in webviews die een programmatische click() blokkeren. */}
-        <label className="btn btn-small file-btn">
-          <FileCheck size={16} /> Voorstellen openen
-          <input ref={fileInput} type="file" accept="application/json,.json,text/plain" className="visually-hidden" aria-label="Voorstellenbestand kiezen" onChange={(e) => void open(e.target.files?.[0])} />
-        </label>
-      </div>
-      {error && <p className="notice notice-error" role="alert">{error}</p>}
+      <TopBar back="/verzamelingen" title="Inbox" sub="Alles wat nog geen soort heeft · Claude deelt elke ochtend in" />
       {list.length === 0 ? (
-        <Empty icon={<InboxIcon size={28} />} title="De Inbox is leeg" text="Wat je zonder soort bewaart, komt hier. Indelen kan wanneer het jou uitkomt, zelf of met Claude." action={<button type="button" className="btn" onClick={() => add()}>Iets bewaren</button>} />
+        <Empty icon={<InboxIcon size={28} />} title="De Inbox is leeg" text="Wat je zonder soort bewaart, komt hier. Claude deelt het elke ochtend in, of je doet het zelf." action={<button type="button" className="btn" onClick={() => add()}>Iets bewaren</button>} />
       ) : (
         <div className="list">{list.map((i) => <ItemCard key={i.id} item={i} />)}</div>
       )}
-      <ProposalsSheet value={proposals} onClose={() => setProposals(null)} />
     </div>
   );
 }

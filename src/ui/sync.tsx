@@ -1,8 +1,7 @@
-// Automatisch synchroniseren met de privé data-repo (alleen als er gekoppeld is, nooit in de proefversie).
+// Automatisch synchroniseren met de privé data-repo (alleen als er gekoppeld is).
 // Bij openen en terugkomen in de app: voorstellen van Claude ophalen en de stand opslaan.
 // Tijdens gebruik: elke minuut opslaan als er iets veranderde, en meteen bij wegschakelen.
 import { useEffect } from 'react';
-import { IS_PREVIEW } from '../components/ui';
 import { undoApply } from '../data/claude';
 import { getSyncConfig, needsPush, syncNow, type SyncResult } from '../data/sync';
 import { geocodeMissing, missingGeocodeIds } from '../data/geocode';
@@ -22,7 +21,6 @@ export function describeApplied(r: SyncResult): string | null {
 export function AutoSync() {
   const toast = useToast();
   useEffect(() => {
-    if (IS_PREVIEW) return;
     let alive = true;
     const run = async (onlyIfChanged: boolean) => {
       try {

@@ -442,20 +442,8 @@ body.no-scroll .toast-region { bottom: auto; top: calc(env(safe-area-inset-top) 
 .group-count { font-weight: 400; }
 
 /* ---------- Claude: delen en voorstellen ---------- */
-.claude-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .banner-claude { flex-wrap: wrap; background: color-mix(in srgb, var(--g-bron) 12%, var(--surface)); border-color: transparent; }
 .banner-claude > span { flex: 1 1 200px; font-size: 14px; }
-.proposals { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.proposal { display: flex; gap: 4px; align-items: flex-start; padding: 6px 12px 10px 2px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-.proposal.s-fout { opacity: 0.75; }
-.proposal-icon { display: grid; place-items: center; width: var(--tap); height: var(--tap); color: var(--muted); flex: none; }
-.proposal.s-fout .proposal-icon { color: var(--danger); }
-.proposal-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding-top: 10px; }
-.proposal-head { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
-.proposal-head .type-icon { width: 22px; height: 22px; border-radius: 6px; }
-.proposal small { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
-.proposal .problem { color: var(--danger); }
-.proposal .reason { font-style: italic; }
 .badge { font-style: normal; font-size: 12px; font-weight: 650; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); }
 .b-gewijzigd { background: var(--warn-bg); color: var(--warn); }
 .b-fout { background: var(--danger-soft); color: var(--danger); }
