@@ -78,16 +78,14 @@ export function RestaurantMark({ item }: { item: Item }) {
   );
 }
 
-/** Eén restaurantkaart: bovenaan het eerste label als etiket (wat voor plek), dan de naam, dan nog twee labels. Rechts hartje en cijfer. */
+/** Eén restaurantkaart: naam, daaronder de eerste drie labels. Rechts hartje en cijfer. */
 export function RestaurantRow({ item }: { item: Item }) {
-  const labels = labelsOf(item);
-  const [tag, ...rest] = labels;
+  const traits = traitsLine(item, 3);
   const closed = item.fields.openStatus === 'gesloten';
-  const sub = [closed ? 'Permanent gesloten' : '', rest.slice(0, 2).join(' · ')].filter(Boolean).join(' · ');
+  const sub = [closed ? 'Permanent gesloten' : '', traits].filter(Boolean).join(' · ');
   return (
     <button type="button" className="r-row" onClick={() => navigate(`/item/${item.id}`)}>
       <span className="r-row-text">
-        {tag && <span className="r-row-tag">{tag}</span>}
         <span className="r-row-title">{item.title || 'Zonder titel'}</span>
         {sub && <span className="r-row-sub">{sub}</span>}
       </span>

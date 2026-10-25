@@ -175,7 +175,7 @@ bevat geen geheimen.
   staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; de code van alle tien soorten
   blijft. E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
 - **D24 — 2026-10-25 — Merkkop en losse kaarten (naar Uit in 030).** Donkere terracotta kop met lijntekening op het hoofdscherm
-  en bij Restaurants; plakkend filterblok met aantallen; restaurants als losse kaarten met het eerste label als etiket; plaatskoppen
+  en bij Restaurants; plakkend filterblok met aantallen; restaurants als losse kaarten (labels gewoon onder de naam; het etiket bovenaan is op verzoek weer weg); plaatskoppen
   in de merkkleur. Eigen kleur behouden, geen extra iconen.
 - **D23 — 2026-10-25 — Eén paklijst.** De tegel opent de lijst direct; Toevoegen en voorstellen (`aanvullen` met `checklist`)
   vullen de bestaande lijst aan, zonder dubbele punten. Zijn er toch meer, dan geldt de oudste.
