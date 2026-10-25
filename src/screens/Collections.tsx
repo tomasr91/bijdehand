@@ -88,11 +88,6 @@ function SyncLine() {
 
 function groupItems(type: TypeKey, list: Item[]): { title: string; items: Item[] }[] {
   const def = TYPE_MAP[type];
-  if (type === 'packing') {
-    const tpl = list.filter((i) => i.fields.isTemplate === true);
-    const trips = list.filter((i) => i.fields.isTemplate !== true).sort((a, b) => String(a.fields.tripDate ?? '9').localeCompare(String(b.fields.tripDate ?? '9')));
-    return [{ title: 'Basislijsten', items: tpl }, { title: 'Reizen', items: trips }].filter((g) => g.items.length);
-  }
   if (def.groupBy) {
     // Hoofdletterongevoelig groeperen ("utrecht" en "Utrecht" samen); de eerste schrijfwijze is de kop.
     const rest = 'Overig';

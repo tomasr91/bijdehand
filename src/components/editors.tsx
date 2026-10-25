@@ -4,6 +4,7 @@ import { GROUPS, TYPES, shownFields, typeDef, type FieldDef } from '../data/item
 import type { ChecklistEntry, EntityKind, FieldValue, Item, Revision, Source, TypeKey } from '../data/model';
 import * as repo from '../data/repo';
 import { search } from '../data/search';
+import { splitLines } from '../data/paste';
 import { formatDate, formatDateTime, formatScore, isUrl, findUrl, parseScore } from '../data/util';
 import { db } from '../data/db';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -297,13 +298,25 @@ export function ChecklistEditor({ item }: { item: Item }) {
   const [draft, setDraft] = useState('');
   const list = item.checklist;
   const done = list.filter((e) => e.done).length;
-  const isTemplate = item.type === 'packing' && item.fields.isTemplate === true;
+  const isPacking = item.type === 'packing';
 
-  const add = async () => {
-    const lines = draft.split('\n').map((l) => l.trim()).filter(Boolean);
+  const addLines = async (lines: string[]) => {
     if (!lines.length) return;
-    setDraft('');
     await tracked(repo.updateItem(item.id, (cur) => ({ checklist: [...cur.checklist, ...lines.map((l) => repo.entry(l))] })));
+    if (lines.length > 1) toast(`${lines.length} punten toegevoegd`);
+  };
+  const add = async () => {
+    const lines = splitLines(draft);
+    setDraft('');
+    await addLines(lines);
+  };
+  // Een geplakte lijst (meerdere regels) wordt meteen per regel toegevoegd; een gewoon invoerveld zou de regels samenvoegen.
+  const onPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const text = e.clipboardData.getData('text');
+    if (!/\r?\n/.test(text.trim())) return;
+    e.preventDefault();
+    void addLines(splitLines(draft + text));
+    setDraft('');
   };
   const setAll = (patch: (l: ChecklistEntry[]) => ChecklistEntry[], msg: string) => {
     const before = list;
@@ -314,7 +327,12 @@ export function ChecklistEditor({ item }: { item: Item }) {
   return (
     <div className="checklist">
       <div className="checklist-head">
-        <span>{list.length ? `${done} van ${list.length} afgevinkt` : 'Nog geen punten'}</span>
+        <span>{list.length ? `${done} van ${list.length} ${isPacking ? 'ingepakt' : 'afgevinkt'}` : 'Nog geen punten'}</span>
+        {done > 0 && (
+          <button type="button" className="btn btn-small" onClick={() => setAll((l) => l.map((x) => ({ ...x, done: false })), 'Alles uitgevinkt')}>
+            <RotateCcw size={16} /> Alles uitvinken
+          </button>
+        )}
       </div>
       <ul>
         {list.map((e) => (
@@ -329,18 +347,13 @@ export function ChecklistEditor({ item }: { item: Item }) {
       </ul>
       <form className="entry-add" onSubmit={(ev) => { ev.preventDefault(); void add(); }}>
         <Plus size={20} aria-hidden="true" />
-        <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Punt toevoegen" aria-label="Punt toevoegen" enterKeyHint="enter" onBlur={() => void add()} />
+        <input value={draft} onChange={(e) => setDraft(e.target.value)} onPaste={onPaste} placeholder={list.length ? 'Punt toevoegen' : 'Punt toevoegen of hele lijst plakken'} aria-label="Punt toevoegen" enterKeyHint="enter" onBlur={() => void add()} />
       </form>
-      {done > 0 && (
+      {done > 0 && !isPacking && (
         <div className="row-wrap">
-          <button type="button" className="btn btn-small" onClick={() => setAll((l) => l.map((x) => ({ ...x, done: false })), 'Alle punten weer open')}>
-            <RotateCcw size={16} /> Alles weer open
+          <button type="button" className="btn btn-small" onClick={() => setAll((l) => l.filter((x) => !x.done), 'Afgevinkte punten verwijderd')}>
+            <X size={16} /> Afgevinkte verwijderen
           </button>
-          {!isTemplate && (
-            <button type="button" className="btn btn-small" onClick={() => setAll((l) => l.filter((x) => !x.done), 'Afgevinkte punten verwijderd')}>
-              <X size={16} /> Afgevinkte verwijderen
-            </button>
-          )}
         </div>
       )}
     </div>

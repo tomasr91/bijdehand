@@ -47,7 +47,7 @@ Werk dit document bij in dezelfde wijziging als die bestanden.
 | Albums (`album`) | `artist`, `status`: ontdekken/luisteren/opnieuw/geluisterd, `rating` |
 | Kleermaten (`size`) | `person`, `garment`, `size`, `brand`, `date` |
 | Games (`game`) | `platform`, `status`: verlanglijst/spelen/uitgespeeld, `rating` |
-| Paklijsten (`packing`) | `isTemplate` (basislijst), `tripDate` + `checklist` |
+| Paklijsten (`packing`) | alleen `checklist` (D22); oude velden `isTemplate`, `tripDate` verborgen bewaard |
 | Klussen (`todo`) | `status`: open/bezig/klaar, `priority`: laag/normaal/hoog, `due`, `materials` |
 | Planten (`plant`) | `location`, `care`, `intervalDays`, `nextCare`, `lastCare` |
 
@@ -75,8 +75,7 @@ aangevuld en een nieuwe notitie wordt toegevoegd; bestaande tekst wordt nooit ov
 ### Link (relatie)
 
 `{ id, aKind, aId, bKind, bId, createdAt, updatedAt, deletedAt }`. Een relatie is ongericht: item↔item
-of item↔bron. Ontkoppelen is zacht en kan ongedaan worden gemaakt. Een kopie van een basis-paklijst
-wordt automatisch aan de basislijst gekoppeld.
+of item↔bron. Ontkoppelen is zacht en kan ongedaan worden gemaakt. 
 
 ### Revision (historie)
 

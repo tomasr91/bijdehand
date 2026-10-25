@@ -76,13 +76,6 @@ describe('repository', () => {
     expect(await db.links.count()).toBe(2);
   });
 
-  it('kopieert een basis-paklijst met alle regels open', async () => {
-    const tpl = await repo.createItem({ type: 'packing', title: 'Basis', fields: { isTemplate: true }, checklist: [repo.entry('Oplader', true), repo.entry('Paspoort')] });
-    const copy = await repo.copyPackingList(tpl.id, 'Reis Rome');
-    expect(copy?.checklist.map((e) => [e.text, e.done])).toEqual([['Oplader', false], ['Paspoort', false]]);
-    expect(copy?.fields.isTemplate).toBe(false);
-  });
-
   it('plant verzorgd zet de volgende datum', async () => {
     const p = await repo.createItem({ type: 'plant', title: 'Monstera', fields: { intervalDays: 7 } });
     await repo.markPlantCared(p.id, '2026-10-24');

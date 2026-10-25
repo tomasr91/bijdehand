@@ -142,21 +142,6 @@ export async function toggleEntry(itemId: string, entryId: string): Promise<void
   await updateItem(itemId, (cur) => ({ checklist: cur.checklist.map((e) => (e.id === entryId ? { ...e, done: !e.done } : e)) }));
 }
 
-/** Nieuwe paklijst op basis van een basislijst; alle regels weer open. */
-export async function copyPackingList(templateId: string, title: string): Promise<Item | undefined> {
-  const tpl = await db.items.get(templateId);
-  if (!tpl) return undefined;
-  const item = await createItem({
-    type: 'packing',
-    title,
-    fields: { isTemplate: false, tripDate: null },
-    checklist: tpl.checklist.map((e) => entry(e.text)),
-    tags: [...tpl.tags],
-  });
-  await linkRecords('item', item.id, 'item', tpl.id);
-  return item;
-}
-
 // ---------- Planten ----------
 
 export async function markPlantCared(id: string, today = localDate()): Promise<void> {
@@ -325,7 +310,6 @@ export async function capture(c: Capture): Promise<CaptureResult> {
     body: c.body ?? '',
     checklist: (c.checklist ?? []).filter((t) => t.trim()).map((t) => entry(t)),
     suggestion: c.suggestion ?? null,
-    fields: c.type === 'packing' ? { isTemplate: false } : undefined,
   });
   if (source) await linkRecords('item', item.id, 'source', source.id);
   return { item, source, sourceExisted };

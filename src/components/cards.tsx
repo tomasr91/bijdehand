@@ -27,7 +27,7 @@ export function summary(item: Item): string[] {
     case 'size': return [[s('garment'), s('size')].filter(Boolean).join(': '), s('brand'), f.date ? formatDate(String(f.date)) : ''];
     case 'packing': {
       const done = item.checklist.filter((e) => e.done).length;
-      return [f.isTemplate ? 'Basislijst' : '', `${done}/${item.checklist.length} ingepakt`, f.tripDate ? relativeDay(String(f.tripDate)) : ''];
+      return [`${done} van ${item.checklist.length} ingepakt`];
     }
     case 'todo': return [status, s('priority') === 'hoog' ? 'Hoge prioriteit' : '', f.due ? `Deadline ${relativeDay(String(f.due))}` : ''];
     case 'plant': return [s('location'), f.nextCare ? `Verzorgen ${relativeDay(String(f.nextCare))}` : ''];

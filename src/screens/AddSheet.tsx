@@ -4,6 +4,7 @@ import { suggestType } from '../data/classify';
 import { typeDef } from '../data/itemTypes';
 import type { Source, TypeKey } from '../data/model';
 import { addSource, capture, findSourceByUrl } from '../data/repo';
+import { splitLines } from '../data/paste';
 import { findUrl, fold, formatDate, dayOf, isUrl, siteOf } from '../data/util';
 import { Segmented, Sheet, TypeIcon, AutoText } from '../components/ui';
 import { TypePicker } from '../components/editors';
@@ -30,7 +31,7 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
 
   useEffect(() => {
     if (!open) return;
-    setMode(opts.mode ?? (opts.url ? 'link' : 'text'));
+    setMode(opts.mode ?? (opts.url ? 'link' : opts.type === 'packing' ? 'checklist' : 'text'));
     setText(opts.text ?? '');
     setUrl(opts.url ?? '');
     setTitle(opts.urlTitle ?? '');
@@ -55,6 +56,14 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
   }, [open, mode]);
 
   const cleanUrl = mode === 'link' ? findUrl(url) : null;
+
+  // Een hele lijst plakken (meerdere regels): elke regel wordt een punt, ook als je in het naamveld plakt.
+  const pasteLines = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const text = e.clipboardData.getData('text');
+    if (!/\r?\n/.test(text.trim())) return;
+    e.preventDefault();
+    setLines((cur) => [...cur, ...splitLines(text)]);
+  };
 
   useEffect(() => {
     let alive = true;
@@ -182,7 +191,7 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
 
           {mode === 'checklist' && (
             <div className="stack">
-              <input ref={firstInput} type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={tdef ? tdef.titlePlaceholder : 'Naam van de lijst'} aria-label="Naam van de lijst" enterKeyHint="next" />
+              <input ref={firstInput} type="text" value={title} onChange={(e) => setTitle(e.target.value)} onPaste={pasteLines} placeholder={tdef ? tdef.titlePlaceholder : 'Naam van de lijst'} aria-label="Naam van de lijst" enterKeyHint="next" />
               <ul className="capture-lines">
                 {lines.map((l, i) => (
                   <li key={i}>
@@ -194,7 +203,7 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
               </ul>
               <form className="entry-add" onSubmit={(e) => { e.preventDefault(); const t = lineDraft.trim(); if (t) { setLines([...lines, t]); setLineDraft(''); } }}>
                 <Plus size={20} aria-hidden="true" />
-                <input value={lineDraft} onChange={(e) => setLineDraft(e.target.value)} placeholder="Punt toevoegen, Enter voor volgende" aria-label="Punt toevoegen" enterKeyHint="enter" />
+                <input value={lineDraft} onChange={(e) => setLineDraft(e.target.value)} onPaste={pasteLines} placeholder="Punt toevoegen of hele lijst plakken" aria-label="Punt toevoegen" enterKeyHint="enter" />
               </form>
             </div>
           )}

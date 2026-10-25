@@ -127,14 +127,36 @@ test('checklist aanmaken, afvinken en terugvinden na herladen', async ({ page })
   await expect(page.getByRole('checkbox', { name: 'Brood' })).toHaveAttribute('aria-checked', 'false');
 });
 
-test('basis-paklijst kopiëren naar een nieuwe reis', async ({ page }) => {
-  await loadSamples(page);
+test('paklijst: hele lijst plakken, afvinken en alles uitvinken', async ({ page }) => {
   await page.goto('/#/verzameling/packing');
-  await page.getByRole('button', { name: /Basislijst weekend weg/ }).click();
-  await page.getByRole('button', { name: 'Nieuwe reis van deze basislijst' }).click();
-  await expect(page.getByText('Nieuwe paklijst gemaakt van de basislijst')).toBeVisible();
-  await expect(page.getByText('0 van 7 afgevinkt')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Basislijst weekend weg/ })).toBeVisible(); // koppeling naar de basislijst
+  await addBtn(page).click();
+  const sheet = page.getByRole('dialog', { name: 'Nieuw: paklijst' });
+  await sheet.getByLabel('Naam van de lijst').fill('Vakantie');
+  // Een geplakte lijst met meerdere regels wordt per regel een punt (niet samengevoegd in één veld).
+  const paste = async (label: string, text: string, scope = page) => {
+    await scope.getByLabel(label).focus();
+    await scope.getByLabel(label).evaluate((el, t) => {
+      const dt = new DataTransfer();
+      dt.setData('text/plain', t);
+      el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+    }, text);
+  };
+  await paste('Punt toevoegen', '- Paspoorten\nZonnebrand\n\nOplader telefoon', sheet as unknown as Page);
+  await expect(sheet.getByText('Oplader telefoon')).toBeVisible();
+  await sheet.getByRole('button', { name: 'Bewaren' }).click();
+  await settle(page);
+  await expect(page.getByText('0 van 3 ingepakt')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Tags' })).toHaveCount(0); // paklijst: alleen de checklist
+  await paste('Punt toevoegen', 'Slippers\nPet');
+  await expect(page.getByText('0 van 5 ingepakt')).toBeVisible();
+  await page.getByRole('checkbox', { name: 'Paspoorten' }).click();
+  await page.getByRole('checkbox', { name: 'Pet' }).click();
+  await expect(page.getByText('2 van 5 ingepakt')).toBeVisible();
+  await page.getByRole('button', { name: 'Alles uitvinken' }).click();
+  await expect(page.getByText('0 van 5 ingepakt')).toBeVisible();
+  await page.getByRole('button', { name: 'Ongedaan maken' }).click();
+  await expect(page.getByText('2 van 5 ingepakt')).toBeVisible();
+  await touchTargetsOk(page);
 });
 
 test('zoeken met een vraag en met filters', async ({ page }) => {

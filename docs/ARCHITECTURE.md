@@ -174,6 +174,9 @@ bevat geen geheimen.
   `VITE_PREVIEW`). Testgegevens staan nu in `src/data/testdata.ts` en worden in e2e als back-up teruggezet. Lege soorten
   staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; de code van alle tien soorten
   blijft. E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
+- **D22 — 2026-10-25 — Paklijst is alleen een checklist.** Basislijst/reis (kopiëren, vertrekdatum) is weg; de velden blijven
+  verborgen bewaard. *Alles uitvinken* bovenaan de checklist (met *Ongedaan maken*). Geplakte tekst met meerdere regels wordt in
+  een invoerveld per regel een punt (een gewoon invoerveld voegde de regels samen tot één lange titel).
 - **D21 — 2026-10-25 — Geen symbolen meer bij restaurants; rijkere labels.** ⭐/🌱/🎭 naast de naam zijn weg. Labels hebben een vaste
   volgorde (plek, keuken, volledig vega/vegan, onderscheiding, hoe je eet, beleving, rest; `INDELEN.md`); het kaartje toont de
   eerste drie. *À la carte*, terras en dergelijke worden geen label. `michelin` en `experience` blijven bewaard.

@@ -1,4 +1,4 @@
-import { Bot, ChevronDown, Copy, Droplets, EllipsisVertical, ExternalLink, Globe, Lightbulb, ListChecks, Trash2 } from 'lucide-react';
+import { Bot, ChevronDown, Droplets, EllipsisVertical, ExternalLink, Globe, Lightbulb, ListChecks, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { ChecklistEditor, FieldsEditor, HistorySection, LinksSection, SaveStatus, TagEditor, TypePicker } from '../components/editors';
 import { AutoText, Empty, Section, Sheet, TopBar, TypeIcon } from '../components/ui';
@@ -9,7 +9,7 @@ import { dayOf, formatDate, formatDateTime } from '../data/util';
 import { useData, useToast } from '../ui/context';
 import { RestaurantBody } from './RestaurantDetail';
 import { tracked, useDraft } from '../ui/draft';
-import { afterSheetsClosed, goBack, navigate } from '../ui/router';
+import { afterSheetsClosed, goBack } from '../ui/router';
 
 function hostOf(url: string): string {
   try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
@@ -23,6 +23,7 @@ function ItemEditor({ item }: { item: Item }) {
   const toast = useToast();
   const def = typeDef(item.type);
   const compact = def?.compactDetail === true;
+  const simple = def?.simpleDetail === true;
   const [picking, setPicking] = useState(false);
   const [menu, setMenu] = useState(false);
   const [title, setTitle, flushTitle] = useDraft(item.title, (v: string) => repo.updateItem(item.id, { title: v.trim() }));
@@ -44,15 +45,6 @@ function ItemEditor({ item }: { item: Item }) {
     await afterSheetsClosed();
     goBack(item.type ? `/verzameling/${item.type}` : '/inbox');
     toast('Naar prullenbak verplaatst', { action: { label: 'Ongedaan maken', run: () => void repo.restoreItem(item.id) } });
-  };
-
-  const newTrip = async () => {
-    setMenu(false);
-    const copy = await repo.copyPackingList(item.id, `Reis ${formatDate(dayOf(new Date().toISOString()))}`);
-    if (copy) {
-      navigate(`/item/${copy.id}`);
-      toast('Nieuwe paklijst gemaakt van de basislijst');
-    }
   };
 
   return (
@@ -125,11 +117,6 @@ function ItemEditor({ item }: { item: Item }) {
             <Droplets size={18} /> Vandaag verzorgd
           </button>
         )}
-        {item.type === 'packing' && item.fields.isTemplate === true && (
-          <button type="button" className="btn btn-primary btn-block" onClick={() => void newTrip()}>
-            <Copy size={18} /> Nieuwe reis van deze basislijst
-          </button>
-        )}
 
         <FieldsEditor item={item} />
 
@@ -141,15 +128,19 @@ function ItemEditor({ item }: { item: Item }) {
           <AutoText value={body} onChange={(e) => setBody(e.target.value)} onBlur={flushBody} placeholder="Eigen aantekeningen" aria-label="Mijn notities" minRows={3} />
         </Section>
 
-        <Section title="Links en verbanden"><LinksSection kind="item" id={item.id} /></Section>
+        {!simple && (
+          <>
+            <Section title="Links en verbanden"><LinksSection kind="item" id={item.id} /></Section>
 
-        <Section title="Tags"><TagEditor item={item} /></Section>
+            <Section title="Tags"><TagEditor item={item} /></Section>
 
-        {!showChecklist && !wantChecklist && (
-          <button type="button" className="btn btn-ghost" onClick={() => setWantChecklist(true)}><ListChecks size={18} /> Checklist toevoegen</button>
+            {!showChecklist && !wantChecklist && (
+              <button type="button" className="btn btn-ghost" onClick={() => setWantChecklist(true)}><ListChecks size={18} /> Checklist toevoegen</button>
+            )}
+
+            <HistorySection current={item} />
+          </>
         )}
-
-        <HistorySection current={item} />
 
         <p className="meta">
           Bewaard {formatDateTime(item.createdAt)} · gewijzigd {formatDateTime(item.updatedAt)}
@@ -164,7 +155,6 @@ function ItemEditor({ item }: { item: Item }) {
       <Sheet open={menu} onClose={() => setMenu(false)} title="Acties">
         <div className="menu">
           <button type="button" onClick={() => { setMenu(false); setPicking(true); }}><TypeIcon type={item.type} size={18} /> Soort wijzigen</button>
-          {item.type === 'packing' && <button type="button" onClick={() => void newTrip()}><Copy size={18} /> Kopiëren als nieuwe reis</button>}
           <button type="button" className="danger" onClick={() => void remove()}><Trash2 size={18} /> Naar prullenbak</button>
         </div>
       </Sheet>

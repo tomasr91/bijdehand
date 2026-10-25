@@ -78,7 +78,7 @@ Leg de uitkomst vast in deze sectie, en bij het deelmenu ook in `ARCHITECTURE.md
 
 | Niveau | Wat | Bestand | Commando |
 |---|---|---|---|
-| Unit/integratie | Claude-voorstellen (controle, toepassen, splitsen, ongedaan maken, sync), lijst plakken (met een realistische (verzonnen) restaurantlijst), schemamigratie v1→v2, URL-normalisatie, datums, classificatie, repository (revisies, prullenbak, duplicaten, paklijst kopiëren, planten), zoeken op voorbeeldvragen, back-up-roundtrip, samenvoegen, ongeldige bestanden | `src/data/*.test.ts` | `npm test` |
+| Unit/integratie | Claude-voorstellen (controle, toepassen, splitsen, ongedaan maken, sync), lijst plakken (met een realistische (verzonnen) restaurantlijst), schemamigratie v1→v2, URL-normalisatie, datums, classificatie, repository (revisies, prullenbak, duplicaten, planten), zoeken op voorbeeldvragen, back-up-roundtrip, samenvoegen, ongeldige bestanden | `src/data/*.test.ts` | `npm test` |
 | End-to-end | Kernstromen op **360 px**; lay-out (geen horizontaal scrollen, geen aanraakvlak onder 44 px) en kaart ook op **412 px en 1280 px**. Testgegevens: `src/data/testdata.ts` (verzonnen), teruggezet als back-up | `tests/e2e/app.spec.ts` | `npm run test:e2e` |
 | Alles | Typecheck + unit + build + e2e | — | `npm run check` |
 | Handmatig | Toestelcontrole hierboven | — | Bij elke fase-afronding |

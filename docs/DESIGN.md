@@ -88,7 +88,7 @@ Geen soortkeuze bovenaan (wel in menu ⋮), geen Claude-melding, opgezochte cijf
 Bij andere soorten is de melding "Ingevuld door Claude" één regel; "Wat?" toont welke velden.
 
 Het detailscherm (andere soorten) toont van boven naar beneden: soortkeuze, titel, soortspecifieke actie (bijv.
-"Vandaag verzorgd" of "Nieuwe reis van deze basislijst"), velden, checklist, mijn notities, links en
+"Vandaag verzorgd"), velden, checklist, mijn notities, links en
 verbanden, tags, eerdere versies en metadata.
 
 ## Weergave per soort
@@ -96,7 +96,7 @@ verbanden, tags, eerdere versies en metadata.
 | Soort | Lijstweergave |
 |---|---|
 | Cadeaus, Kleermaten | Gegroepeerd per persoon |
-| Paklijsten | Secties "Basislijsten" en "Reizen", voortgangsbalk |
+| Paklijsten | Gewone lijst met voortgangsbalk ("3 van 40 ingepakt"). Detail: alleen naam, checklist en notities; bovenaan **Alles uitvinken** (met *Ongedaan maken*). Een geplakte lijst met meerdere regels wordt per regel een punt, ook bij Toevoegen (D22) |
 | Klussen | Open eerst, dan prioriteit en deadline; afvinkknop op de kaart |
 | Planten | Op volgende verzorgingsdatum; "verzorgd"-knop op de kaart |
 | Restaurants | Eigen scherm (`src/screens/Restaurants.tsx`). Eén filterrij **Alle · Nog niet · Geweest** (afgeleid van je cijfer); labelfilter via de filterknop in de kopbalk (sheet met labels; actief filter als chip met ✕, stip op de knop). Per plaats één blok met rijen en dunne scheidingslijnen; grootste plaats eerst. Rij: **naam** (geen symbolen), daaronder de **eerste 3 labels** (plek, keuken, dan onderscheiding of hoe je eet; zie `INDELEN.md`); bij fine dining is **Fine dining** het eerste label; rechts **hartje** en **je cijfer**, of niets als je er nog niet was. Filter (kopbalk): labels, ook "fine dining". Volgorde: favorieten, dan cijfer hoog → laag, dan nog niet geweest (op naam). **Kaart** via het kaarticoon (D16): start ingezoomd op de plaats met de meeste restaurants; alle punten rond, gevuld met cijfer = geweest, open = nog niet, met uitleg onder de kaart; tik → popup met *Openen*; knop *Waar ben ik*; daaronder "N zonder locatie" |

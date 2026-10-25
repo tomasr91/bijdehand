@@ -40,7 +40,7 @@ Bevestigd door de eigenaar (besluit D02). Velden staan in `DATA_MODEL.md`.
 | 5 | Albums | Inspiratie | Artiest, status (ontdekken / beluisteren / opnieuw / geluisterd) |
 | 6 | Kleermaten | Naslag | Per persoon gegroepeerd: kledingtype, maat, merk, datum; eerdere versies |
 | 7 | Games | Inspiratie | Platform, status (verlanglijst / spelen / uitgespeeld) |
-| 8 | Paklijsten | Praktisch | Checklist met voortgang; herbruikbare basislijsten om te kopiëren |
+| 8 | Paklijsten | Praktisch | Vakantiepaklijst als checklist: hele lijst plakken, afvinken, alles uitvinken |
 | 9 | Klussen en to-do's | Praktisch | Status, prioriteit, deadline, materialen; snel afvinken |
 | 10 | Plantenonderhoud | Naslag | Locatie, verzorging, interval, volgende datum; "verzorgd" met één tik |
 

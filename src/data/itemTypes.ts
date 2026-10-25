@@ -74,6 +74,8 @@ export interface TypeDef {
   /** Sober detailscherm: alleen de hoofdvelden en "Mijn notities" (geen Claude-melding, opgezochte gegevens,
    *  extra velden, checklist, links, tags, geschiedenis of metadata). */
   compactDetail?: boolean;
+  /** Alleen titel, checklist en notities in het detailscherm (geen links, tags, geschiedenis). */
+  simpleDetail?: boolean;
 }
 
 const rating: FieldDef = { key: 'rating', label: 'Beoordeling', kind: 'rating' };
@@ -224,12 +226,13 @@ export const TYPES: TypeDef[] = [
   },
   {
     key: 'packing', label: 'Paklijst', plural: 'Paklijsten', group: 'praktisch', icon: 'Backpack',
-    titleLabel: 'Naam', titlePlaceholder: 'Bijv. Basislijst weekend',
+    titleLabel: 'Naam', titlePlaceholder: 'Bijv. Vakantie',
+    // Een paklijst is alleen een checklist (D22). Oude velden blijven bewaard, maar worden niet getoond.
     fields: [
-      { key: 'isTemplate', label: 'Herbruikbare basislijst', kind: 'boolean', primary: true, hint: 'Kopieer een basislijst per reis' },
-      { key: 'tripDate', label: 'Vertrekdatum', kind: 'date' },
+      { key: 'isTemplate', label: 'Herbruikbare basislijst', kind: 'boolean', hidden: true },
+      { key: 'tripDate', label: 'Vertrekdatum', kind: 'date', hidden: true },
     ],
-    checklist: true,
+    checklist: true, simpleDetail: true,
     keywords: ['paklijst', 'inpakken', 'meenemen', 'mee nemen', 'koffer', 'tas inpakken'],
     hosts: [],
   },
