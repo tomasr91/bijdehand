@@ -18,7 +18,7 @@ function popupContent(item: Item, onOpen: (id: string) => void): HTMLElement {
   const title = document.createElement('b');
   title.textContent = item.title;
   box.append(title);
-  const sub = [traitsLine(item, 2), typeof item.fields.score === 'number' ? `mijn cijfer ${formatScore(item.fields.score)}` : ''].filter(Boolean).join(' · ');
+  const sub = [traitsLine(item, 3), typeof item.fields.score === 'number' ? `mijn cijfer ${formatScore(item.fields.score)}` : ''].filter(Boolean).join(' · ');
   if (sub) {
     const s = document.createElement('span');
     s.textContent = sub;

@@ -174,6 +174,9 @@ bevat geen geheimen.
   `VITE_PREVIEW`). Testgegevens staan nu in `src/data/testdata.ts` en worden in e2e als back-up teruggezet. Lege soorten
   staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; de code van alle tien soorten
   blijft. E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
+- **D21 — 2026-10-25 — Geen symbolen meer bij restaurants; rijkere labels.** ⭐/🌱/🎭 naast de naam zijn weg. Labels hebben een vaste
+  volgorde (plek, keuken, volledig vega/vegan, onderscheiding, hoe je eet, beleving, rest; `INDELEN.md`); het kaartje toont de
+  eerste drie. *À la carte*, terras en dergelijke worden geen label. `michelin` en `experience` blijven bewaard.
 - **D19 — 2026-10-24 (bijgewerkt 2026-10-25) — Soort zaak en symbolen.** Restaurantveld `venue` (fine dining / restaurant / bistro / casual) en `experience`
   (🎭); ⭐/🌱 afgeleid. Op verzoek van de eigenaar toont de app alleen fine dining, als gewoon label "Fine dining" vóór de andere labels (geen ruiten,
   geen vorm per soort op de kaart); de andere waarden blijven bewaard. Claude vult `venue` standaard in. Voorstellen met velden of

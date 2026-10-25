@@ -274,11 +274,11 @@ test('restaurantlijst plakken: per plaats gegroepeerd, filter op kenmerk, kenmer
   await expect(page.getByText('Leiden · Afghaans')).toBeVisible();
   await page.getByRole('button', { name: 'Gegevens bewerken' }).click();
   await expect(page.getByLabel('Keuken')).toHaveValue('Afghaans');
-  await page.getByRole('button', { name: 'vegetarisch' }).click();
-  await expect(page.getByRole('button', { name: 'vegetarisch verwijderen' })).toBeVisible();
+  await page.getByRole('button', { name: 'set menu' }).click();
+  await expect(page.getByRole('button', { name: 'set menu verwijderen' })).toBeVisible();
   await settle(page);
   await page.reload();
-  await expect(page.getByRole('list', { name: 'Labels' }).getByText('vegetarisch')).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Labels' }).getByText('set menu')).toBeVisible();
 });
 
 /** Nagebootste GitHub (Contents API) in het geheugen van de test. */
@@ -334,18 +334,19 @@ test('restaurant: websiteknop in detail, cijfers en prijsniveau (tijdelijk) niet
   await connectSync(page, TOKEN);
   files.set('voorstellen/aanvulling.json', { sha: 'a1', text: JSON.stringify({
     format: 'bijdehand-voorstellen', formatVersion: 1, voorstellen: [
-      { id: 'a1', actie: 'aanvullen', type: 'restaurant', zoek: { titel: 'Pamir', city: 'Leiden' }, velden: { website: 'http://pamir.example/', googleRating: 4.7, priceLevel: '€€', summary: 'Afghaans restaurant aan de Breestraat.', venue: 'finedining', michelin: 'Bib Gourmand', experience: true } },
+      { id: 'a1', actie: 'aanvullen', type: 'restaurant', zoek: { titel: 'Pamir', city: 'Leiden' }, velden: { website: 'http://pamir.example/', googleRating: 4.7, priceLevel: '€€', summary: 'Afghaans restaurant aan de Breestraat.', venue: 'finedining', michelin: 'Bib Gourmand', experience: true, traits: ['afghaans', 'set menu', 'bib gourmand', 'vega-opties'] } },
     ],
   }) });
   await page.getByRole('button', { name: 'Nu synchroniseren' }).click();
   await expect(page.getByText(/Claude verwerkte 1 item: Pamir/)).toBeVisible();
   await page.goto('/#/verzameling/restaurant');
   const card = page.getByRole('button', { name: /Pamir/ });
-  await expect(card).not.toContainText('Afghaans'); // kaartje: alleen naam en kenmerken (+ eigen cijfer)
+  await expect(card).not.toContainText('Afghaans restaurant'); // kaartje: geen samenvatting
   await expect(card).not.toContainText('Wil proberen');
-  await expect(card).toContainText('Fine dining'); // alleen fine dining staat als eerste label op het kaartje
-  await expect(card.getByRole('img', { name: 'Bib Gourmand' })).toBeVisible();
-  await expect(card.getByRole('img', { name: 'Beleving' })).toBeVisible();
+  // Kaartje: de eerste drie labels (fine dining vooraan), geen symbolen.
+  await expect(card).toContainText('Fine dining, afghaans, set menu');
+  await expect(card).not.toContainText('bib gourmand');
+  await expect(card.getByRole('img')).toHaveCount(0);
   await expect(card).not.toContainText('4,7');
   await expect(card).not.toContainText('€');
   await card.click();
@@ -405,7 +406,7 @@ test('synchroniseren met privé GitHub-repo: koppelen, voorstel van Claude autom
   await expect(page.getByText(/Claude verwerkte 2 items/)).toBeVisible();
   expect(files.has('voorstellen/2026-10-25.json')).toBe(false);
   await page.goto('/#/verzameling/restaurant');
-  await expect(page.getByRole('button', { name: /Pamir/ })).toContainText('afghaans');
+  await expect(page.getByRole('button', { name: /Pamir/ })).toContainText('Afghaans');
   await touchTargetsOk(page);
   // Andere soorten: "Ingevuld door Claude" tot je het controleert.
   await page.goto('/#/verzameling/book');

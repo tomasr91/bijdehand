@@ -165,9 +165,11 @@ describe('schema v2: restaurant "location" wordt "city"', () => {
 
 describe('labelsOf', () => {
   it('zet "Fine dining" alleen bij fine dining vooraan, zonder dubbel; andere soorten zaak blijven onzichtbaar', async () => {
-    const { labelsOf } = await import('../components/cards');
+    const { labelsOf, traitsLine } = await import('../components/cards');
     const mk = (fields: Record<string, unknown>) => ({ fields }) as never;
-    expect(labelsOf(mk({ venue: 'finedining', traits: ['frans', 'fine dining'] }))).toEqual(['Fine dining', 'frans']);
+    expect(labelsOf(mk({ venue: 'finedining', traits: ['frans', 'fine dining'] }))).toEqual(['fine dining', 'frans']);
+    expect(traitsLine(mk({ venue: 'finedining', traits: ['frans', 'set menu', 'michelinster', 'vega-opties'] }))).toBe('Fine dining, frans, set menu');
+    expect(traitsLine(mk({ traits: ['eetcafé', 'van alles'] }))).toBe('Eetcafé, van alles');
     expect(labelsOf(mk({ venue: 'bistro', traits: ['frans'] }))).toEqual(['frans']);
     expect(labelsOf(mk({}))).toEqual([]);
   });

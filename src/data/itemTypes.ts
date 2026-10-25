@@ -122,8 +122,8 @@ export const TYPES: TypeDef[] = [
         { value: 'bistro', label: 'Bistro / eetcafé' }, { value: 'casual', label: 'Snel & casual' },
       ] },
       { key: 'experience', label: 'Beleving', kind: 'boolean', hint: 'Show, pop-up, verrassingsmenu of iets anders bijzonders' },
-      { key: 'traits', label: 'Labels', kind: 'list', primary: true, hint: 'Wat maakt het bijzonder?',
-        suggestions: ['vegetarisch', 'veganistisch', 'fancy', 'kleine gerechten', 'reserveren', 'terras', 'betaalbaar', 'afhalen'] },
+      { key: 'traits', label: 'Labels', kind: 'list', primary: true, hint: 'Wat kun je verwachten? De eerste drie staan op het kaartje.',
+        suggestions: ['eetcafé', 'van alles', 'set menu', 'verrassingsmenu', 'shared dining', 'vegetarisch', 'veganistisch', 'vega-opties'] },
       { key: 'score', label: 'Mijn cijfer', kind: 'score', primary: true, placeholder: 'Bijv. 7,5', hint: '1 tot 10; leeg = nog niet geweest' },
       { key: 'favorite', label: 'Favoriet', kind: 'boolean', primary: true },
       // Uit schema v3 ("geweest" zonder cijfer); niet zelf in te stellen, telt wel als geweest.

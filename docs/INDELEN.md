@@ -82,19 +82,29 @@ maar worden niet getoond en er kan niet op gefilterd worden (wel op het label "F
 | `bistro` | Ongedwongen: bistro, eetcafé, grand café, brouwerij met keuken, ook voor lunch/borrel | niets |
 | `casual` | Streetfood, afhaal, lunchroom, snackbar | niets |
 
-Daarnaast `experience: true` (🎭 Beleving) bij een show, pop-up, table d'hôte of geheim/verrassingsmenu. ⭐ (Michelin) en 🌱
-(volledig vegetarisch/veganistisch) volgen vanzelf uit `michelin` en de labels.
+Daarnaast `experience: true` bij een show, pop-up, table d'hôte of geheim/verrassingsmenu, en `michelin` voor de vermelding.
+Beide worden niet als symbool getoond; wat ervan belangrijk is, staat in de labels.
 
-**[Gebouwd]** **Labels** (veld `traits`): bij elk opgezocht restaurant bepaalt Claude ook 1–4 labels die zeggen **wat je er eet**.
-Ze staan op het kaartje (de eerste drie), dus in één oogopslag moet duidelijk zijn wat voor keuken het is.
+**[Gebouwd]** **Labels** (veld `traits`): zeggen in één oogopslag **wat je kunt verwachten**. Het kaartje toont de **eerste drie**
+(bij fine dining staat *fine dining* er automatisch vóór, uit `venue`; zet het dus niet zelf in `traits`). De volgorde is daarom
+belangrijk. Claude zet ze in deze volgorde, en laat een groep weg als er niets typerends is:
 
-- **Wel:** de keuken (*indonesisch*, *afghaans*, *italiaans*, *frans*, *fusion*), dieet (*veganistisch* of *vegetarisch* als de hele
-  kaart dat is, anders *vega-opties*; *glutenvrij*, *halal*), wat er centraal staat (*vis*, *vlees*, *rijsttafel*, *zeevruchten*) en
-  de aanpak van de keuken (*biologisch*, *lokaal*, *farm to table*, *verrassingsmenu*). Meest typerende eerst, meestal de keuken.
-- **Niet:** inrichting of praktische zaken (terras, open keuken, groepen, openingstijden), vermeldingen (Michelin), cijfers,
-  prijzen of oordelen. Alleen wat de bronnen zeggen.
-- **Vorm:** kleine letters, kort, bestaande schrijfwijzen volgen (`bekend`). Labels van de eigenaar blijven altijd staan.
-  Een eerder door Claude gekozen label dat niet klopt, haalt Claude weg met `weghalen` (zie hieronder).
+1. **Plek** — alleen als het geen gewoon restaurant is: *bistro*, *eetcafé*, *grand café*, *brouwerij*, *streetfood*, *pop-up*,
+   *table d'hôte*, of een bijzondere plek (*in een kas*, *boerderij*).
+2. **Keuken** — altijd precies één label: *frans*, *italiaans*, *afghaans*, *indonesisch*, *grill*, *vis*, *kroegeten*,
+   *farm to table*, of samengevoegd (*frans-aziatisch*, *frans-mediterraan*). Kaart met van alles door elkaar: *van alles*.
+3. **Volledig vegetarisch of veganistisch** — alleen als de hele kaart dat is: *vegetarisch*, *veganistisch*.
+4. **Onderscheiding** — *michelinster*, *bib gourmand*, *michelin-gids*.
+5. **Hoe je eet** — alleen als het afwijkt van à la carte: *set menu* (vast menu of chef's menu), *verrassingsmenu*,
+   *shared dining*, *kleine gerechten*, *rijsttafel*, *high tea*.
+6. **Beleving** — *zingende bediening*, *show* en dergelijke.
+7. **Rest** (alleen in het detailscherm zichtbaar): *vega-opties*, *glutenvrij*, *halal*, *biologisch*, *lokaal*, *cocktails*, *speciaalbier*.
+
+- **Niet:** *à la carte*, terras, open keuken, groepen, kindvriendelijk, openingstijden, cijfers, prijzen of oordelen. Alleen wat
+  de bronnen zeggen.
+- **Vorm:** kleine letters, kort (1–3 woorden), 2–6 labels, bestaande schrijfwijzen volgen (`bekend`). Labels van de eigenaar
+  blijven altijd staan. Om de volgorde of een fout label te herstellen: `weghalen` met de oude labels en `velden.traits` met
+  de nieuwe lijst in de goede volgorde (zie hieronder).
 
 ## Dagelijkse taak (route 2) — **[Gebouwd]**
 
@@ -109,8 +119,8 @@ Een geplande Claude-taak draait **één keer per dag** (en op verzoek van de eig
    Per restaurant in `adresNodig`: `aanvullen` met het juiste adres (eigen website of Google/OSM). Heeft de zaak geen vast
    adres, zet dat dan in `uncertain` met de woorden "geen vast adres"; dan vraagt de taak er niet meer naar.
 4. **Opzoeken (restaurant):** `venue` (soort zaak, zie hierboven), `experience` als het een beleving is, `city`, `cuisine`, `address` (altijd in de vorm *Straat huisnummer, postcode Plaats*, zonder
-   toelichting of wijk tussen haakjes: de app zet het adres om naar een punt op de kaart), `website` (eigen site), `summary` (3–5 zinnen), `traits` (labels: keuken +
-   vega/vegan, zie hierboven), `openStatus`, `checkedAt` (vandaag), `uncertain` (wat niet zeker is) en `links`. Cijfers en
+   toelichting of wijk tussen haakjes: de app zet het adres om naar een punt op de kaart), `website` (eigen site), `summary` (3–5 zinnen), `traits` (labels in de
+   volgorde hierboven), `openStatus`, `checkedAt` (vandaag), `uncertain` (wat niet zeker is) en `links`. Cijfers en
    prijsniveau zijn verborgen in de app: niet nodig. Alleen feiten uit bronnen; niets gevonden = leeg laten.
 5. Schrijf `voorstellen/JJJJ-MM-DD-UUMM.json` met `gebaseerdOp` uit stap 2, controleer met
    `npx tsx scripts/claude-taak.ts check ../bijdehand-data voorstellen/<bestand>` (moet "Alles in orde" geven) en commit

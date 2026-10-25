@@ -47,29 +47,17 @@ function dueTone(item: Item): string {
 }
 
 /** Labels van een restaurant: "Fine dining" (alleen die soort zaak) komt eerst, daarna de kenmerken (keuken, vega, …). */
-export const FINE_DINING = 'Fine dining';
+export const FINE_DINING = 'fine dining';
 export function labelsOf(item: Item): string[] {
   const t = Array.isArray(item.fields.traits) ? item.fields.traits.filter((x): x is string => typeof x === 'string') : [];
   const rest = t.filter((x) => x.toLowerCase() !== FINE_DINING.toLowerCase());
   return item.fields.venue === 'finedining' ? [FINE_DINING, ...rest] : rest;
 }
 
-/** Kleine symbolen: ⭐ in de Michelin-gids, 🌱 hele kaart vegetarisch/veganistisch, 🎭 beleving. */
-export function restaurantBadges(item: Item): { icon: string; label: string }[] {
-  const f = item.fields;
-  const traits = Array.isArray(f.traits) ? f.traits : [];
-  const out: { icon: string; label: string }[] = [];
-  if (typeof f.michelin === 'string' && f.michelin.trim()) out.push({ icon: '⭐', label: f.michelin.trim() });
-  if (traits.includes('veganistisch')) out.push({ icon: '🌱', label: 'Volledig veganistisch' });
-  else if (traits.includes('vegetarisch')) out.push({ icon: '🌱', label: 'Volledig vegetarisch' });
-  if (f.experience === true) out.push({ icon: '🎭', label: 'Beleving' });
-  return out;
-}
-
-/** "Fine dining, frans, terras +2": hoogstens `max` labels. */
+/** "Fine dining, frans, set menu": de eerste `max` labels (de volgorde zegt wat het belangrijkst is, zie docs/INDELEN.md). */
 export function traitsLine(item: Item, max = 3): string {
-  const t = labelsOf(item);
-  return t.length > max ? `${t.slice(0, max).join(', ')} +${t.length - max}` : t.join(', ');
+  const line = labelsOf(item).slice(0, max).join(', ');
+  return line.charAt(0).toUpperCase() + line.slice(1);
 }
 
 /** Rechts op een restaurantrij: hartje (favoriet) en je eigen cijfer; vinkje bij "geweest" zonder cijfer; anders niets. */
@@ -92,15 +80,13 @@ export function RestaurantMark({ item }: { item: Item }) {
 
 /** Eén regel in de restaurantlijst (binnen een blok per plaats). */
 export function RestaurantRow({ item }: { item: Item }) {
-  const traits = traitsLine(item, 2);
-  const badges = restaurantBadges(item);
+  const traits = traitsLine(item, 3);
   const closed = item.fields.openStatus === 'gesloten';
   return (
     <button type="button" className="r-row" onClick={() => navigate(`/item/${item.id}`)}>
       <span className="r-row-text">
         <span className="r-row-title">
           {item.title || 'Zonder titel'}
-          {badges.map((b) => <span key={b.icon} className="r-badge" role="img" aria-label={b.label} title={b.label}>{b.icon}</span>)}
         </span>
         {(traits || closed) && (
           <span className="r-row-sub">
