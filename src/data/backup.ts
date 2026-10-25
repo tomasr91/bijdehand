@@ -9,7 +9,7 @@ import { normalizeUrl, nowIso, siteOf } from './util';
 export const BACKUP_FORMAT = 'bijdehand-backup';
 export const BACKUP_FORMAT_VERSION = 1;
 /** Versie van de app die de back-up maakte (informatief; ophogen bij een functie die nieuwe velden of acties kent). */
-export const APP_VERSION = '2026-10-24.5-soort-zaak';
+export const APP_VERSION = '2026-10-25.1-fine-dining-label';
 
 export interface Backup {
   format: typeof BACKUP_FORMAT;

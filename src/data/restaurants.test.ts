@@ -162,3 +162,13 @@ describe('schema v2: restaurant "location" wordt "city"', () => {
     if (r.ok) expect(r.backup.data.items[0].fields).toEqual({ city: 'Haarlem', traits: ['betaalbaar'] });
   });
 });
+
+describe('labelsOf', () => {
+  it('zet "Fine dining" alleen bij fine dining vooraan, zonder dubbel; andere soorten zaak blijven onzichtbaar', async () => {
+    const { labelsOf } = await import('../components/cards');
+    const mk = (fields: Record<string, unknown>) => ({ fields }) as never;
+    expect(labelsOf(mk({ venue: 'finedining', traits: ['frans', 'fine dining'] }))).toEqual(['Fine dining', 'frans']);
+    expect(labelsOf(mk({ venue: 'bistro', traits: ['frans'] }))).toEqual(['frans']);
+    expect(labelsOf(mk({}))).toEqual([]);
+  });
+});

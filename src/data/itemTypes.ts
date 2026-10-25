@@ -116,7 +116,7 @@ export const TYPES: TypeDef[] = [
     fields: [
       { key: 'city', label: 'Plaats', kind: 'text', primary: true, placeholder: 'Bijv. Utrecht' },
       { key: 'cuisine', label: 'Keuken', kind: 'text', primary: true, placeholder: 'Bijv. Afghaans, Italiaans' },
-      // Wat voor zaak het is (verwachting): staat op het kaartje als ◆◆◆/◆◆/◆/◇. Claude vult dit in bij het opzoeken.
+      // Wat voor zaak het is (verwachting): in de app alleen zichtbaar als label "Fine dining" (de andere waarden blijven bewaard). Claude vult dit in bij het opzoeken.
       { key: 'venue', label: 'Soort zaak', kind: 'select', primary: true, options: [
         { value: 'finedining', label: 'Fine dining' }, { value: 'restaurant', label: 'Restaurant' },
         { value: 'bistro', label: 'Bistro / eetcafé' }, { value: 'casual', label: 'Snel & casual' },

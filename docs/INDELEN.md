@@ -82,14 +82,16 @@ staan `checkedAt`, `ratingSource` en wat onzeker is (`uncertain`). Niet gevonden
 opzet), sfeer of ligging, en wat opvalt. Geen cijfers of prijzen in de samenvatting (die horen in hun eigen velden); openingsdagen alleen globaal. In eigen woorden, alleen uit feiten die in de bronnen staan, zonder reviewteksten te citeren. Google levert
 soms zelf een korte beschrijving (`editorialSummary`); die mag als basis dienen, met de bron erbij.
 
-**[Gebouwd]** **Soort zaak** (veld `venue`, verplicht bij opzoeken) — wat je kunt verwachten; staat op het kaartje:
+**[Gebouwd]** **Soort zaak** (veld `venue`, verplicht bij opzoeken) — wat je kunt verwachten. In de app is alleen **fine dining**
+zichtbaar: als gewoon label "Fine dining", vóór de keuken en andere labels, zonder symbool. De andere waarden blijven bewaard
+maar worden niet getoond en er kan niet op gefilterd worden (wel op het label "Fine dining").
 
-| Waarde | Wanneer | Kaartje |
+| Waarde | Wanneer | In de app |
 |---|---|---|
-| `finedining` | Proef-/gangenmenu, Michelinster of -vermelding als fine dining, chef's menu, wijnarrangement | ◆◆◆ Fine dining |
-| `restaurant` | Gewoon uit eten, à la carte of shared dining | ◆◆ Restaurant |
-| `bistro` | Ongedwongen: bistro, eetcafé, grand café, brouwerij met keuken, ook voor lunch/borrel | ◆ Bistro / eetcafé |
-| `casual` | Streetfood, afhaal, lunchroom, snackbar | ◇ Snel & casual |
+| `finedining` | Proef-/gangenmenu, Michelinster of -vermelding als fine dining, chef's menu, wijnarrangement | label **Fine dining** |
+| `restaurant` | Gewoon uit eten, à la carte of shared dining | niets |
+| `bistro` | Ongedwongen: bistro, eetcafé, grand café, brouwerij met keuken, ook voor lunch/borrel | niets |
+| `casual` | Streetfood, afhaal, lunchroom, snackbar | niets |
 
 Daarnaast `experience: true` (🎭 Beleving) bij een show, pop-up, table d'hôte of geheim/verrassingsmenu. ⭐ (Michelin) en 🌱
 (volledig vegetarisch/veganistisch) volgen vanzelf uit `michelin` en de labels.

@@ -2,7 +2,7 @@
 // de samenvatting (ingekort), je notities, en de gegevens zelf pas na "Gegevens bewerken".
 import { ChevronDown, ExternalLink, Globe, Heart, Navigation, Trash2 } from 'lucide-react';
 import { useLayoutEffect, useRef, useState } from 'react';
-import { restaurantBadges, VENUE } from '../components/cards';
+import { labelsOf, restaurantBadges } from '../components/cards';
 import { FieldEditor } from '../components/editors';
 import { AutoText, Section } from '../components/ui';
 import { fieldDef } from '../data/itemTypes';
@@ -84,11 +84,10 @@ export function RestaurantBody({ item, title, setTitle, flushTitle, body, setBod
   const f = item.fields;
   const fav = f.favorite === true;
   const sub = [str(f.city), str(f.cuisine)].filter(Boolean).join(' · ');
-  const traits = Array.isArray(f.traits) ? f.traits : [];
+  const traits = labelsOf(item);
   const website = /^https?:\/\//i.test(str(f.website)) ? str(f.website) : '';
   const route = routeUrl(item);
   const editKeys = ['venue', 'experience', 'city', 'cuisine', 'traits', 'address', ...(str(f.dishes) ? ['dishes'] : [])];
-  const venue = typeof f.venue === 'string' ? VENUE[f.venue] : undefined;
   const badges = restaurantBadges(item);
 
   return (
@@ -100,9 +99,8 @@ export function RestaurantBody({ item, title, setTitle, flushTitle, body, setBod
         </button>
         <ScoreBox key={String(f.score ?? '')} item={item} />
       </div>
-      {(sub || traits.length > 0 || venue || badges.length > 0) && (
+      {(sub || traits.length > 0 || badges.length > 0) && (
         <div className="r-info">
-          {venue && <p className="r-venue-big"><span aria-hidden="true">{venue.mark}</span> {venue.label}</p>}
           {sub && <p className="r-sub">{sub}</p>}
           {badges.length > 0 && <ul className="r-badges" aria-label="Bijzonderheden">{badges.map((b) => <li key={b.icon}><span aria-hidden="true">{b.icon}</span> {b.label}</li>)}</ul>}
           {traits.length > 0 && <ul className="r-tags" aria-label="Labels">{traits.map((t) => <li key={t}>{t}</li>)}</ul>}

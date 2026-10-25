@@ -254,7 +254,7 @@ test('restaurantlijst plakken: per plaats gegroepeerd, filter op kenmerk, kenmer
   await expect(page.getByRole('heading', { name: /Leiden · 3/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: /Zwolle · 1/ })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Filter op soort zaak of label' }).click();
+  await page.getByRole('button', { name: 'Filter op label' }).click();
   await page.getByRole('dialog', { name: 'Filter' }).getByRole('radio', { name: /^fancy/ }).click();
   await settle(page);
   await expect(page.getByRole('button', { name: /Erfgoed/ })).toBeVisible();
@@ -335,7 +335,7 @@ test('restaurant: websiteknop in detail, cijfers en prijsniveau (tijdelijk) niet
   const card = page.getByRole('button', { name: /Pamir/ });
   await expect(card).not.toContainText('Afghaans'); // kaartje: alleen naam en kenmerken (+ eigen cijfer)
   await expect(card).not.toContainText('Wil proberen');
-  await expect(card).toContainText('Fine dining'); // soort zaak op het kaartje
+  await expect(card).toContainText('Fine dining'); // alleen fine dining staat als eerste label op het kaartje
   await expect(card.getByRole('img', { name: 'Bib Gourmand' })).toBeVisible();
   await expect(card.getByRole('img', { name: 'Beleving' })).toBeVisible();
   await expect(card).not.toContainText('4,7');

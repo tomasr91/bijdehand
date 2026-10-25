@@ -183,8 +183,9 @@ bevat geen geheimen.
 - **D05 — 2026-10-24 — Indelingsvoorstel via vaste regels, geen AI** in fase 1; altijd bevestigen door de gebruiker.
 - **D07 — 2026-10-24 — Restaurants per plaats, met keuken en kenmerken als lijst** (schema v2, migratie `location` → `city`). Kenmerken zijn een eigen lijstveld en geen algemene tags, zodat filteren per soort zinvol blijft.
 - **D08 — 2026-10-24 — Lijst plakken als eerste importroute.** Werkt per verzameling, bewaart de oorspronkelijke regel en is ook de basis voor de latere Keep-import.
-- **D19 — 2026-10-24 — Soort zaak en symbolen.** Restaurantveld `venue` (◆◆◆ fine dining … ◇ snel & casual) en `experience`
-  (🎭); ⭐/🌱 afgeleid. Kaartpunten krijgen een vorm per soort zaak. Claude vult `venue` standaard in. Voorstellen met velden of
+- **D19 — 2026-10-24 (bijgewerkt 2026-10-25) — Soort zaak en symbolen.** Restaurantveld `venue` (fine dining / restaurant / bistro / casual) en `experience`
+  (🎭); ⭐/🌱 afgeleid. Op verzoek van de eigenaar toont de app alleen fine dining, als gewoon label "Fine dining" vóór de andere labels (geen ruiten,
+  geen vorm per soort op de kaart); de andere waarden blijven bewaard. Claude vult `venue` standaard in. Voorstellen met velden of
   acties die de app nog niet kent, blijven in de repo staan tot de app is bijgewerkt; de back-up vermeldt `appVersion`.
   `aanvullen` kan ook met `itemId`.
 - **D18 — 2026-10-24 — Geen dubbele items meer.** (1) Synchroniseren via een Web Lock: maar één tabblad tegelijk.

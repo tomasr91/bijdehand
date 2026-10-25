@@ -2,7 +2,7 @@
 // Belangrijkste eerst: favorieten, dan je cijfer (hoog → laag), dan waar je nog niet was.
 import { ChevronDown, ClipboardPaste, List, ListFilter, Map as MapIcon, Plus, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { RestaurantRow, VENUE } from '../components/cards';
+import { labelsOf, RestaurantRow } from '../components/cards';
 import { ChipGroup, Empty, Section, Segmented, Sheet, TopBar, TypeIcon } from '../components/ui';
 import { hasBeen, TYPE_MAP } from '../data/itemTypes';
 import type { Item } from '../data/model';
@@ -15,7 +15,7 @@ import { PasteSheet } from './PasteSheet';
 
 type Seen = 'alle' | 'niet' | 'geweest';
 
-const traitsOf = (i: Item): string[] => (Array.isArray(i.fields.traits) ? i.fields.traits : []);
+const traitsOf = labelsOf;
 
 /** Favorieten, dan cijfer hoog → laag, dan "geweest" zonder cijfer, dan nog niet geweest; binnen gelijk op naam. */
 export function sortRestaurants(list: Item[]): Item[] {
@@ -45,7 +45,6 @@ export function RestaurantCollection() {
   const def = TYPE_MAP.restaurant;
   const [seen, setSeen] = useState<Seen>('alle');
   const [trait, setTrait] = useState('');
-  const [venue, setVenue] = useState('');
   const [picking, setPicking] = useState(false);
   const [pasting, setPasting] = useState(false);
   const toast = useToast();
@@ -83,8 +82,7 @@ export function RestaurantCollection() {
     for (const i of all) for (const t of traitsOf(i)) m.set(t, (m.get(t) ?? 0) + 1);
     return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'nl'));
   }, [all]);
-  const shown = all.filter((i) => (seen === 'alle' || (seen === 'geweest') === hasBeen(i)) && (!trait || traitsOf(i).includes(trait)) && (!venue || i.fields.venue === venue));
-  const venueCounts = Object.keys(VENUE).map((v) => [v, all.filter((i) => i.fields.venue === v).length] as const).filter(([, n]) => n > 0);
+  const shown = all.filter((i) => (seen === 'alle' || (seen === 'geweest') === hasBeen(i)) && (!trait || traitsOf(i).includes(trait)));
   const groups = groupByCity(shown);
   const newOne = () => add({ type: 'restaurant', openAfter: true, mode: 'text' });
 
@@ -101,9 +99,9 @@ export function RestaurantCollection() {
                 {view === 'kaart' ? <List size={22} /> : <MapIcon size={22} />}
               </button>
             )}
-            {(traitCounts.length > 0 || venueCounts.length > 0) && (
-              <button type="button" className="icon-btn" aria-label={trait || venue ? 'Filter (actief)' : 'Filter op soort zaak of label'} aria-haspopup="dialog" onClick={() => setPicking(true)}>
-                <ListFilter size={22} />{(trait || venue) && <span className="badge-dot" aria-hidden="true" />}
+            {traitCounts.length > 0 && (
+              <button type="button" className="icon-btn" aria-label={trait ? 'Filter (actief)' : 'Filter op label'} aria-haspopup="dialog" onClick={() => setPicking(true)}>
+                <ListFilter size={22} />{trait && <span className="badge-dot" aria-hidden="true" />}
               </button>
             )}
           </>
@@ -121,9 +119,8 @@ export function RestaurantCollection() {
               { value: 'geweest', label: 'Geweest' },
             ]}
           />
-          {(trait || venue) && (
+          {trait && (
             <div className="r-active">
-              {venue && <button type="button" className="chip on" aria-label={`Filter ${VENUE[venue].label} weghalen`} onClick={() => setVenue('')}>{VENUE[venue].mark} {VENUE[venue].label} <X size={16} /></button>}
               {trait && <button type="button" className="chip on" aria-label={`Filter ${trait} weghalen`} onClick={() => setTrait('')}>{trait} <X size={16} /></button>}
             </div>
           )}
@@ -179,18 +176,6 @@ export function RestaurantCollection() {
         <button type="button" className="btn btn-ghost" onClick={() => setPasting(true)}><ClipboardPaste size={18} /> Lijst plakken</button>
       )}
       <Sheet open={picking} onClose={() => setPicking(false)} title="Filter">
-        {venueCounts.length > 0 && (
-          <>
-            <h3 className="sheet-sub">Soort zaak</h3>
-            <ChipGroup
-              label="Soort zaak"
-              value={venue}
-              onChange={(v) => { setVenue(v); setPicking(false); }}
-              options={[{ value: '', label: 'Alle soorten' }, ...venueCounts.map(([v, n]) => ({ value: v, label: `${VENUE[v].mark} ${VENUE[v].label}`, count: n }))]}
-            />
-            <h3 className="sheet-sub">Labels</h3>
-          </>
-        )}
         <ChipGroup
           label="Labels"
           value={trait}

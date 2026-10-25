@@ -546,25 +546,15 @@ body.no-scroll .toast-region { bottom: auto; top: calc(env(safe-area-inset-top) 
 .btn-danger-text { color: var(--danger); }
 .r-delete { margin-top: 8px; }
 
-/* Soort zaak en symbolen */
-.r-venue { color: var(--text); font-weight: 600; }
-.r-venue span { color: var(--accent); letter-spacing: -1px; }
+/* Symbolen */
 .r-badge { margin-left: 6px; font-size: 14px; }
-.r-venue-big { font-weight: 650; font-size: 16px; }
-.r-venue-big span { color: var(--accent); letter-spacing: -1px; }
 .r-badges { display: flex; flex-wrap: wrap; gap: 6px 12px; list-style: none; margin: 0; padding: 0; font-size: 14px; color: var(--muted); }
 .sheet-sub { font-size: 14px; font-weight: 650; color: var(--muted); margin: 4px 0 8px; }
 .sheet-sub + .chips { margin-bottom: 12px; }
 
-/* Kaartpunten per soort zaak */
+/* Kaartpunten */
 .map-pin { position: relative; display: grid; place-items: center; }
 .map-pin .pin-shape { position: absolute; inset: 6px; background: var(--surface); border: 3px solid var(--accent); border-radius: 50%; box-shadow: 0 1px 4px rgb(0 0 0 / 0.35); }
 .map-pin.been .pin-shape { background: var(--accent); border-color: #fff; inset: 1px; }
-.map-pin.v-finedining .pin-shape { border-radius: 4px; transform: rotate(45deg); inset: 5px; }
-.map-pin.v-finedining.been .pin-shape { inset: 3px; }
-.map-pin.v-bistro .pin-shape { border-radius: 5px; }
-.map-pin.v-casual .pin-shape { inset: 9px; }
-.map-pin.v-casual.been .pin-shape { inset: 4px; }
 .map-pin .pin-score { position: relative; color: #fff; font-weight: 750; font-size: 11.5px; line-height: 1; }
 .map-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
-.map-legend span b { color: var(--accent); }
