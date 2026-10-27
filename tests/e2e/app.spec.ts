@@ -592,3 +592,13 @@ test('alleen licht thema: ook bij een donker systeem blijft de app licht', async
   expect(bg).toBe('rgb(247, 243, 236)');
   await ctx.close();
 });
+
+test('statusbalk van de browser krijgt de merkkleur op schermen met merkkop', async ({ page }) => {
+  await loadSamples(page);
+  await page.goto('/#/verzamelingen');
+  const color = () => page.evaluate(() => document.querySelector('meta[name="theme-color"]')?.getAttribute('content'));
+  await expect.poll(color).toBe('#6b2d16');
+  await page.goto('/#/verzameling/album');
+  await page.getByRole('button', { name: /Kind of Blue/ }).click();
+  await expect.poll(color).toBe('#f7f3ec');
+});

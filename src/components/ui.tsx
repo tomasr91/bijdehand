@@ -111,6 +111,14 @@ function BrandArt({ art }: { art: BrandArtName }) {
 
 /** Merkkop: donker vlak met naam, ondertitel en lijntekening. Scrolt weg; de bediening eronder (BrandPanel) blijft plakken. */
 export function BrandHeader({ title, sub, back, actions, art }: { title: ReactNode; sub?: ReactNode; back?: string; actions?: ReactNode; art: BrandArtName }) {
+  // Statusbalk/adresbalk van de browser in de merkkleur zolang de merkkop in beeld is (daarna weer de paginakleur).
+  useEffect(() => {
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (!meta) return;
+    const page = meta.content;
+    meta.content = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim() || page;
+    return () => { meta.content = page; };
+  }, []);
   return (
     <header className="brand">
       <BrandArt art={art} />
