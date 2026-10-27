@@ -217,7 +217,7 @@ test('back-up exporteren en in een lege app terugzetten', async ({ page, browser
   await download.saveAs(file);
   const json = JSON.parse(readFileSync(file, 'utf8'));
   expect(json.format).toBe('bijdehand-backup');
-  expect(json.data.items).toHaveLength(15);
+  expect(json.data.items).toHaveLength(16);
   await expect(page.getByText('Laatste back-up: nog nooit')).toHaveCount(0);
 
   // Schone browser = leeg apparaat.
@@ -226,9 +226,9 @@ test('back-up exporteren en in een lege app terugzetten', async ({ page, browser
   await fresh.goto('/#/instellingen');
   await fresh.getByLabel('Back-upbestand kiezen').setInputFiles(file);
   const dlg = fresh.getByRole('dialog', { name: 'Back-up terugzetten' });
-  await expect(dlg.getByText('15 nieuwe items')).toBeVisible();
+  await expect(dlg.getByText('16 nieuwe items')).toBeVisible();
   await dlg.getByRole('button', { name: 'Samenvoegen' }).last().click();
-  await expect(fresh.getByText(/Samengevoegd: 15 nieuw/)).toBeVisible();
+  await expect(fresh.getByText(/Samengevoegd: 16 nieuw/)).toBeVisible();
   await fresh.goto('/#/verzameling/restaurant');
   await expect(fresh.getByRole('button', { name: /Trattoria Da Marco/ })).toBeVisible();
   await fresh.goto('/#/zoeken?q=Graslei');
@@ -594,6 +594,37 @@ test('congressen: kale lijst op datum, toevoegen en wijzigen in een venster, lin
   await page.getByRole('dialog', { name: 'Congres wijzigen' }).getByRole('button', { name: 'Congres verwijderen' }).click();
   await expect(page.getByText('Naar prullenbak verplaatst')).toBeVisible();
   await expect(page.getByRole('link', { name: /Godatafest/ })).toHaveCount(0);
+  await noHorizontalScroll(page);
+  await touchTargetsOk(page);
+});
+
+test('kleding: lijst plakken per merk, zoeken, per stuk, wijzigen in een venster', async ({ page }) => {
+  await page.goto('/#/verzameling/clothing');
+  await expect(page.getByRole('heading', { name: 'Kleding' })).toBeVisible();
+  await expect(addBtn(page)).toHaveCount(0);
+  await page.getByRole('button', { name: 'Lijst plakken' }).first().click();
+  const paste = page.getByRole('dialog', { name: 'Lijst plakken in Kleding' });
+  await paste.getByLabel('Geplakte lijst').fill('Cavallaro broek S, trui M, shirt S\nCast Iron Polo M, blouse S/M\nLes deux trui S');
+  await paste.getByRole('button', { name: /toevoegen/ }).click();
+  await settle(page);
+  await expect(page.getByRole('button', { name: 'Cast Iron wijzigen' })).toContainText('Polo M · Blouse S/M');
+  // Zoeken op stuk: alleen merken met een trui, en alleen de trui.
+  await page.getByLabel('Zoeken in kleding').fill('trui');
+  await expect(page.getByRole('button', { name: 'Cast Iron wijzigen' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Cavallaro wijzigen' })).toContainText('Trui M');
+  await expect(page.getByRole('button', { name: 'Cavallaro wijzigen' })).not.toContainText('Broek');
+  // Per stuk: welke maat trui?
+  await page.getByRole('radio', { name: 'Per stuk' }).click();
+  await expect(page.locator('.cl-piece').filter({ hasText: 'Trui' })).toContainText('Cavallaro M · Les deux S');
+  await page.getByLabel('Wissen').click();
+  await page.getByRole('radio', { name: 'Per merk' }).click();
+  // Wijzigen: een stuk erbij.
+  await page.getByRole('button', { name: 'Les deux wijzigen' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Merk wijzigen' });
+  await sheet.getByLabel('Stukken en maten').fill('trui S\nbroek 32/34');
+  await sheet.getByRole('button', { name: 'Bewaren' }).click();
+  await settle(page);
+  await expect(page.getByRole('button', { name: 'Les deux wijzigen' })).toContainText('Broek 32/34');
   await noHorizontalScroll(page);
   await touchTargetsOk(page);
 });

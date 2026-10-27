@@ -42,7 +42,7 @@ export function PasteSheet({ type, open, onClose }: { type: TypeKey; open: boole
     try {
       const ids = await createPasted(type, toAdd);
       onClose();
-      toast(`${ids.length} ${ids.length === 1 ? def.label.toLowerCase() : def.plural.toLowerCase()} toegevoegd`, {
+      toast(`${ids.length} ${type === 'clothing' ? (ids.length === 1 ? 'merk' : 'merken') : ids.length === 1 ? def.label.toLowerCase() : def.plural.toLowerCase()} toegevoegd`, {
         action: { label: 'Ongedaan maken', run: async () => { const n = await undoPasted(ids); toast(`${n} weer verwijderd`); } },
       });
     } catch (e) {
@@ -66,7 +66,7 @@ export function PasteSheet({ type, open, onClose }: { type: TypeKey; open: boole
       <AutoText
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={def.placeTexts?.pasteExample ?? 'Eén per regel'}
+        placeholder={def.placeTexts?.pasteExample ?? (type === 'clothing' ? 'Eén merk per regel, bijv.\nLes Deux trui S\nCast Iron polo M, blouse S/M' : 'Eén per regel')}
         aria-label="Geplakte lijst"
         minRows={4}
       />
@@ -79,6 +79,7 @@ export function PasteSheet({ type, open, onClose }: { type: TypeKey; open: boole
             <li key={i} className={r.dup ? 'dup' : ''}>
               <b>{r.title || '—'}</b>
               {(r.fields.city || r.fields.cuisine) && <small>{[r.fields.city, r.fields.cuisine].filter(Boolean).join(' · ')}</small>}
+              {Array.isArray(r.fields.sizes) && r.fields.sizes.length > 0 && <small>{(r.fields.sizes as string[]).join(' · ')}</small>}
               {Array.isArray(r.fields.traits) && r.fields.traits.length > 0 && (
                 <span className="mini-tags">{r.fields.traits.map((t) => <span key={t}>{t}</span>)}</span>
               )}

@@ -69,7 +69,7 @@ function Fab({ route, collectionType, onAdd }: { route: Route; collectionType: T
   const [p, id] = route.path;
   // Geen ronde + op restaurantschermen en op de paklijst (daar voeg je punten toe in de lijst zelf).
   const own = (t: string) => (p === 'verzameling' && id === t) || (p === 'item' && itemById.get(id)?.type === t);
-  if (collectionType === 'conference' || typeDef(collectionType)?.place || own('packing') || (p === 'item' && typeDef(itemById.get(id)?.type)?.place)) return null;
+  if (collectionType === 'conference' || collectionType === 'clothing' || typeDef(collectionType)?.place || own('packing') || (p === 'item' && typeDef(itemById.get(id)?.type)?.place)) return null;
   return (
     <button type="button" className="fab" aria-label="Toevoegen" onClick={() => onAdd(collectionType ? { type: collectionType, openAfter: true } : {})}>
       <Plus size={30} strokeWidth={2.4} />

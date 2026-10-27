@@ -2,6 +2,7 @@ import { ChevronRight, CircleAlert, ClipboardPaste, Cloud, CloudOff, Settings, I
 import { useEffect, useMemo, useState } from 'react';
 import { fold } from '../data/util';
 import { PasteSheet } from './PasteSheet';
+import { ClothingCollection } from './Clothing';
 import { ConferenceCollection } from './Conferences';
 import { PlaceCollection } from './Places';
 import { ItemCard } from '../components/cards';
@@ -117,6 +118,7 @@ function sortItems(list: Item[]): Item[] {
 
 export function Collection({ type }: { type: TypeKey }) {
   if (type === 'conference') return <ConferenceCollection />;
+  if (type === 'clothing') return <ClothingCollection />;
   if (TYPE_MAP[type].place) return <PlaceCollection type={type} />;
   if (type === 'packing') return <PackingStart />;
   return <GenericCollection type={type} />;

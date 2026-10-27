@@ -92,3 +92,32 @@ describe('congressen', () => {
     expect(suggestType('PyData meetup')?.type).toBe('conference');
   });
 });
+
+describe('kleding', () => {
+  it('herkent merk, stukken en maten uit een geplakte regel', async () => {
+    const { parseClothing, sizeParts } = await import('./paste');
+    expect(parseClothing('Cavallaro broek S, trui M, shirt S')).toMatchObject({ title: 'Cavallaro', fields: { sizes: ['broek S', 'trui M', 'shirt S'] } });
+    expect(parseClothing('Cast Iron Polo M, blouse S/M')).toMatchObject({ title: 'Cast Iron', fields: { sizes: ['polo M', 'blouse S/M'] } });
+    expect(parseClothing('Scotch soda shirt S/M, overhemd S')).toMatchObject({ title: 'Scotch soda', fields: { sizes: ['shirt S/M', 'overhemd S'] } });
+    expect(parseClothing('Les deux trui S')).toMatchObject({ title: 'Les deux', fields: { sizes: ['trui S'] } });
+    expect(parseClothing('Law of the sea shirt S')).toMatchObject({ title: 'Law of the sea', fields: { sizes: ['shirt S'] } });
+    expect(parseClothing('Levi\'s 501 32/34')).toMatchObject({ title: 'Levi\'s', fields: { sizes: ['501 32/34'] } });
+    expect(sizeParts('blouse s/m')).toEqual({ piece: 'Blouse', size: 'S/M' });
+    expect(sizeParts('regenjas')).toEqual({ piece: 'Regenjas', size: '' });
+  });
+
+  it('Claude kan een merk aanvullen: nieuwe stukken erbij, bestaande blijven', async () => {
+    await repo.createItem({ type: 'clothing', title: 'Bergvos', fields: { sizes: ['broek M'] } });
+    const items = await db.items.toArray();
+    const r = parseProposals(JSON.stringify({
+      format: 'bijdehand-voorstellen', formatVersion: 1, gebaseerdOp: new Date(Date.now() + 1000).toISOString(),
+      voorstellen: [{ id: 'a', actie: 'aanvullen', type: 'clothing', zoek: { titel: 'Bergvos' }, velden: { sizes: ['trui L'] } }],
+    }), items);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.rows.map((x) => x.status)).toEqual(['ok']);
+    await applyProposals(r.value.rows);
+    const got = (await db.items.toArray()).find((i) => i.title === 'Bergvos');
+    expect(got?.fields.sizes).toEqual(['broek M', 'trui L']);
+  });
+});

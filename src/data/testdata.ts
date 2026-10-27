@@ -28,6 +28,7 @@ export function sampleSpecs(): S[] {
     { type: 'activity', title: 'Kinderboerderij De Ooievaar', fields: { city: 'Utrecht', traits: ['dieren', 'buiten', 'gratis'] } },
     { type: 'date', title: 'Wijnproeverij De Kelder', fields: { city: 'Amersfoort', traits: ['eten en drinken', 'avond'], score: 8 } },
     { type: 'conference', title: 'DataFest Utrecht', fields: { startDate: '2027-03-12', city: 'Utrecht', status: 'interessant', traits: ['data', 'ai'] } },
+    { type: 'clothing', title: 'Bergvos', fields: { sizes: ['broek M', 'trui L'] } },
     { type: 'album', title: 'Blue', fields: { artist: 'Joni Mitchell', status: 'opnieuw' } },
     { type: 'album', title: 'In Rainbows', fields: { artist: 'Radiohead', status: 'ontdekken' } },
     { type: 'album', title: 'Kind of Blue', fields: { artist: 'Miles Davis', status: 'geluisterd', rating: 5 } },

@@ -173,6 +173,9 @@ bevat geen geheimen.
   (vervangen door de sync, D14), voorbeeldgegevens in Instellingen, de proefversie als artifact (`build:artifact`, `seed.ts`,
   `VITE_PREVIEW`). Testgegevens staan nu in `src/data/testdata.ts` en worden in e2e als back-up teruggezet. Lege soorten
   staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; (sinds D25 zijn de ongebruikte soorten helemaal weg). E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
+- **D28 — 2026-10-27 — Kleding.** Nieuwe soort `clothing` (groep Praktisch): één item per merk met lijstveld `sizes`
+  ("stuk maat"). Eigen kaal scherm `src/screens/Clothing.tsx`: zoeken, *Per merk* / *Per stuk*, venster om te wijzigen,
+  lijst plakken (`parseClothing` herkent merk, stukken en maten). Geen detailscherm. Schema blijft v5.
 - **D27 — 2026-10-27 — Congressen (kaal).** Nieuwe soort `conference` in de groep Praktisch met een eigen, kaal scherm
   (`src/screens/Conferences.tsx`): lijst op datum, tik opent de link, potlood opent een klein venster (naam, datum, plaats, link;
   verwijderen met Ongedaan maken). Geen detailscherm, kaart, filters of status; de overige velden blijven verborgen bewaard.

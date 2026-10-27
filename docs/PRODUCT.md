@@ -38,8 +38,9 @@ terug als de eigenaar hem wil. Velden staan in `DATA_MODEL.md`.
 | 2 | Uitjes met kinderen | Inspiratie | Zelfde opzet als restaurants (D26): per plaats, labels (*buiten*, *dieren*, *regenproof*…), cijfer en hartje, route, kaart; sober lijst en detail |
 | 3 | Dates | Inspiratie | Idem, voor dates met z'n tweeën (labels als *romantisch*, *actief*, *avond*) |
 | 4 | Congressen | Praktisch | Kale lijst op datum (eerstvolgende bovenaan, voorbije onderaan): naam, datum, plaats; tik opent de link; potlood = klein venster om te wijzigen of te verwijderen; geen detailscherm (D27) |
-| 5 | Albums | Inspiratie | Artiest, status (ontdekken / beluisteren / opnieuw / geluisterd) |
-| 6 | Paklijst | Praktisch | Vakantiepaklijst als checklist: hele lijst plakken, afvinken, alles uitvinken |
+| 5 | Kleding | Praktisch | Per merk welke stukken en maten je hebt (*Trui **M***); zoeken op merk of stuk; weergave *Per merk* of *Per stuk*; tik = klein venster om te wijzigen; lijst plakken (één merk per regel); geen detailscherm (D28) |
+| 6 | Albums | Inspiratie | Artiest, status (ontdekken / beluisteren / opnieuw / geluisterd) |
+| 7 | Paklijst | Praktisch | Vakantiepaklijst als checklist: hele lijst plakken, afvinken, alles uitvinken |
 
 De groepering (Inspiratie, Praktisch) en de soorten staan in één register
 (`src/data/itemTypes.ts`). Daardoor is uitbreiden mogelijk zonder het gegevensmodel te wijzigen.

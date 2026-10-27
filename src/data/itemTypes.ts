@@ -38,10 +38,10 @@ export type GroupKey = 'inspiratie' | 'praktisch';
 
 export const GROUPS: { key: GroupKey; label: string; description: string }[] = [
   { key: 'inspiratie', label: 'Inspiratie', description: 'Waar ik wil eten, naartoe wil en wat ik wil luisteren' },
-  { key: 'praktisch', label: 'Praktisch', description: 'Lijsten en congressen' },
+  { key: 'praktisch', label: 'Praktisch', description: 'Lijsten, congressen en kledingmaten' },
 ];
 
-export type IconName = 'UtensilsCrossed' | 'Tent' | 'Wine' | 'Presentation' | 'Disc3' | 'Backpack';
+export type IconName = 'UtensilsCrossed' | 'Tent' | 'Wine' | 'Presentation' | 'Shirt' | 'Disc3' | 'Backpack';
 
 export interface TypeDef {
   key: TypeKey;
@@ -240,6 +240,17 @@ export const TYPES: TypeDef[] = [
     ],
     keywords: ['congres', 'conferentie', 'conference', 'meetup', 'summit', 'symposium', 'seminar', 'webinar', 'pydata'],
     hosts: ['meetup.com', 'eventbrite.', 'sessionize.com'],
+  },
+
+  {
+    key: 'clothing', label: 'Kleding', plural: 'Kleding', group: 'praktisch', icon: 'Shirt',
+    titleLabel: 'Merk', titlePlaceholder: 'Bijv. Les Deux',
+    // Eén item per merk (D28); per stuk één regel "stuk maat", bijv. "trui M" of "blouse S/M".
+    fields: [
+      { key: 'sizes', label: 'Stukken en maten', kind: 'list', primary: true, hint: 'Eén per regel: stuk en maat, bijv. trui M' },
+    ],
+    keywords: ['kleding', 'kledingmaat', 'maat', 'maten', 'broek', 'trui', 'overhemd', 'polo', 'blouse', 'colbert', 'jas'],
+    hosts: [],
   },
 
   {

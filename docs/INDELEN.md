@@ -45,6 +45,7 @@ herkent nu alleen de restaurantnotatie; bij andere soorten wordt daar elke regel
 | Uitje met kinderen | `Plaats - Naam (kenmerken)` of `Uitje: Naam` | `Utrecht - Kinderboerderij Zuid (dieren, buiten)` | city, traits (labels), address, summary, website; geen keuken |
 | Date | `Plaats - Naam (kenmerken)` of `Date: Naam` | `Amersfoort - Wijnproeverij (eten en drinken, avond)` | idem |
 | Congres | `Congres: Naam` of gewoon de naam | `PyData Amsterdam` | alleen startDate (JJJJ-MM-DD), city (of Online), website; verder niets invullen |
+| Kleding | `Merk stuk maat, stuk maat` | `Cast Iron polo M, blouse S/M` | titel = merk; `sizes` = lijst "stuk maat" in kleine letters, maat in hoofdletters (`trui M`, `broek 32/34`) |
 | Paklijst | `Paklijst Naam:` + één punt per regel | `Paklijst skiën:` / `- skibril` | checklist (één punt per regel). Er is **één** paklijst: bestaat die al, dan `aanvullen` met `itemId` en `checklist` (dubbele punten slaat de app over) en de Inbox-notitie met `verwijderen` naar de prullenbak |
 
 **Uitjes en dates (D26):** alles wat de eigenaar met de kinderen kan doen (speeltuin, dierentuin, pretpark, museum, wandeling, bos) is een
@@ -58,7 +59,9 @@ zonder prijzen), `openStatus`, `checkedAt`. Zonder vaste plek (een date thuis): 
 
 **Congressen (D27):** conferenties, congressen, summits, meetups en festivals voor werk of studie (vooral data/AI). Zoek alleen op: officiële naam, datum, plaats (of Online) en website. Geen samenvatting, labels of einddatum (de app toont ze niet). Datum alleen uit de eigen website of een agenda van de organisator; niet gevonden = leeg laten. Staat er één notitie met meerdere congressen, dan `nieuw` per congres.
 
-Er zijn alleen deze zes soorten (D25–D27). Past iets nergens bij (bijv. een boek of cadeau-idee), dan `laten`: het blijft in de
+**Kleding (D28):** één item per merk. Bestaat het merk al (zie `bekend` / de lijst), dan `aanvullen` met `zoek: { titel: "<merk>" }` en de nieuwe regels in `velden.sizes` (lijsten worden samengevoegd). Verandert de maat van een stuk dat er al staat, haal dan de oude regel weg met `weghalen: { sizes: ["trui S"] }`. Niets opzoeken: alleen wat in de notitie staat.
+
+Er zijn alleen deze zeven soorten (D25–D28). Past iets nergens bij (bijv. een boek of cadeau-idee), dan `laten`: het blijft in de
 Inbox. Stel nooit een soort voor die er niet is; de app weigert dat voorstel.
 
 **[Aanname] — nog te bepalen door de eigenaar:**

@@ -536,3 +536,7 @@ body.no-scroll .toast-region { bottom: auto; top: calc(env(safe-area-inset-top) 
 .r-filter-row .segmented { flex: 1; min-width: 0; }
 .filter-btn { flex: none; position: relative; }
 .r-filter-row .segmented button { white-space: nowrap; padding: 0 4px; gap: 4px; }
+/* Kleding (D28): maten vet, regels mogen afbreken. */
+.cl-sizes { white-space: normal; overflow: visible; line-height: 1.5; }
+.cl-sizes b { color: var(--text); font-weight: 700; }
+.cl-brand { color: var(--muted); text-decoration: none; font-weight: 600; }

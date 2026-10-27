@@ -17,7 +17,7 @@ Status: **[Gebouwd]** tenzij anders vermeld. De tokens staan bovenaan `src/style
 
 ## Visuele stijl
 
-- **Eén lijn (D25):** hoofdschermen (beginscherm, Restaurants, Uitjes, Dates, Congressen, Albums, Paklijst, Inbox) hebben de merkkop met daaronder een blok in de achtergrondkleur (filters of voortgang); detailschermen,
+- **Eén lijn (D25):** hoofdschermen (beginscherm, Restaurants, Uitjes, Dates, Congressen, Kleding, Albums, Paklijst, Inbox) hebben de merkkop met daaronder een blok in de achtergrondkleur (filters of voortgang); detailschermen,
   Instellingen, Zoeken en Prullenbak een lichte kopbalk. Overal losse kaarten (titel 17 px vet, grijze regel eronder) en
   sectiekoppen in `--heading`.
 - **Even hoog overal:** elke merkkop is één rij (terug · titel met ondertitel · hoogstens twee knoppen); titel en ondertitel

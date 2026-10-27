@@ -33,7 +33,7 @@ voorbeeldgegevens; installeerbaar en offline; ontvangst via het deelmenu (code).
 **Afgerond als** de eigenaar op de eigen Android-telefoon:
 
 - [x] snel een nieuw item kan toevoegen — *e2e getest*
-- [x] de soorten overzichtelijk kan beheren — *e2e getest* (sinds D27: restaurants, uitjes, dates, congressen, albums, paklijst)
+- [x] de soorten overzichtelijk kan beheren — *e2e getest* (sinds D28: restaurants, uitjes, dates, congressen, kleding, albums, paklijst)
 - [x] een item eenvoudig kan terugvinden — *e2e getest*
 - [x] een checklist kan afvinken — *e2e getest*
 - [x] een bestaand item kan wijzigen — *e2e getest*
