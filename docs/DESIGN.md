@@ -22,7 +22,7 @@ Status: **[Gebouwd]** tenzij anders vermeld. De tokens staan bovenaan `src/style
   sectiekoppen in `--heading`.
 - **Even hoog overal:** elke merkkop is één rij (terug · titel met ondertitel · hoogstens twee knoppen); titel en ondertitel
   blijven op één regel. Meer knoppen gaan naar het plakkende blok eronder.
-- **Statusbalk:** zolang een merkkop in beeld is, krijgt `meta theme-color` de merkkleur (statusbalk/adresbalk van de browser); op andere schermen de paginakleur. De balk onderaan (bij de gebaren-streep) hoort bij iOS/de browser en is niet te kleuren.
+- **Statusbalk:** zolang een merkkop in beeld is, krijgt `meta theme-color` de merkkleur (statusbalk/adresbalk van de browser); op andere schermen de paginakleur. In het manifest staat `theme_color` op de merkkleur: een geïnstalleerde app (Firefox, Chrome) kleurt de statusbalk daarmee, ook als de browser de wisselende `meta`-kleur niet volgt. De balk onderaan (bij de gebaren-streep) hoort bij Android/de browser en is niet te kleuren.
 - **Merkkop:** op de hoofdschermen een donker terracotta vlak (`--brand #6b2d16`)
   met titel, cursieve ondertitel en een lijntekening op lage dekking; scrolt weg. Het lichte blok met de bediening schuift er
   overheen en blijft bovenaan plakken. Idee overgenomen van *Uit in 030*, in de eigen kleur. Kopjes in `--heading`.
