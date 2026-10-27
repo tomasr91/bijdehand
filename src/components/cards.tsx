@@ -17,6 +17,12 @@ export function summary(item: Item): string[] {
       // Sober: naam, hoogstens 3 kenmerken, rechts cijfer en hartje (PlaceMark). Geen status: het cijfer zegt of je er was.
       return [traitsLine(item), f.openStatus === 'gesloten' ? 'Permanent gesloten' : ''];
     }
+    case 'conference': {
+      const a = s('startDate');
+      const b = s('endDate');
+      const when = a ? (b && b !== a ? `${formatDate(a)} – ${formatDate(b)}` : formatDate(a)) : '';
+      return [when, s('city'), status];
+    }
     case 'album': return [s('artist'), status];
     case 'packing': {
       const done = item.checklist.filter((e) => e.done).length;

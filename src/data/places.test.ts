@@ -67,3 +67,28 @@ describe('uitjes en dates (plek-soorten)', () => {
     expect((await db.items.get(b.id))?.type).toBe('date');
   });
 });
+
+describe('congressen', () => {
+  it('Claude kan een Inbox-item indelen als congres, met datums', async () => {
+    const a = await repo.createItem({ type: null, title: 'Pydata', body: 'Data & AI databricks' });
+    const items = await db.items.toArray();
+    const r = parseProposals(JSON.stringify({
+      format: 'bijdehand-voorstellen', formatVersion: 1, gebaseerdOp: new Date(Date.now() + 1000).toISOString(),
+      voorstellen: [{ id: 'a', actie: 'indelen', itemId: a.id, type: 'conference', titel: 'PyData Amsterdam', velden: { startDate: '2027-09-10', endDate: '2027-09-12', city: 'Amsterdam', traits: ['data'] } }],
+    }), items);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.rows.map((x) => x.status)).toEqual(['ok']);
+    await applyProposals(r.value.rows);
+    const got = await db.items.get(a.id);
+    expect(got?.type).toBe('conference');
+    expect(got?.body).toContain('Data & AI databricks');
+    expect(got?.fields.status).toBe('interessant');
+    expect(checkFields('conference', { startDate: '12-03-2027' }).problems[0]).toMatch(/JJJJ-MM-DD/);
+  });
+
+  it('stelt congres voor bij woorden als conferentie of meetup', () => {
+    expect(suggestType('Nieuwe conferentie over data')?.type).toBe('conference');
+    expect(suggestType('PyData meetup')?.type).toBe('conference');
+  });
+});

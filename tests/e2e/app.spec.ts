@@ -217,7 +217,7 @@ test('back-up exporteren en in een lege app terugzetten', async ({ page, browser
   await download.saveAs(file);
   const json = JSON.parse(readFileSync(file, 'utf8'));
   expect(json.format).toBe('bijdehand-backup');
-  expect(json.data.items).toHaveLength(14);
+  expect(json.data.items).toHaveLength(15);
   await expect(page.getByText('Laatste back-up: nog nooit')).toHaveCount(0);
 
   // Schone browser = leeg apparaat.
@@ -226,9 +226,9 @@ test('back-up exporteren en in een lege app terugzetten', async ({ page, browser
   await fresh.goto('/#/instellingen');
   await fresh.getByLabel('Back-upbestand kiezen').setInputFiles(file);
   const dlg = fresh.getByRole('dialog', { name: 'Back-up terugzetten' });
-  await expect(dlg.getByText('14 nieuwe items')).toBeVisible();
+  await expect(dlg.getByText('15 nieuwe items')).toBeVisible();
   await dlg.getByRole('button', { name: 'Samenvoegen' }).last().click();
-  await expect(fresh.getByText(/Samengevoegd: 14 nieuw/)).toBeVisible();
+  await expect(fresh.getByText(/Samengevoegd: 15 nieuw/)).toBeVisible();
   await fresh.goto('/#/verzameling/restaurant');
   await expect(fresh.getByRole('button', { name: /Trattoria Da Marco/ })).toBeVisible();
   await fresh.goto('/#/zoeken?q=Graslei');
@@ -560,4 +560,25 @@ test('uitjes en dates: tegel op het beginscherm, lijst plakken, kaart met punt, 
   await expect(page.getByRole('button', { name: /Wijnproeverij De Kelder/ })).toBeVisible();
   await expect(addBtn(page)).toHaveCount(0);
   await noHorizontalScroll(page);
+});
+
+test('congressen: tegel, lijst per maand, nieuw congres met datum, "Geweest" onderaan', async ({ page }) => {
+  await loadSamples(page);
+  await page.goto('/#/verzamelingen');
+  await expect(page.getByRole('button', { name: /^Congressen/ })).toBeVisible();
+  await page.goto('/#/verzameling/conference');
+  await expect(page.getByRole('heading', { name: 'Congressen' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /maart 2027/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /DataFest Utrecht/ })).toBeVisible();
+  await addBtn(page).click();
+  const sheet = page.getByRole('dialog');
+  await sheet.getByLabel('Tekst').fill('Godatafest');
+  await sheet.getByRole('button', { name: 'Bewaren' }).click();
+  await page.getByLabel('Begindatum').fill('2027-01-20');
+  await page.getByRole('radio', { name: 'Geweest' }).click();
+  await settle(page);
+  await page.goto('/#/verzameling/conference');
+  await expect(page.getByRole('heading', { name: /Geweest · 1/ })).toBeVisible();
+  await noHorizontalScroll(page);
+  await touchTargetsOk(page);
 });

@@ -44,6 +44,7 @@ herkent nu alleen de restaurantnotatie; bij andere soorten wordt daar elke regel
 | Album | `Album: Titel - Artiest` | `Album: Blue - Joni Mitchell (opnieuw)` | artist, status |
 | Uitje met kinderen | `Plaats - Naam (kenmerken)` of `Uitje: Naam` | `Utrecht - Kinderboerderij Zuid (dieren, buiten)` | city, traits (labels), address, summary, website; geen keuken |
 | Date | `Plaats - Naam (kenmerken)` of `Date: Naam` | `Amersfoort - Wijnproeverij (eten en drinken, avond)` | idem |
+| Congres | `Congres: Naam` of gewoon de naam | `PyData Amsterdam` | startDate, endDate (JJJJ-MM-DD), city (of Online), website, traits, summary; status laat de app op *interessant* staan |
 | Paklijst | `Paklijst Naam:` + één punt per regel | `Paklijst skiën:` / `- skibril` | checklist (één punt per regel). Er is **één** paklijst: bestaat die al, dan `aanvullen` met `itemId` en `checklist` (dubbele punten slaat de app over) en de Inbox-notitie met `verwijderen` naar de prullenbak |
 
 **Uitjes en dates (D26):** alles wat de eigenaar met de kinderen kan doen (speeltuin, dierentuin, pretpark, museum, wandeling, bos) is een
@@ -55,7 +56,9 @@ schrijfwijzen volgen (`bekend`). *Uitjes:* plek (*binnen*, *buiten*), wat (*dier
 Zoek bij een uitje of date met een vaste plek op: adres (*Straat huisnummer, postcode Plaats*), website, samenvatting (3–5 zinnen,
 zonder prijzen), `openStatus`, `checkedAt`. Zonder vaste plek (een date thuis): geen adres, zet "geen vast adres" in `uncertain`.
 
-Er zijn alleen deze vijf soorten (D25, D26). Past iets nergens bij (bijv. een boek of cadeau-idee), dan `laten`: het blijft in de
+**Congressen (D27):** conferenties, congressen, summits, meetups en festivals voor werk of studie (vooral data/AI). Zoek op: officiële naam, datums, plaats (of Online), website en een samenvatting van 1–3 zinnen. Datums alleen uit de eigen website of een agenda van de organisator; niet gevonden of nog niet bekend = leeg laten en in `uncertain` zetten. Staat er één notitie met meerdere congressen, dan `nieuw` per congres.
+
+Er zijn alleen deze zes soorten (D25–D27). Past iets nergens bij (bijv. een boek of cadeau-idee), dan `laten`: het blijft in de
 Inbox. Stel nooit een soort voor die er niet is; de app weigert dat voorstel.
 
 **[Aanname] — nog te bepalen door de eigenaar:**

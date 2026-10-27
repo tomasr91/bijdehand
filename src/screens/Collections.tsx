@@ -92,8 +92,31 @@ function SyncLine() {
   );
 }
 
+const MONTH_NAMES = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+
+/** Congressen: per maand, het eerstvolgende bovenaan; zonder datum achteraan. */
+function groupByMonth(list: Item[]): { title: string; items: Item[] }[] {
+  const start = (i: Item) => (typeof i.fields.startDate === 'string' ? i.fields.startDate : '');
+  const upcoming = list.filter((i) => !isDone(i));
+  const past = list.filter(isDone);
+  const sorted = [...upcoming].sort((a, b) => Number(!start(a)) - Number(!start(b)) || start(a).localeCompare(start(b)) || a.title.localeCompare(b.title, 'nl'));
+  const m = new Map<string, { title: string; items: Item[] }>();
+  for (const i of sorted) {
+    const d = start(i);
+    const key = d ? d.slice(0, 7) : '';
+    const title = d ? `${MONTH_NAMES[Number(d.slice(5, 7)) - 1]} ${d.slice(0, 4)}` : 'Datum onbekend';
+    const g = m.get(key) ?? { title, items: [] };
+    g.items.push(i);
+    m.set(key, g);
+  }
+  const groups = [...m.values()];
+  if (past.length) groups.push({ title: 'Geweest', items: [...past].sort((a, b) => start(b).localeCompare(start(a))) });
+  return groups;
+}
+
 function groupItems(type: TypeKey, list: Item[]): { title: string; items: Item[] }[] {
   const def = TYPE_MAP[type];
+  if (type === 'conference') return groupByMonth(list);
   if (def.groupBy) {
     // Hoofdletterongevoelig groeperen ("utrecht" en "Utrecht" samen); de eerste schrijfwijze is de kop.
     const rest = 'Overig';
@@ -155,7 +178,7 @@ function GenericCollection({ type }: { type: TypeKey }) {
   const [openLabel, doneLabel] = def.filterLabels ?? ['Nog open', 'Klaar'];
   const shown = all.filter((i) => done === 'alle' || (done === 'klaar') === isDone(i));
   const groups = groupItems(type, sortItems(shown));
-  const art = type === 'album' ? 'album' : 'home';
+  const art = type === 'album' ? 'album' : type === 'conference' ? 'conference' : 'home';
 
   return (
     <div className="screen">
