@@ -28,7 +28,9 @@ export function summary(item: Item): string[] {
       return [`${done} van ${item.checklist.length} ingepakt`];
     }
     default: {
-      const first = item.body.split('\n').find((l) => l.trim()) ?? '';
+      // Zonder titel staat de eerste regel al als titel op de kaart (D29).
+      const lines = item.body.split('\n').filter((l) => l.trim());
+      const first = (item.title ? lines[0] : lines[1]) ?? '';
       const list = item.checklist.length ? `${item.checklist.length} punten` : '';
       return [first, list];
     }
@@ -83,6 +85,11 @@ export function PlaceRow({ item }: { item: Item }) {
   );
 }
 
+/** Titel, of (zonder titel, D29) de eerste regel van de tekst. */
+export function displayTitle(item: Item): string {
+  return item.title || item.body.split('\n').find((l) => l.trim())?.trim() || 'Zonder titel';
+}
+
 export function ItemCard({ item, showType = true }: { item: Item; showType?: boolean }) {
   const parts = summary(item).filter(Boolean);
   const rating = typeof item.fields.rating === 'number' ? item.fields.rating : 0;
@@ -92,7 +99,7 @@ export function ItemCard({ item, showType = true }: { item: Item; showType?: boo
       <button type="button" className="card-main" onClick={() => navigate(`/item/${item.id}`)}>
         {showType && <TypeIcon type={item.type} />}
         <span className="card-text">
-          <span className="card-title">{item.title || 'Zonder titel'}</span>
+          <span className="card-title">{displayTitle(item)}</span>
           {(parts.length > 0 || rating > 0) && (
             <span className="card-sub">
               {rating > 0 && <Stars value={rating} small />}
@@ -101,8 +108,11 @@ export function ItemCard({ item, showType = true }: { item: Item; showType?: boo
           )}
           {item.type === null && item.suggestion && (
             <span className="card-suggest">
-              <Lightbulb size={14} /> Voorstel: {typeDef(item.suggestion.type)?.label}
+              <Lightbulb size={14} /> {item.suggestion.by === 'eigenaar' ? 'Claude zet het bij' : 'Voorstel'}: {typeDef(item.suggestion.type)?.label}
             </span>
+          )}
+          {item.type === null && typeof item.fields.hint === 'string' && item.fields.hint && (
+            <span className="card-note">Tip: {item.fields.hint}</span>
           )}
           {item.type === 'packing' && item.checklist.length > 0 && (
             <span className="progress" aria-hidden="true">

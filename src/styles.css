@@ -540,3 +540,5 @@ body.no-scroll .toast-region { bottom: auto; top: calc(env(safe-area-inset-top) 
 .cl-sizes { white-space: normal; overflow: visible; line-height: 1.5; }
 .cl-sizes b { color: var(--text); font-weight: 700; }
 .cl-brand { color: var(--muted); text-decoration: none; font-weight: 600; }
+.hint-field { margin: 4px 0 12px; }
+.capture-hint { margin-top: 12px; }

@@ -44,6 +44,7 @@ Werk dit document bij in dezelfde wijziging als die bestanden.
 | Uitjes met kinderen (`activity`) en Dates (`date`) (D26) | Zelfde basis als restaurants, zonder `cuisine`, `venue`, `experience`, `dishes` en prijzen/cijfers van buiten: `city`, `traits` (labels), `score`, `favorite`, `visited` (verborgen), `address`; opgezocht (`external`): `summary`, `website`, `openStatus`, `checkedAt`, `uncertain`; verborgen locatie `lat`, `lng`, `geoFor`. Status "geweest" afgeleid van het cijfer, net als bij restaurants. Geen schemawijziging: nieuwe `type`-waarden, schema blijft v5 |
 | Congressen (`conference`) (D27, ingekort) | Zichtbaar: `startDate` (datum), `city` (of "Online"), `website` (link). Verborgen maar bewaard: `endDate`, `status`, `traits`, `summary`, `checkedAt`, `uncertain`. Schema blijft v5 |
 | Kleding (`clothing`) (D28) | Eén item per merk (titel = merk); `sizes`: lijst met één regel per stuk, "stuk maat" (bijv. `trui M`, `blouse S/M`, `broek 32/34`). Schema blijft v5 |
+| Inbox (`type: null`) (D29) | Optioneel `hint`: tip voor de Claude-taak (verdwijnt bij indelen). De gekozen soort staat als `suggestion` met `by: 'eigenaar'`. `title` mag leeg zijn (dan geldt de eerste regel van `body` als naam in de lijst) |
 | Albums (`album`) | `artist`, `status`: ontdekken/luisteren/opnieuw/geluisterd, `rating` |
 | Paklijsten (`packing`) | alleen `checklist` (D22); oude velden `isTemplate`, `tripDate` verborgen bewaard |
 

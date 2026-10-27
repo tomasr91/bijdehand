@@ -17,6 +17,12 @@ soort en bestaande schrijfwijzen (zoals plaatsen en kenmerken). Er gaat niets an
 
 ## Regels voor Claude
 
+0. **Wens en tip van de eigenaar gaan voor (D29).** Bij een Inbox-item kan `wens` (de soort die de eigenaar koos) en `tip` (een vrije
+   aanwijzing) staan. Deel in volgens de wens, tenzij dat duidelijk niet kan (zeg dan in `reden` waarom). Gebruik de tip als
+   aanwijzing bij het indelen en opzoeken (bijv. "naam vergeten, bij de Dom" → zoek de zaak; "splits in drie" → `nieuw` per ding).
+   De tip is geen feit over de zaak: verzin niets op basis ervan. Items hebben vaak geen titel: de hele tekst staat in `tekst`;
+   geef altijd een `titel` mee.
+
 1. **Alleen wat er staat.** Verzin geen adressen, auteurs, prijzen of datums die niet in de aantekening
    staan. Eigen kennis mag alleen als `reden` ("Andy Weir is de auteur — controleer"), niet als veld.
 2. **Bij twijfel: laten staan.** Gebruik actie `laten` en stel in `reden` één concrete vraag. Doe dit

@@ -163,13 +163,18 @@ test('paklijst: één lijst, hele lijst plakken, afvinken, alles uitvinken, aanv
   await addBtn(page).click();
   const sheet = page.getByRole('dialog', { name: 'Iets bewaren' });
   await sheet.getByLabel('Tekst').fill('Zonnebrand\nZwembroek');
-  await sheet.getByRole('button', { name: /^Soort:/ }).click();
+  await sheet.getByRole('button', { name: /^Soort voor Claude:/ }).click();
   await page.getByRole('dialog', { name: 'Soort kiezen' }).getByRole('button', { name: 'Paklijsten' }).click();
-  await page.getByRole('dialog', { name: 'Nieuw: paklijst' }).getByRole('button', { name: 'Bewaren' }).click();
-  await expect(page.getByText('1 punt toegevoegd aan de paklijst')).toBeVisible();
-  await expect(page.getByText('2 van 6 ingepakt')).toBeVisible();
+  // De soort is een wens voor Claude (D29): het gaat naar de Inbox, de paklijst verandert (nog) niet.
+  await sheet.getByLabel('Tip voor Claude').fill('alleen wat nog niet op de lijst staat');
+  await sheet.getByRole('button', { name: 'Bewaren' }).click();
+  await expect(page.getByText('In de Inbox · Claude zet het bij Paklijsten')).toBeVisible();
+  await page.goto('/#/inbox');
+  const card = page.getByRole('button', { name: /Zonnebrand/ });
+  await expect(card).toContainText('Claude zet het bij: Paklijst');
+  await expect(card).toContainText('Tip: alleen wat nog niet op de lijst staat');
   await page.goto('/#/verzameling/packing');
-  await expect(page.getByText('2 van 6 ingepakt')).toBeVisible(); // nog steeds dezelfde lijst
+  await expect(page.getByText('2 van 5 ingepakt')).toBeVisible(); // dezelfde lijst, nog niet aangevuld
 });
 
 test('zoeken met een vraag en met filters', async ({ page }) => {
@@ -424,12 +429,12 @@ test('synchroniseren met privé GitHub-repo: koppelen, voorstel van Claude autom
   await expect(page.getByText(/Gekoppeld met/)).toBeVisible();
   await expect.poll(() => files.has('data/bijdehand.json')).toBe(true);
   const stored = JSON.parse(files.get('data/bijdehand.json')!.text);
-  expect(stored.data.items.map((i: { title: string }) => i.title)).toContain('Pamir Leiden');
+  expect(stored.data.items.map((i: { body: string }) => i.body)).toContain('Pamir Leiden'); // geen titel uit de eerste regel (D29)
   expect(files.get('data/bijdehand.json')!.text).not.toContain(TOKEN);
 
   // Claude zet een voorstel klaar; bij de volgende synchronisatie wordt het automatisch toegepast.
-  const note = stored.data.items.find((i: { title: string }) => i.title === 'Pamir Leiden');
-  const lezen = stored.data.items.find((i: { title: string }) => i.title.startsWith('Lezen'));
+  const note = stored.data.items.find((i: { body: string }) => i.body === 'Pamir Leiden');
+  const lezen = stored.data.items.find((i: { body: string }) => i.body.startsWith('Lezen'));
   files.set('voorstellen/2026-10-25.json', { sha: 'v1', text: JSON.stringify({
     format: 'bijdehand-voorstellen', formatVersion: 1, gebaseerdOp: stored.exportedAt,
     voorstellen: [

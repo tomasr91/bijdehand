@@ -47,7 +47,10 @@ if (cmd === 'todo') {
     }
   }
   const inbox = live.filter((i) => i.type === null && !pending.has(i.id))
-    .map((i) => ({ id: i.id, titel: i.title, tekst: i.body, checklist: i.checklist.map((e) => e.text), tags: i.tags, bewaard: i.createdAt }));
+    .map((i) => ({ id: i.id, titel: i.title, tekst: i.body, checklist: i.checklist.map((e) => e.text), tags: i.tags, bewaard: i.createdAt,
+      // Wens en tip van de eigenaar (D29): de gekozen soort en een vrije aanwijzing. Volg ze.
+      ...(i.suggestion?.by === 'eigenaar' ? { wens: i.suggestion.type } : {}),
+      ...(typeof i.fields.hint === 'string' && i.fields.hint ? { tip: i.fields.hint } : {}) }));
   const isPlace = (i: { type: string | null }) => !!TYPES.find((t) => t.key === i.type)?.place;
   const plekken = live.filter((i) => isPlace(i) && !i.fields.checkedAt && !pending.has(`zoek:${i.title.toLowerCase()}`))
     .map((i) => ({ soort: i.type, titel: i.title, plaats: i.fields.city ?? null, velden: i.fields, notities: i.body }));

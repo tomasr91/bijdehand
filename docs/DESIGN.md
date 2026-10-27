@@ -49,7 +49,7 @@ Status: **[Gebouwd]** tenzij anders vermeld. De tokens staan bovenaan `src/style
 
 Er is **geen navigatiebalk**. Op verzoek van de eigenaar zijn er drie onderdelen: **Verzamelingen** (het enige
 hoofdscherm, ook startpagina en `start_url`), **Instellingen** (tandwiel rechtsboven op het hoofdscherm) en
-**Toevoegen** (ronde accentknop rechtsonder, 64 px; niet op de restaurantschermen — restaurants komen via de Inbox en Claude).
+**Toevoegen** (D29: alles gaat naar de Inbox; de gekozen soort is een wens voor Claude, plus een optioneel veld *Tip voor Claude*; je tekst blijft heel) (ronde accentknop rechtsonder, 64 px; niet op de restaurantschermen — restaurants komen via de Inbox en Claude).
 
 | Breedte | Indeling |
 |---|---|

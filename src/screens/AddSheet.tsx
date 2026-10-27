@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { suggestType } from '../data/classify';
 import { typeDef } from '../data/itemTypes';
 import type { Source, TypeKey } from '../data/model';
-import { addSource, capture, findSourceByUrl, mergeChecklist, thePackingList, updateItem } from '../data/repo';
+import { addSource, capture, findSourceByUrl } from '../data/repo';
 import { splitLines } from '../data/paste';
 import { findUrl, fold, formatDate, dayOf, isUrl, siteOf } from '../data/util';
 import { Segmented, Sheet, TypeIcon, AutoText } from '../components/ui';
@@ -21,6 +21,7 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [note, setNote] = useState('');
+  const [hint, setHint] = useState('');
   const [lines, setLines] = useState<string[]>([]);
   const [lineDraft, setLineDraft] = useState('');
   const [type, setType] = useState<TypeKey | null>(null);
@@ -36,6 +37,7 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
     setUrl(opts.url ?? '');
     setTitle(opts.urlTitle ?? '');
     setNote('');
+    setHint('');
     setLines([]);
     setLineDraft('');
     setType(opts.type ?? null);
@@ -115,34 +117,22 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
           return;
         }
       }
-      // Er is één paklijst: nieuwe punten komen daarbij (D23).
-      const packing = type === 'packing' ? thePackingList(liveItems) : undefined;
-      if (packing) {
-        const add = mode === 'checklist' ? allLines() : splitLines(text);
-        const before = packing.checklist.length;
-        const after = await updateItem(packing.id, (cur) => ({ checklist: mergeChecklist(cur.checklist, add) }));
-        onClose();
-        navigate(`/item/${packing.id}`);
-        const n = (after?.checklist.length ?? before) - before;
-        toast(n ? `${n} ${n === 1 ? 'punt' : 'punten'} toegevoegd aan de paklijst` : 'Stond al allemaal op de paklijst');
-        return;
-      }
-      const body = mode === 'text' ? text.split('\n').slice(1).join('\n').trim() : '';
+      // De gekozen soort is een wens voor de Claude-taak, geen directe indeling (D29): alles gaat naar de Inbox.
+      // Je tekst blijft heel (geen titel uit de eerste regel); Claude maakt de naam.
       const r = await capture({
-        type,
-        title: mode === 'text' ? firstLine : title,
-        body,
+        type: null,
+        title: mode === 'text' ? '' : title,
+        body: mode === 'text' ? text.trim() : '',
         url: mode === 'link' ? cleanUrl! : undefined,
         urlTitle: mode === 'link' ? title : undefined,
         sourceNote: mode === 'link' ? note : undefined,
         checklist: mode === 'checklist' ? allLines() : undefined,
-        suggestion,
+        suggestion: type ? { type, reason: 'jouw keuze', by: 'eigenaar' } : suggestion,
+        hint,
         infoVia: via,
       });
       onClose();
-      const where = type ? typeDef(type)!.plural : 'Inbox';
-      if (opts.openAfter) navigate(`/item/${r.item.id}`);
-      toast(`Bewaard in ${where}`, opts.openAfter ? undefined : { action: { label: 'Openen', run: () => navigate(`/item/${r.item.id}`) } });
+      toast(type ? `In de Inbox · Claude zet het bij ${typeDef(type)!.plural}` : 'Bewaard in Inbox', { action: { label: 'Openen', run: () => navigate(`/item/${r.item.id}`) } });
     } catch (e) {
       console.error(e);
       toast('Opslaan is mislukt. Je invoer staat er nog.', { tone: 'error' });
@@ -157,7 +147,7 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
       <Sheet
         open={open}
         onClose={onClose}
-        title={tdef ? `Nieuw: ${tdef.label.toLowerCase()}` : 'Iets bewaren'}
+        title="Iets bewaren"
         footer={
           <button type="button" className="btn btn-primary btn-block" disabled={!canSave} onClick={() => void save()}>
             Bewaren
@@ -181,7 +171,7 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
               className="capture-text"
               value={text}
               onChange={(e) => onTextChange(e.target.value)}
-              placeholder={tdef ? tdef.titlePlaceholder : 'Wat wil je onthouden? Eerste regel wordt de titel.'}
+              placeholder="Wat wil je onthouden?"
               aria-label="Tekst"
               minRows={3}
               autoFocus
@@ -197,7 +187,6 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
               )}
               <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={tdef ? tdef.titlePlaceholder : 'Titel (optioneel)'} aria-label="Titel" enterKeyHint="next" />
               <AutoText value={note} onChange={(e) => setNote(e.target.value)} placeholder="Waarom is dit interessant? (optioneel)" aria-label="Eigen notitie" minRows={2} />
-              {!type && <p className="hint">Zonder soort komt de link alleen in Bronnen.</p>}
             </div>
           )}
 
@@ -227,10 +216,15 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
             </p>
           )}
 
+          <div className="field capture-hint">
+            <label htmlFor="add-hint">Tip voor Claude (optioneel)</label>
+            <AutoText id="add-hint" value={hint} onChange={(e) => setHint(e.target.value)} placeholder="Bijv. naam vergeten, staat bij de brug in Maarssen" minRows={1} />
+          </div>
+
           <div className="capture-type">
-            <button type="button" className="type-select" onClick={() => setPicking(true)} aria-label={`Soort: ${tdef?.label ?? 'Inbox'}. Wijzigen`}>
+            <button type="button" className="type-select" onClick={() => setPicking(true)} aria-label={`Soort voor Claude: ${tdef?.label ?? 'Claude kiest'}. Wijzigen`}>
               <TypeIcon type={type} size={18} />
-              <span>{tdef ? tdef.label : 'Inbox · later indelen'}</span>
+              <span>{tdef ? `Claude zet het bij: ${tdef.label}` : 'Inbox · Claude kiest de soort'}</span>
               <ChevronDown size={18} />
             </button>
             {suggestion && (

@@ -173,6 +173,11 @@ bevat geen geheimen.
   (vervangen door de sync, D14), voorbeeldgegevens in Instellingen, de proefversie als artifact (`build:artifact`, `seed.ts`,
   `VITE_PREVIEW`). Testgegevens staan nu in `src/data/testdata.ts` en worden in e2e als back-up teruggezet. Lege soorten
   staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; (sinds D25 zijn de ongebruikte soorten helemaal weg). E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
+- **D29 — 2026-10-27 — Toevoegen = altijd via de Inbox, met wens en tip voor Claude.** De soort die je bij Toevoegen kiest,
+  deelt niet meer direct in maar is een wens voor de Claude-taak (`suggestion` met `by: 'eigenaar'`). Je tekst blijft heel
+  (geen titel uit de eerste regel; kaarten tonen dan de eerste regel). Optioneel veld *Tip voor Claude* (veld `hint` op het
+  Inbox-item; verdwijnt bij indelen). Zelf indelen kan nog in het Inbox-item (de eerste regel wordt dan de naam). Ook de
+  paklijst loopt via de Inbox; direct aanvullen kan op de paklijst zelf. Geen schemawijziging.
 - **D28 — 2026-10-27 — Kleding.** Nieuwe soort `clothing` (groep Praktisch): één item per merk met lijstveld `sizes`
   ("stuk maat"). Eigen kaal scherm `src/screens/Clothing.tsx`: zoeken, *Per merk* / *Per stuk*, venster om te wijzigen,
   lijst plakken (`parseClothing` herkent merk, stukken en maten). Geen detailscherm. Schema blijft v5.

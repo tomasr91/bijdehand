@@ -19,6 +19,17 @@ const FIELD_NAMES: Record<string, string> = { type: 'soort', title: 'titel', bod
 
 const ORIGIN_LABEL: Record<string, string> = { sample: 'Voorbeeldgegevens', backup: 'Teruggezet uit back-up', share: 'Gedeeld via Android', 'google-keep': 'Geïmporteerd uit Google Keep', paste: 'Geplakt uit een lijst', claude: 'Gemaakt door Claude uit een aantekening' };
 
+/** Tip voor de Claude-taak (D29), alleen bij Inbox-items. */
+function HintEditor({ item }: { item: Item }) {
+  const [hint, setHint, flushHint] = useDraft(typeof item.fields.hint === 'string' ? item.fields.hint : '', (v: string) => repo.setField(item.id, 'hint', v.trim() || null));
+  return (
+    <div className="field hint-field">
+      <label htmlFor="hint-text">Tip voor Claude</label>
+      <AutoText id="hint-text" value={hint} onChange={(e) => setHint(e.target.value)} onBlur={flushHint} placeholder="Bijv. naam vergeten, staat bij de brug in Maarssen" minRows={1} />
+    </div>
+  );
+}
+
 function ItemEditor({ item }: { item: Item }) {
   const toast = useToast();
   const def = typeDef(item.type);
@@ -34,9 +45,12 @@ function ItemEditor({ item }: { item: Item }) {
 
   const setType = async (t: Item['type']) => {
     setPicking(false);
-    const prev = item.type;
-    await tracked(repo.updateItem(item.id, { type: t }));
-    toast(t ? `Ingedeeld bij ${typeDef(t)!.plural}` : 'Teruggezet naar Inbox', { action: { label: 'Ongedaan maken', run: () => void repo.updateItem(item.id, { type: prev }) } });
+    const prev = { type: item.type, title: item.title, body: item.body };
+    // Zelf indelen zonder titel (D29): de eerste regel wordt de naam, de rest blijft je notitie.
+    const lines = item.body.split('\n');
+    const named = t && !item.title.trim() && item.body.trim() ? { title: lines[0].trim(), body: lines.slice(1).join('\n').trim() } : {};
+    await tracked(repo.updateItem(item.id, { type: t, ...named }));
+    toast(t ? `Ingedeeld bij ${typeDef(t)!.plural}` : 'Teruggezet naar Inbox', { action: { label: 'Ongedaan maken', run: () => void repo.updateItem(item.id, prev) } });
   };
 
   const remove = async () => {
@@ -78,14 +92,17 @@ function ItemEditor({ item }: { item: Item }) {
         <div className="banner banner-suggest">
           <Lightbulb size={20} />
           <span>
-            {item.suggestion ? (<>Voorstel: <b>{typeDef(item.suggestion.type)!.label}</b> <small>({item.suggestion.reason}, vaste regel — geen AI)</small></>) : 'Nog niet ingedeeld.'}
+            {item.suggestion?.by === 'eigenaar'
+              ? (<>Claude zet het bij <b>{typeDef(item.suggestion.type)!.label}</b> <small>(jouw keuze; de dagelijkse taak deelt in)</small></>)
+              : item.suggestion ? (<>Voorstel: <b>{typeDef(item.suggestion.type)!.label}</b> <small>({item.suggestion.reason}, vaste regel — geen AI)</small></>) : 'Nog niet ingedeeld. Claude deelt het in.'}
           </span>
           <div className="banner-actions">
-            {item.suggestion && <button type="button" className="btn btn-primary btn-small" onClick={() => void setType(item.suggestion!.type)}>Indelen</button>}
+            {item.suggestion && <button type="button" className={`btn btn-small ${item.suggestion.by === 'eigenaar' ? '' : 'btn-primary'}`} onClick={() => void setType(item.suggestion!.type)}>{item.suggestion.by === 'eigenaar' ? 'Zelf indelen' : 'Indelen'}</button>}
             <button type="button" className="btn btn-small" onClick={() => setPicking(true)}>{item.suggestion ? 'Andere soort' : 'Kies soort'}</button>
           </div>
         </div>
       )}
+      {item.type === null && <HintEditor item={item} />}
 
       {compact ? (
         <PlaceBody item={item} title={title} setTitle={setTitle} flushTitle={flushTitle} body={body} setBody={setBody} flushBody={flushBody} onDelete={() => void remove()} />

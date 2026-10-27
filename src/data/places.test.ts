@@ -121,3 +121,17 @@ describe('kleding', () => {
     expect(got?.fields.sizes).toEqual(['broek M', 'trui L']);
   });
 });
+
+describe('wens en tip voor Claude (D29)', () => {
+  it('bewaart de gekozen soort als wens en de tip als veld; na indelen is de tip weg', async () => {
+    const { item } = await repo.capture({ type: null, title: '', body: 'Pizza bij die ene zaak\nmet Sanne', suggestion: { type: 'restaurant', reason: 'jouw keuze', by: 'eigenaar' }, hint: 'naam vergeten, Utrecht centrum' });
+    expect(item.type).toBeNull();
+    expect(item.title).toBe('');
+    expect(item.suggestion).toEqual({ type: 'restaurant', reason: 'jouw keuze', by: 'eigenaar' });
+    expect(item.fields.hint).toBe('naam vergeten, Utrecht centrum');
+    const after = await repo.updateItem(item.id, { type: 'restaurant', title: 'Pizzeria' });
+    expect(after?.fields.hint).toBeUndefined();
+    expect(after?.suggestion).toBeNull();
+    expect(after?.body).toContain('met Sanne');
+  });
+});

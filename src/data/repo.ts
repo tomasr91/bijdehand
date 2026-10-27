@@ -80,7 +80,11 @@ export async function updateItem(id: string, change: ItemPatch | ((cur: Item) =>
     if (patch.type !== undefined && patch.type !== cur.type) {
       // Bij indelen: standaardvelden aanvullen, bestaande waarden nooit weggooien.
       next.fields = { ...(patch.type ? defaultFields(patch.type) : {}), ...cur.fields, ...(patch.fields ?? {}) };
-      if (patch.type) next.suggestion = null;
+      if (patch.type) {
+        next.suggestion = null;
+        // De tip voor Claude (D29) hoort alleen bij de Inbox; na indelen weg.
+        if ('hint' in next.fields) { const { hint: _hint, ...rest } = next.fields; next.fields = rest; }
+      }
     }
     await db.items.put(next);
     return next;
@@ -293,6 +297,8 @@ export interface Capture {
   sourceNote?: string;
   checklist?: string[];
   suggestion?: Suggestion | null;
+  /** Tip voor de Claude-taak (D29); komt als veld `hint` op het Inbox-item. */
+  hint?: string;
   infoVia?: Source['infoVia'];
 }
 
@@ -311,11 +317,13 @@ export async function capture(c: Capture): Promise<CaptureResult> {
     source = r.source;
     sourceExisted = r.existed;
   }
-  const title = c.title.trim() || source?.title || source?.site || 'Zonder titel';
+  // Zonder titel mag (D29): bij tekst maakt Claude er de naam bij; de kaart toont dan de eerste regel.
+  const title = c.title.trim() || source?.title || source?.site || '';
   const item = await createItem({
     type: c.type,
     title,
     body: c.body ?? '',
+    fields: c.hint?.trim() ? { hint: c.hint.trim() } : undefined,
     checklist: (c.checklist ?? []).filter((t) => t.trim()).map((t) => entry(t)),
     suggestion: c.suggestion ?? null,
   });

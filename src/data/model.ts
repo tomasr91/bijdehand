@@ -19,11 +19,12 @@ export interface Origin {
   at: string;
 }
 
-/** Voorstel voor een soort. `by` maakt zichtbaar wie het voorstel deed (nu alleen vaste regels). */
+/** Voorstel voor een soort. `by` maakt zichtbaar wie het voorstel deed: vaste regels, of de eigenaar zelf
+ *  ('eigenaar' = de soort die je bij Toevoegen koos; een wens voor de Claude-taak, D29). */
 export interface Suggestion {
   type: TypeKey;
   reason: string;
-  by: 'regels' | 'ai';
+  by: 'regels' | 'ai' | 'eigenaar';
 }
 
 export interface Item {
