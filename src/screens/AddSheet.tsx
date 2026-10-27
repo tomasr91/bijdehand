@@ -1,17 +1,16 @@
-import { ChevronDown, Lightbulb, Link2, ListChecks, Plus, Type, X } from 'lucide-react';
+import { ChevronDown, Lightbulb } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { suggestType } from '../data/classify';
 import { typeDef } from '../data/itemTypes';
 import type { Source, TypeKey } from '../data/model';
 import { addSource, capture, findSourceByUrl } from '../data/repo';
-import { splitLines } from '../data/paste';
-import { findUrl, fold, formatDate, dayOf, isUrl, siteOf } from '../data/util';
-import { Segmented, Sheet, TypeIcon, AutoText } from '../components/ui';
+import { findUrl, fold, formatDate, dayOf, siteOf } from '../data/util';
+import { Sheet, TypeIcon, AutoText } from '../components/ui';
 import { TypePicker } from '../components/editors';
 import { useData, useToast, type AddOptions } from '../ui/context';
 import { navigate } from '../ui/router';
 
-type Mode = 'text' | 'link' | 'checklist';
+type Mode = 'text' | 'link';
 
 export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOptions; onClose: () => void }) {
   const toast = useToast();
@@ -22,8 +21,6 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
   const [title, setTitle] = useState('');
   const [note, setNote] = useState('');
   const [hint, setHint] = useState('');
-  const [lines, setLines] = useState<string[]>([]);
-  const [lineDraft, setLineDraft] = useState('');
   const [type, setType] = useState<TypeKey | null>(null);
   const [picking, setPicking] = useState(false);
   const [existing, setExisting] = useState<Source | undefined>();
@@ -32,14 +29,12 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
 
   useEffect(() => {
     if (!open) return;
-    setMode(opts.mode ?? (opts.url ? 'link' : opts.type === 'packing' ? 'checklist' : 'text'));
+    setMode(opts.url ? 'link' : 'text'); // alleen tekst bij ➕; link alleen via het deelmenu
     setText(opts.text ?? '');
     setUrl(opts.url ?? '');
     setTitle(opts.urlTitle ?? '');
     setNote('');
     setHint('');
-    setLines([]);
-    setLineDraft('');
     setType(opts.type ?? null);
     setExisting(undefined);
     setBusy(false);
@@ -59,14 +54,6 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
 
   const cleanUrl = mode === 'link' ? findUrl(url) : null;
 
-  // Een hele lijst plakken (meerdere regels): elke regel wordt een punt, ook als je in het naamveld plakt.
-  const pasteLines = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const text = e.clipboardData.getData('text');
-    if (!/\r?\n/.test(text.trim())) return;
-    e.preventDefault();
-    setLines((cur) => [...cur, ...splitLines(text)]);
-  };
-
   useEffect(() => {
     let alive = true;
     if (cleanUrl) void findSourceByUrl(cleanUrl).then((s) => alive && setExisting(s && !s.deletedAt ? s : undefined));
@@ -77,9 +64,9 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
   const firstLine = (mode === 'text' ? text.split('\n')[0] : title).trim();
   const suggestion = useMemo(() => {
     if (type) return null;
-    const hay = [text, title, note, ...lines].join(' ');
-    return suggestType(hay, cleanUrl, lines.length);
-  }, [type, text, title, note, lines, cleanUrl]);
+    const hay = [text, title, note].join(' ');
+    return suggestType(hay, cleanUrl, 0);
+  }, [type, text, title, note, cleanUrl]);
 
   const duplicate = useMemo(() => {
     if (!firstLine || firstLine.length < 3) return undefined;
@@ -89,17 +76,11 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
 
   const onTextChange = (v: string) => {
     // Een geplakte link wordt herkend en naar de link-modus gezet.
-    if (mode === 'text' && !text && isUrl(v)) {
-      setMode('link');
-      setUrl(v.trim());
-      return;
-    }
     setText(v);
   };
 
-  const allLines = () => [...lines, ...lineDraft.split('\n')].map((l) => l.trim()).filter(Boolean);
   const canSave =
-    !busy && (mode === 'text' ? text.trim().length > 0 : mode === 'link' ? !!cleanUrl : title.trim().length > 0 || allLines().length > 0);
+    !busy && (mode === 'text' ? text.trim().length > 0 : !!cleanUrl);
 
   const save = async () => {
     if (!canSave) return;
@@ -123,10 +104,10 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
         type: null,
         title: mode === 'text' ? '' : title,
         body: mode === 'text' ? text.trim() : '',
-        url: mode === 'link' ? cleanUrl! : undefined,
+        url: mode === 'link' ? cleanUrl! : findUrl(text) ?? undefined,
         urlTitle: mode === 'link' ? title : undefined,
         sourceNote: mode === 'link' ? note : undefined,
-        checklist: mode === 'checklist' ? allLines() : undefined,
+        
         suggestion: type ? { type, reason: 'jouw keuze', by: 'eigenaar' } : suggestion,
         hint,
         infoVia: via,
@@ -155,17 +136,6 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
         }
       >
         <div onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void save(); }}>
-          <Segmented<Mode>
-            label="Soort invoer"
-            value={mode}
-            onChange={setMode}
-            options={[
-              { value: 'text', label: (<><Type size={16} /> Tekst</>) },
-              { value: 'link', label: (<><Link2 size={16} /> Link</>) },
-              { value: 'checklist', label: (<><ListChecks size={16} /> Checklist</>) },
-            ]}
-          />
-
           {mode === 'text' && (
             <AutoText
               className="capture-text"
@@ -187,25 +157,6 @@ export function AddSheet({ open, opts, onClose }: { open: boolean; opts: AddOpti
               )}
               <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={tdef ? tdef.titlePlaceholder : 'Titel (optioneel)'} aria-label="Titel" enterKeyHint="next" />
               <AutoText value={note} onChange={(e) => setNote(e.target.value)} placeholder="Waarom is dit interessant? (optioneel)" aria-label="Eigen notitie" minRows={2} />
-            </div>
-          )}
-
-          {mode === 'checklist' && (
-            <div className="stack">
-              <input ref={firstInput} type="text" value={title} onChange={(e) => setTitle(e.target.value)} onPaste={pasteLines} placeholder={tdef ? tdef.titlePlaceholder : 'Naam van de lijst'} aria-label="Naam van de lijst" enterKeyHint="next" />
-              <ul className="capture-lines">
-                {lines.map((l, i) => (
-                  <li key={i}>
-                    <span className="check" aria-hidden="true" />
-                    <span>{l}</span>
-                    <button type="button" className="icon-btn subtle" aria-label={`${l} verwijderen`} onClick={() => setLines(lines.filter((_, j) => j !== i))}><X size={18} /></button>
-                  </li>
-                ))}
-              </ul>
-              <form className="entry-add" onSubmit={(e) => { e.preventDefault(); const t = lineDraft.trim(); if (t) { setLines([...lines, t]); setLineDraft(''); } }}>
-                <Plus size={20} aria-hidden="true" />
-                <input value={lineDraft} onChange={(e) => setLineDraft(e.target.value)} onPaste={pasteLines} placeholder="Punt toevoegen of hele lijst plakken" aria-label="Punt toevoegen" enterKeyHint="enter" />
-              </form>
             </div>
           )}
 

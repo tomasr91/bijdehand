@@ -65,6 +65,7 @@ test('snel bewaren zonder soort → Inbox → voorstel → indelen; blijft na he
   await expect(page.getByRole('navigation')).toHaveCount(0); // geen navigatiebalk meer
   await addBtn(page).click();
   const sheet = page.getByRole('dialog', { name: 'Iets bewaren' });
+  await expect(sheet.getByRole('radio')).toHaveCount(0); // alleen tekst: geen keuze link/checklist meer
   await sheet.getByLabel('Tekst').fill('Restaurant De Zwaan proberen\nAanrader van Sanne');
   await expect(sheet.getByRole('button', { name: /Restaurant\?/ })).toBeVisible();
   await sheet.getByRole('button', { name: 'Bewaren' }).click();
@@ -105,26 +106,6 @@ test('snel bewaren zonder soort → Inbox → voorstel → indelen; blijft na he
   await expect(row).toHaveCount(0);
   await page.getByRole('radio', { name: 'Geweest', exact: true }).click();
   await expect(row).toBeVisible();
-});
-
-test('checklist aanmaken, afvinken en terugvinden na herladen', async ({ page }) => {
-  await page.goto('/');
-  await addBtn(page).click();
-  const sheet = page.getByRole('dialog');
-  await sheet.getByRole('radio', { name: 'Checklist' }).click();
-  await sheet.getByLabel('Naam van de lijst').fill('Boodschappen zaterdag');
-  for (const p of ['Brood', 'Kaas', 'Appels']) {
-    await sheet.getByLabel('Punt toevoegen').fill(p);
-    await sheet.getByLabel('Punt toevoegen').press('Enter');
-  }
-  await sheet.getByRole('button', { name: 'Bewaren' }).click();
-  await page.getByRole('button', { name: 'Openen' }).click();
-  await page.getByRole('checkbox', { name: 'Kaas' }).click();
-  await expect(page.getByText('1 van 3 afgevinkt')).toBeVisible();
-  await settle(page);
-  await page.reload();
-  await expect(page.getByRole('checkbox', { name: 'Kaas' })).toHaveAttribute('aria-checked', 'true');
-  await expect(page.getByRole('checkbox', { name: 'Brood' })).toHaveAttribute('aria-checked', 'false');
 });
 
 test('paklijst: één lijst, hele lijst plakken, afvinken, alles uitvinken, aanvullen via Toevoegen', async ({ page }) => {

@@ -177,7 +177,8 @@ bevat geen geheimen.
   deelt niet meer direct in maar is een wens voor de Claude-taak (`suggestion` met `by: 'eigenaar'`). Je tekst blijft heel
   (geen titel uit de eerste regel; kaarten tonen dan de eerste regel). Optioneel veld *Tip voor Claude* (veld `hint` op het
   Inbox-item; verdwijnt bij indelen). Zelf indelen kan nog in het Inbox-item (de eerste regel wordt dan de naam). Ook de
-  paklijst loopt via de Inbox; direct aanvullen kan op de paklijst zelf. Geen schemawijziging.
+  paklijst loopt via de Inbox; direct aanvullen kan op de paklijst zelf. Bij ➕ alleen tekst (geen keuze link/checklist; een link
+  in de tekst wordt als bron gekoppeld); delen via Android opent nog de linkvelden. Geen schemawijziging.
 - **D28 — 2026-10-27 — Kleding.** Nieuwe soort `clothing` (groep Praktisch): één item per merk met lijstveld `sizes`
   ("stuk maat"). Eigen kaal scherm `src/screens/Clothing.tsx`: zoeken, *Per merk* / *Per stuk*, venster om te wijzigen,
   lijst plakken (`parseClothing` herkent merk, stukken en maten). Geen detailscherm. Schema blijft v5.
