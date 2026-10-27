@@ -173,9 +173,10 @@ bevat geen geheimen.
   (vervangen door de sync, D14), voorbeeldgegevens in Instellingen, de proefversie als artifact (`build:artifact`, `seed.ts`,
   `VITE_PREVIEW`). Testgegevens staan nu in `src/data/testdata.ts` en worden in e2e als back-up teruggezet. Lege soorten
   staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; (sinds D25 zijn de ongebruikte soorten helemaal weg). E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
-- **D27 — 2026-10-27 — Congressen.** Nieuwe soort `conference` in de groep Praktisch, op het generieke verzamelingsscherm
-  (`GenericCollection`) met groepering per maand (`groupByMonth`) en afgelopen congressen onder *Geweest*. Status handmatig
-  (niet afgeleid). Geen kaart, cijfer of hartje [Aanname]. Schema blijft v5.
+- **D27 — 2026-10-27 — Congressen (kaal).** Nieuwe soort `conference` in de groep Praktisch met een eigen, kaal scherm
+  (`src/screens/Conferences.tsx`): lijst op datum, tik opent de link, potlood opent een klein venster (naam, datum, plaats, link;
+  verwijderen met Ongedaan maken). Geen detailscherm, kaart, filters of status; de overige velden blijven verborgen bewaard.
+  Schema blijft v5.
 - **D26 — 2026-10-27 — Uitjes met kinderen en dates als plek-soorten.** Twee nieuwe soorten (`activity`, `date`) met dezelfde
   weergave als restaurants: `TypeDef.place` + `placeTexts` in het register, gedeelde schermen `Places.tsx` (lijst, filters, kaart),
   `PlaceMap.tsx` en `PlaceDetail.tsx` (hernoemd uit de restaurantschermen, werken per soort). Kaartpunten (`geocode.ts`), geen ronde +,

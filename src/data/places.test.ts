@@ -74,7 +74,7 @@ describe('congressen', () => {
     const items = await db.items.toArray();
     const r = parseProposals(JSON.stringify({
       format: 'bijdehand-voorstellen', formatVersion: 1, gebaseerdOp: new Date(Date.now() + 1000).toISOString(),
-      voorstellen: [{ id: 'a', actie: 'indelen', itemId: a.id, type: 'conference', titel: 'PyData Amsterdam', velden: { startDate: '2027-09-10', endDate: '2027-09-12', city: 'Amsterdam', traits: ['data'] } }],
+      voorstellen: [{ id: 'a', actie: 'indelen', itemId: a.id, type: 'conference', titel: 'PyData Amsterdam', velden: { startDate: '2027-09-10', city: 'Amsterdam', website: 'https://example.org' } }],
     }), items);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
@@ -83,7 +83,7 @@ describe('congressen', () => {
     const got = await db.items.get(a.id);
     expect(got?.type).toBe('conference');
     expect(got?.body).toContain('Data & AI databricks');
-    expect(got?.fields.status).toBe('interessant');
+    expect(got?.fields.startDate).toBe('2027-09-10');
     expect(checkFields('conference', { startDate: '12-03-2027' }).problems[0]).toMatch(/JJJJ-MM-DD/);
   });
 

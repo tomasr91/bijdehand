@@ -224,20 +224,20 @@ export const TYPES: TypeDef[] = [
   {
     key: 'conference', label: 'Congres', plural: 'Congressen', group: 'praktisch', icon: 'Presentation',
     titleLabel: 'Naam', titlePlaceholder: 'Naam van het congres',
+    // Kaal (D27): naam, datum, plaats, link. De overige velden blijven verborgen bewaard (ook in back-ups).
     fields: [
-      { key: 'startDate', label: 'Begindatum', kind: 'date', primary: true },
-      { key: 'endDate', label: 'Einddatum', kind: 'date', primary: true, hint: 'Leeg bij één dag' },
+      { key: 'startDate', label: 'Datum', kind: 'date', primary: true },
       { key: 'city', label: 'Plaats', kind: 'text', primary: true, placeholder: 'Bijv. Utrecht, of Online' },
-      { key: 'status', label: 'Status', kind: 'select', primary: true, options: [
+      { key: 'website', label: 'Link', kind: 'url', primary: true, placeholder: 'https://…' },
+      { key: 'endDate', label: 'Einddatum', kind: 'date', hidden: true },
+      { key: 'status', label: 'Status', kind: 'select', hidden: true, options: [
         { value: 'interessant', label: 'Interessant' }, { value: 'gaat', label: 'Ik ga' }, { value: 'geweest', label: 'Geweest' },
       ] },
-      { key: 'website', label: 'Website', kind: 'url', primary: true, placeholder: 'https://…' },
-      { key: 'traits', label: 'Labels', kind: 'list', primary: true, suggestions: ['data', 'ai', 'databricks', 'dbt', 'gratis', 'online', 'meetup'] },
-      { key: 'summary', label: 'Samenvatting', kind: 'textarea', external: true, hint: 'Korte beschrijving' },
-      { key: 'checkedAt', label: 'Opgezocht op', kind: 'date', external: true },
-      { key: 'uncertain', label: 'Nog onzeker', kind: 'textarea', external: true },
+      { key: 'traits', label: 'Labels', kind: 'list', hidden: true },
+      { key: 'summary', label: 'Samenvatting', kind: 'textarea', external: true, hidden: true },
+      { key: 'checkedAt', label: 'Opgezocht op', kind: 'date', external: true, hidden: true },
+      { key: 'uncertain', label: 'Nog onzeker', kind: 'textarea', external: true, hidden: true },
     ],
-    statusKey: 'status', doneStatuses: ['geweest'], filterLabels: ['Aankomend', 'Geweest'],
     keywords: ['congres', 'conferentie', 'conference', 'meetup', 'summit', 'symposium', 'seminar', 'webinar', 'pydata'],
     hosts: ['meetup.com', 'eventbrite.', 'sessionize.com'],
   },

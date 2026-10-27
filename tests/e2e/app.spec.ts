@@ -562,23 +562,38 @@ test('uitjes en dates: tegel op het beginscherm, lijst plakken, kaart met punt, 
   await noHorizontalScroll(page);
 });
 
-test('congressen: tegel, lijst per maand, nieuw congres met datum, "Geweest" onderaan', async ({ page }) => {
+test('congressen: kale lijst op datum, toevoegen en wijzigen in een venster, link opent direct', async ({ page }) => {
   await loadSamples(page);
   await page.goto('/#/verzamelingen');
   await expect(page.getByRole('button', { name: /^Congressen/ })).toBeVisible();
   await page.goto('/#/verzameling/conference');
   await expect(page.getByRole('heading', { name: 'Congressen' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: /maart 2027/ })).toBeVisible();
-  await expect(page.getByRole('button', { name: /DataFest Utrecht/ })).toBeVisible();
-  await addBtn(page).click();
-  const sheet = page.getByRole('dialog');
-  await sheet.getByLabel('Tekst').fill('Godatafest');
+  await expect(page.getByRole('button', { name: /DataFest Utrecht/ }).first()).toBeVisible();
+  await expect(addBtn(page)).toHaveCount(0);
+  await page.getByRole('button', { name: 'Congres toevoegen' }).first().click();
+  const sheet = page.getByRole('dialog', { name: 'Congres toevoegen' });
+  await sheet.getByLabel('Naam').fill('Godatafest');
+  await sheet.getByLabel('Datum').fill('2027-01-20');
+  await sheet.getByLabel('Plaats').fill('Utrecht');
+  await sheet.getByLabel('Link').fill('https://example.org/godatafest');
   await sheet.getByRole('button', { name: 'Bewaren' }).click();
-  await page.getByLabel('Begindatum').fill('2027-01-20');
-  await page.getByRole('radio', { name: 'Geweest' }).click();
   await settle(page);
-  await page.goto('/#/verzameling/conference');
-  await expect(page.getByRole('heading', { name: /Geweest · 1/ })).toBeVisible();
+  // Met link: de regel is een link die direct opent; Godatafest (jan 2027) staat boven DataFest (mrt 2027).
+  const link = page.getByRole('link', { name: /Godatafest/ });
+  await expect(link).toHaveAttribute('href', 'https://example.org/godatafest');
+  const titles = await page.locator('.conf-row .r-row-title').allTextContents();
+  expect(titles.indexOf('Godatafest')).toBeLessThan(titles.indexOf('DataFest Utrecht'));
+  // Wijzigen en verwijderen via het potlood.
+  await page.getByRole('button', { name: 'Godatafest wijzigen' }).last().click();
+  const edit = page.getByRole('dialog', { name: 'Congres wijzigen' });
+  await edit.getByLabel('Plaats').fill('Amersfoort');
+  await edit.getByRole('button', { name: 'Bewaren' }).click();
+  await settle(page);
+  await expect(page.getByText('Amersfoort')).toBeVisible();
+  await page.getByRole('button', { name: 'Godatafest wijzigen' }).last().click();
+  await page.getByRole('dialog', { name: 'Congres wijzigen' }).getByRole('button', { name: 'Congres verwijderen' }).click();
+  await expect(page.getByText('Naar prullenbak verplaatst')).toBeVisible();
+  await expect(page.getByRole('link', { name: /Godatafest/ })).toHaveCount(0);
   await noHorizontalScroll(page);
   await touchTargetsOk(page);
 });

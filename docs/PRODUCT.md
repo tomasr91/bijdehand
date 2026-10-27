@@ -37,7 +37,7 @@ terug als de eigenaar hem wil. Velden staan in `DATA_MODEL.md`.
 | 1 | Restaurants | Inspiratie | Gegroepeerd per plaats; keuken, kenmerken (bijv. fancy, vegetarisch, zingende bediening), eigen cijfer 1–10 (leeg = nog niet geweest), favoriet (hartje), website en route; filter op geweest en op label; sober lijst en detail |
 | 2 | Uitjes met kinderen | Inspiratie | Zelfde opzet als restaurants (D26): per plaats, labels (*buiten*, *dieren*, *regenproof*…), cijfer en hartje, route, kaart; sober lijst en detail |
 | 3 | Dates | Inspiratie | Idem, voor dates met z'n tweeën (labels als *romantisch*, *actief*, *avond*) |
-| 4 | Congressen | Praktisch | Gegroepeerd per maand, het eerstvolgende bovenaan; begin-/einddatum, plaats, website, labels; status interessant / ik ga / geweest (afgelopen onder *Geweest*); geen kaart (D27) |
+| 4 | Congressen | Praktisch | Kale lijst op datum (eerstvolgende bovenaan, voorbije onderaan): naam, datum, plaats; tik opent de link; potlood = klein venster om te wijzigen of te verwijderen; geen detailscherm (D27) |
 | 5 | Albums | Inspiratie | Artiest, status (ontdekken / beluisteren / opnieuw / geluisterd) |
 | 6 | Paklijst | Praktisch | Vakantiepaklijst als checklist: hele lijst plakken, afvinken, alles uitvinken |
 

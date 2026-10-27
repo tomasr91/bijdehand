@@ -19,9 +19,7 @@ export function summary(item: Item): string[] {
     }
     case 'conference': {
       const a = s('startDate');
-      const b = s('endDate');
-      const when = a ? (b && b !== a ? `${formatDate(a)} – ${formatDate(b)}` : formatDate(a)) : '';
-      return [when, s('city'), status];
+      return [a ? formatDate(a) : '', s('city')];
     }
     case 'album': return [s('artist'), status];
     case 'packing': {
