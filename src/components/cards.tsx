@@ -11,8 +11,10 @@ export function summary(item: Item): string[] {
   const s = (k: string) => (typeof f[k] === 'string' ? (f[k] as string).trim() : '');
   const status = item.type && statusOf(item) ? optionLabel(item.type, typeDef(item.type)!.statusKey!, statusOf(item)!) : '';
   switch (item.type) {
-    case 'restaurant': {
-      // Sober: naam, hoogstens 3 kenmerken, rechts cijfer en hartje (RestaurantMark). Geen status: het cijfer zegt of je er was.
+    case 'restaurant':
+    case 'activity':
+    case 'date': {
+      // Sober: naam, hoogstens 3 kenmerken, rechts cijfer en hartje (PlaceMark). Geen status: het cijfer zegt of je er was.
       return [traitsLine(item), f.openStatus === 'gesloten' ? 'Permanent gesloten' : ''];
     }
     case 'album': return [s('artist'), status];
@@ -43,7 +45,7 @@ export function traitsLine(item: Item, max = 3): string {
 }
 
 /** Rechts op een restaurantrij: hartje (favoriet) en je eigen cijfer; vinkje bij "geweest" zonder cijfer; anders niets. */
-export function RestaurantMark({ item }: { item: Item }) {
+export function PlaceMark({ item }: { item: Item }) {
   const f = item.fields;
   const fav = f.favorite === true;
   const score = typeof f.score === 'number' ? f.score : null;
@@ -61,7 +63,7 @@ export function RestaurantMark({ item }: { item: Item }) {
 }
 
 /** Eén restaurantkaart: naam, daaronder de eerste drie labels. Rechts hartje en cijfer. */
-export function RestaurantRow({ item }: { item: Item }) {
+export function PlaceRow({ item }: { item: Item }) {
   const traits = traitsLine(item, 3);
   const closed = item.fields.openStatus === 'gesloten';
   const sub = [closed ? 'Permanent gesloten' : '', traits].filter(Boolean).join(' · ');
@@ -71,7 +73,7 @@ export function RestaurantRow({ item }: { item: Item }) {
         <span className="r-row-title">{item.title || 'Zonder titel'}</span>
         {sub && <span className="r-row-sub">{sub}</span>}
       </span>
-      <RestaurantMark item={item} />
+      <PlaceMark item={item} />
     </button>
   );
 }
@@ -103,7 +105,7 @@ export function ItemCard({ item, showType = true }: { item: Item; showType?: boo
             </span>
           )}
         </span>
-        {item.type === 'restaurant' && <RestaurantMark item={item} />}
+        {typeDef(item.type)?.place && <PlaceMark item={item} />}
       </button>
     </div>
   );

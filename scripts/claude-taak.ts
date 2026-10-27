@@ -1,7 +1,7 @@
 // Hulpmiddel voor de Claude-taak die nieuwe items indeelt en restaurants opzoekt (zie docs/INDELEN.md → Dagelijkse taak).
 //
 //   npx tsx scripts/claude-taak.ts todo  <data-repo-map>
-//       Toont als JSON wat er te doen is: Inbox-items, restaurants die nog niet zijn opgezocht, restaurants zonder bruikbaar adres,
+//       Toont als JSON wat er te doen is: Inbox-items, plekken (restaurants, uitjes, dates) die nog niet zijn opgezocht, plekken zonder bruikbaar adres,
 //       zonder items waarvoor al een (nog niet verwerkt) voorstel klaarstaat. Plus bestaande schrijfwijzen.
 //   npx tsx scripts/claude-taak.ts check <data-repo-map> <voorstellenbestand>
 //       Controleert een voorstellenbestand met precies dezelfde regels als de app. Exit 1 bij fouten.
@@ -48,14 +48,15 @@ if (cmd === 'todo') {
   }
   const inbox = live.filter((i) => i.type === null && !pending.has(i.id))
     .map((i) => ({ id: i.id, titel: i.title, tekst: i.body, checklist: i.checklist.map((e) => e.text), tags: i.tags, bewaard: i.createdAt }));
-  const restaurants = live.filter((i) => i.type === 'restaurant' && !i.fields.checkedAt && !pending.has(`zoek:${i.title.toLowerCase()}`))
-    .map((i) => ({ titel: i.title, plaats: i.fields.city ?? null, velden: i.fields, notities: i.body }));
+  const isPlace = (i: { type: string | null }) => !!TYPES.find((t) => t.key === i.type)?.place;
+  const plekken = live.filter((i) => isPlace(i) && !i.fields.checkedAt && !pending.has(`zoek:${i.title.toLowerCase()}`))
+    .map((i) => ({ soort: i.type, titel: i.title, plaats: i.fields.city ?? null, velden: i.fields, notities: i.body }));
   // Restaurants die wel zijn opgezocht maar geen bruikbaar adres voor de kaart hebben: geen adres, of de app vond het adres
   // niet (geoFor zonder lat). Plekken zonder vast adres ("vast adres" in uncertain) slaan we over.
-  const adresNodig = live.filter((i) => i.type === 'restaurant' && i.fields.checkedAt && !pending.has(`zoek:${i.title.toLowerCase()}`)
+  const adresNodig = live.filter((i) => isPlace(i) && i.fields.checkedAt && !pending.has(`zoek:${i.title.toLowerCase()}`)
     && !/vast adres/i.test(String(i.fields.uncertain ?? ''))
     && (!String(i.fields.address ?? '').trim() || (i.fields.geoFor && typeof i.fields.lat !== 'number')))
-    .map((i) => ({ titel: i.title, plaats: i.fields.city ?? null, adres: i.fields.address ?? null }));
+    .map((i) => ({ soort: i.type, titel: i.title, plaats: i.fields.city ?? null, adres: i.fields.address ?? null }));
   const bekend: Record<string, Record<string, string[]>> = {};
   for (const t of TYPES) {
     for (const f of t.fields.filter((x) => x.kind === 'text' || x.kind === 'list')) {
@@ -71,7 +72,7 @@ if (cmd === 'todo') {
     }
   }
   const soorten = Object.fromEntries(TYPES.map((t) => [t.key, t.fields.filter((f) => !f.hidden).map((f) => ({ veld: f.key, label: f.label, soort: f.kind, ...(f.options ? { opties: f.options.map((o) => o.value) } : {}), ...(f.external ? { opgezocht: true } : {}) }))]));
-  console.log(JSON.stringify({ gebaseerdOp: exportedAt, inbox, restaurantsOpzoeken: restaurants, adresNodig, bekend, soorten, wachtendeVoorstellen: pending.size }, null, 1));
+  console.log(JSON.stringify({ gebaseerdOp: exportedAt, inbox, plekkenOpzoeken: plekken, adresNodig, bekend, soorten, wachtendeVoorstellen: pending.size }, null, 1));
 } else if (cmd === 'check') {
   if (!file) { console.error('Geef het voorstellenbestand op.'); process.exit(2); }
   const { items } = load();

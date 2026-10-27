@@ -1,4 +1,4 @@
-// Register van de soorten informatie (restaurants, albums, paklijst). Eén plek voor labels, velden en weergave-hints.
+// Register van de soorten informatie (restaurants, uitjes met kinderen, dates, albums, paklijst). Eén plek voor labels, velden en weergave-hints.
 // Ongebruikte soorten zijn verwijderd (D25); oude items daarvan gaan bij de migratie naar de Inbox (migrate.ts).
 // Een nieuwe soort toevoegen = hier een definitie toevoegen + TypeKey in model.ts + docs.
 import type { FieldValue, Item, TypeKey } from './model';
@@ -37,11 +37,11 @@ export function shownFields(fields: FieldDef[]): FieldDef[] {
 export type GroupKey = 'inspiratie' | 'praktisch';
 
 export const GROUPS: { key: GroupKey; label: string; description: string }[] = [
-  { key: 'inspiratie', label: 'Inspiratie', description: 'Waar ik wil eten en wat ik wil luisteren' },
+  { key: 'inspiratie', label: 'Inspiratie', description: 'Waar ik wil eten, naartoe wil en wat ik wil luisteren' },
   { key: 'praktisch', label: 'Praktisch', description: 'Lijsten' },
 ];
 
-export type IconName = 'UtensilsCrossed' | 'Disc3' | 'Backpack';
+export type IconName = 'UtensilsCrossed' | 'Tent' | 'Wine' | 'Disc3' | 'Backpack';
 
 export interface TypeDef {
   key: TypeKey;
@@ -76,6 +76,10 @@ export interface TypeDef {
   filterLabels?: [string, string];
   /** Alleen titel, checklist en notities in het detailscherm (geen links, tags, geschiedenis). */
   simpleDetail?: boolean;
+  /** Plek-soort (restaurant, uitje, date): lijst per plaats, kaart, cijfer/hartje, sober detailscherm met route. */
+  place?: boolean;
+  /** Teksten voor een plek-soort. */
+  placeTexts?: { noun: string; emptyTitle: string; emptySub: string; pasteExample: string; notesPlaceholder: string };
 }
 
 const rating: FieldDef = { key: 'rating', label: 'Beoordeling', kind: 'rating' };
@@ -83,6 +87,37 @@ const rating: FieldDef = { key: 'rating', label: 'Beoordeling', kind: 'rating' }
 /** Verwijderde soorten (D25): alleen nog nodig om oude gegevens netjes naar de Inbox te zetten. */
 export const LEGACY_TYPES: Record<string, string> = {
   gift: 'Cadeau', trip: 'Nachtje weg', book: 'Boek', size: 'Kleermaat', game: 'Game', todo: 'Klus', plant: 'Plant',
+};
+
+/** Velden van een uitje of date: dezelfde basis als een restaurant (plaats, labels, cijfer, adres, opgezochte gegevens, kaartpunt). */
+function placeFields(labelHint: string, suggestions: string[], placeholder: string): FieldDef[] {
+  return [
+    { key: 'city', label: 'Plaats', kind: 'text', primary: true, placeholder: 'Bijv. Utrecht' },
+    { key: 'traits', label: 'Labels', kind: 'list', primary: true, hint: labelHint, suggestions },
+    { key: 'score', label: 'Mijn cijfer', kind: 'score', primary: true, placeholder: 'Bijv. 7,5', hint: '1 tot 10; leeg = nog niet geweest' },
+    { key: 'favorite', label: 'Favoriet', kind: 'boolean', primary: true },
+    { key: 'visited', label: 'Geweest (zonder cijfer)', kind: 'boolean', hidden: true },
+    { key: 'address', label: 'Adres of buurt', kind: 'text', primary: true, placeholder },
+    { key: 'summary', label: 'Samenvatting', kind: 'textarea', external: true, hint: 'Korte beschrijving; staat bovenaan' },
+    { key: 'website', label: 'Website', kind: 'url', external: true, placeholder: 'https://…' },
+    { key: 'openStatus', label: 'Status', kind: 'select', external: true, options: [
+      { value: 'open', label: 'Open' }, { value: 'tijdelijk', label: 'Tijdelijk dicht' }, { value: 'gesloten', label: 'Permanent gesloten' },
+    ] },
+    { key: 'checkedAt', label: 'Opgezocht op', kind: 'date', external: true },
+    { key: 'uncertain', label: 'Nog onzeker', kind: 'textarea', external: true },
+    { key: 'lat', label: 'Breedtegraad', kind: 'number', external: true, hidden: true },
+    { key: 'lng', label: 'Lengtegraad', kind: 'number', external: true, hidden: true },
+    { key: 'geoFor', label: 'Locatie gezocht voor', kind: 'text', external: true, hidden: true },
+  ];
+}
+
+const placeStatus: Pick<TypeDef, 'derivedStatus' | 'groupBy' | 'filterKey' | 'compactDetail' | 'place'> = {
+  derivedStatus: {
+    options: [{ value: 'niet', label: 'Nog niet geweest' }, { value: 'geweest', label: 'Geweest' }],
+    of: (i) => (hasBeen(i) ? 'geweest' : 'niet'),
+    words: { niet: 'nog niet geweest proberen', geweest: 'geweest bezocht' },
+  },
+  groupBy: 'city', filterKey: 'traits', compactDetail: true, place: true,
 };
 
 export const TYPES: TypeDef[] = [
@@ -142,6 +177,48 @@ export const TYPES: TypeDef[] = [
     groupBy: 'city', filterKey: 'traits', compactDetail: true,
     keywords: ['restaurant', 'eten bij', 'uit eten', 'diner', 'lunch', 'bistro', 'brasserie', 'eetcafe', 'eetcafé', 'pizzeria', 'sushi', 'ramen'],
     hosts: ['thefork.', 'iens.nl', 'tripadvisor.', 'michelin.'],
+    place: true,
+    placeTexts: {
+      noun: 'restaurant', emptyTitle: 'Nog geen restaurants', emptySub: 'Waar wil je nog eten?',
+      pasteExample: 'Eén per regel, bijv.\nLeiden - Pamir (Afghaans)\nZwolle - Het hoekje (kleine gerechtjes, reserveren)',
+      notesPlaceholder: 'Wat at je, met wie, wat wil je onthouden?',
+    },
+  },
+
+  {
+    key: 'activity', label: 'Uitje', plural: 'Uitjes', group: 'inspiratie', icon: 'Tent',
+    titleLabel: 'Naam', titlePlaceholder: 'Naam van het uitje',
+    fields: placeFields(
+      'Wat kun je verwachten? De eerste drie staan op het kaartje.',
+      ['binnen', 'buiten', 'dieren', 'speeltuin', 'natuur', 'museum', 'zwemmen', 'regenproof', 'gratis'],
+      'Straat + huisnummer, of buurt',
+    ),
+    ...placeStatus,
+    keywords: ['uitje', 'uitjes', 'met kinderen', 'met de kinderen', 'kindvriendelijk', 'speeltuin', 'dierentuin', 'pretpark', 'kinderboerderij', 'speelparadijs'],
+    hosts: [],
+    placeTexts: {
+      noun: 'uitje', emptyTitle: 'Nog geen uitjes', emptySub: 'Wat ga je met de kinderen doen?',
+      pasteExample: 'Eén per regel, bijv.\nUtrecht - Kinderboerderij Nieuw Zuid (dieren, buiten)\nAmsterdam - NEMO (museum, binnen)',
+      notesPlaceholder: 'Wat was leuk, hoe oud waren de kinderen, wat wil je onthouden?',
+    },
+  },
+
+  {
+    key: 'date', label: 'Date', plural: 'Dates', group: 'inspiratie', icon: 'Wine',
+    titleLabel: 'Naam', titlePlaceholder: 'Naam van de date',
+    fields: placeFields(
+      'Wat kun je verwachten? De eerste drie staan op het kaartje.',
+      ['romantisch', 'actief', 'cultuur', 'eten en drinken', 'buiten', 'binnen', 'avond', 'thuis', 'verrassend'],
+      'Straat + huisnummer, of buurt (leeg bij een date thuis)',
+    ),
+    ...placeStatus,
+    keywords: ['date', 'dates', 'date night', 'datenight', 'romantisch', 'romantische', 'samen met', 'met z\'n tweeën', 'met zn tweeen', 'avondje uit'],
+    hosts: [],
+    placeTexts: {
+      noun: 'date', emptyTitle: 'Nog geen dates', emptySub: 'Wat ga je samen doen?',
+      pasteExample: 'Eén per regel, bijv.\nUtrecht - Wijnproeverij (eten en drinken, avond)\nAmersfoort - Klimbos (actief, buiten)',
+      notesPlaceholder: 'Wat was leuk, wat wil je onthouden?',
+    },
   },
 
   {

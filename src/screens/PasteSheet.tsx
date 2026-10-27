@@ -66,12 +66,12 @@ export function PasteSheet({ type, open, onClose }: { type: TypeKey; open: boole
       <AutoText
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={type === 'restaurant' ? 'Eén per regel, bijv.\nLeiden - Pamir (Afghaans)\nZwolle - Het hoekje (kleine gerechtjes, reserveren)' : 'Eén per regel'}
+        placeholder={def.placeTexts?.pasteExample ?? 'Eén per regel'}
         aria-label="Geplakte lijst"
         minRows={4}
       />
-      {type === 'restaurant' && (
-        <p className="hint">Vorm: <i>Plaats - Naam (kenmerken)</i>. Een keuken zoals "Afghaans" wordt herkend; de rest van wat tussen haakjes staat worden kenmerken. Je oorspronkelijke regel wordt bewaard.</p>
+      {def.place && (
+        <p className="hint">Vorm: <i>Plaats - Naam (kenmerken)</i>.{type === 'restaurant' ? ' Een keuken zoals "Afghaans" wordt herkend;' : ''} Wat tussen haakjes staat worden kenmerken. Je oorspronkelijke regel wordt bewaard.</p>
       )}
       {rows.length > 0 && (
         <ul className="paste-preview" aria-label="Voorbeeld">

@@ -2,8 +2,9 @@
 // 1. PDOK Locatieserver (Nederlandse overheid, gratis, nauwkeurig voor Nederlandse adressen).
 // 2. Valt terug op OpenStreetMap Nominatim (buitenland, of als PDOK niets precies genoeg vindt; hoogstens 1 verzoek/s).
 // Elk adres wordt één keer gezocht (bewaard als lat/lng + geoFor) en alleen opnieuw als het adres verandert.
-// Alleen restaurants mét adres: een plaatsnaam alleen zou een punt midden in de stad geven, en dat is misleidend.
+// Alleen plekken mét adres: een plaatsnaam alleen zou een punt midden in de stad geven, en dat is misleidend.
 import { db } from './db';
+import { typeDef } from './itemTypes';
 import type { Item } from './model';
 import { updateItem } from './repo';
 
@@ -30,10 +31,10 @@ export function hasLocation(item: Item): boolean {
   return typeof item.fields.lat === 'number' && typeof item.fields.lng === 'number';
 }
 
-/** Moet dit restaurant (opnieuw) opgezocht worden? */
+/** Moet deze plek (opnieuw) opgezocht worden? */
 export function needsGeocode(item: Item): boolean {
   const q = geoQuery(item);
-  return item.type === 'restaurant' && !item.deletedAt && !!q && str(item.fields.geoFor) !== q;
+  return !!typeDef(item.type)?.place && !item.deletedAt && !!q && str(item.fields.geoFor) !== q;
 }
 
 type Point = { lat: number; lng: number };
@@ -137,7 +138,7 @@ async function run(ids: string[], onProgress?: (done: number, total: number) => 
   return result;
 }
 
-/** Alle restaurants die nog een punt nodig hebben (voor het opzoeken op de achtergrond). */
+/** Alle plekken (restaurants, uitjes, dates) die nog een punt nodig hebben (voor het opzoeken op de achtergrond). */
 export async function missingGeocodeIds(): Promise<string[]> {
-  return (await db.items.where('type').equals('restaurant').toArray()).filter(needsGeocode).map((i) => i.id);
+  return (await db.items.where('type').anyOf('restaurant', 'activity', 'date').toArray()).filter(needsGeocode).map((i) => i.id);
 }

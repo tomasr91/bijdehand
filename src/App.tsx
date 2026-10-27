@@ -1,6 +1,6 @@
 import { Component, useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Plus } from 'lucide-react';
-import { isTypeKey } from './data/itemTypes';
+import { isTypeKey, typeDef } from './data/itemTypes';
 import { findUrl } from './data/util';
 import { AutoSync } from './ui/sync';
 import { AddCtx, DataProvider, ToastProvider, useData, type AddOptions } from './ui/context';
@@ -69,7 +69,7 @@ function Fab({ route, collectionType, onAdd }: { route: Route; collectionType: T
   const [p, id] = route.path;
   // Geen ronde + op restaurantschermen en op de paklijst (daar voeg je punten toe in de lijst zelf).
   const own = (t: string) => (p === 'verzameling' && id === t) || (p === 'item' && itemById.get(id)?.type === t);
-  if (own('restaurant') || own('packing')) return null;
+  if (typeDef(collectionType)?.place || own('packing') || (p === 'item' && typeDef(itemById.get(id)?.type)?.place)) return null;
   return (
     <button type="button" className="fab" aria-label="Toevoegen" onClick={() => onAdd(collectionType ? { type: collectionType, openAfter: true } : {})}>
       <Plus size={30} strokeWidth={2.4} />

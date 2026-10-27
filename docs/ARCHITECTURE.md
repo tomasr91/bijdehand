@@ -173,6 +173,11 @@ bevat geen geheimen.
   (vervangen door de sync, D14), voorbeeldgegevens in Instellingen, de proefversie als artifact (`build:artifact`, `seed.ts`,
   `VITE_PREVIEW`). Testgegevens staan nu in `src/data/testdata.ts` en worden in e2e als back-up teruggezet. Lege soorten
   staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; (sinds D25 zijn de ongebruikte soorten helemaal weg). E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
+- **D26 — 2026-10-27 — Uitjes met kinderen en dates als plek-soorten.** Twee nieuwe soorten (`activity`, `date`) met dezelfde
+  weergave als restaurants: `TypeDef.place` + `placeTexts` in het register, gedeelde schermen `Places.tsx` (lijst, filters, kaart),
+  `PlaceMap.tsx` en `PlaceDetail.tsx` (hernoemd uit de restaurantschermen, werken per soort). Kaartpunten (`geocode.ts`), geen ronde +,
+  lijst plakken en het opzoeken door de dagelijkse taak werken voor alle plek-soorten. Geen schemawijziging (v5): alleen nieuwe
+  `type`-waarden. Inbox-items worden dagelijks door Claude ingedeeld (`INDELEN.md`).
 - **D25 — 2026-10-25 — Alleen restaurants, albums en de paklijst; één lijn in de opmaak.** De zeven ongebruikte soorten zijn uit
   de code. Schema v5: oude items van die soorten gaan naar de Inbox met alle velden bewaard en een *Was: …*-regel in de notities
   (ook bij terugzetten van een back-up). Alle hoofdschermen krijgen de merkkop en losse kaarten; de paklijst een plakkende

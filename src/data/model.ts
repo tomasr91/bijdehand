@@ -2,7 +2,7 @@
 
 export const SCHEMA_VERSION = 5;
 
-export type TypeKey = 'restaurant' | 'album' | 'packing';
+export type TypeKey = 'restaurant' | 'activity' | 'date' | 'album' | 'packing';
 
 export type FieldValue = string | number | boolean | string[] | null;
 

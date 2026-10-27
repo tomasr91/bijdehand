@@ -35,8 +35,10 @@ terug als de eigenaar hem wil. Velden staan in `DATA_MODEL.md`.
 | # | Soort | Groep | Eigen weergave |
 |---|---|---|---|
 | 1 | Restaurants | Inspiratie | Gegroepeerd per plaats; keuken, kenmerken (bijv. fancy, vegetarisch, zingende bediening), eigen cijfer 1–10 (leeg = nog niet geweest), favoriet (hartje), website en route; filter op geweest en op label; sober lijst en detail |
-| 2 | Albums | Inspiratie | Artiest, status (ontdekken / beluisteren / opnieuw / geluisterd) |
-| 3 | Paklijst | Praktisch | Vakantiepaklijst als checklist: hele lijst plakken, afvinken, alles uitvinken |
+| 2 | Uitjes met kinderen | Inspiratie | Zelfde opzet als restaurants (D26): per plaats, labels (*buiten*, *dieren*, *regenproof*…), cijfer en hartje, route, kaart; sober lijst en detail |
+| 3 | Dates | Inspiratie | Idem, voor dates met z'n tweeën (labels als *romantisch*, *actief*, *avond*) |
+| 4 | Albums | Inspiratie | Artiest, status (ontdekken / beluisteren / opnieuw / geluisterd) |
+| 5 | Paklijst | Praktisch | Vakantiepaklijst als checklist: hele lijst plakken, afvinken, alles uitvinken |
 
 De groepering (Inspiratie, Praktisch) en de soorten staan in één register
 (`src/data/itemTypes.ts`). Daardoor is uitbreiden mogelijk zonder het gegevensmodel te wijzigen.

@@ -217,7 +217,7 @@ test('back-up exporteren en in een lege app terugzetten', async ({ page, browser
   await download.saveAs(file);
   const json = JSON.parse(readFileSync(file, 'utf8'));
   expect(json.format).toBe('bijdehand-backup');
-  expect(json.data.items).toHaveLength(12);
+  expect(json.data.items).toHaveLength(14);
   await expect(page.getByText('Laatste back-up: nog nooit')).toHaveCount(0);
 
   // Schone browser = leeg apparaat.
@@ -226,9 +226,9 @@ test('back-up exporteren en in een lege app terugzetten', async ({ page, browser
   await fresh.goto('/#/instellingen');
   await fresh.getByLabel('Back-upbestand kiezen').setInputFiles(file);
   const dlg = fresh.getByRole('dialog', { name: 'Back-up terugzetten' });
-  await expect(dlg.getByText('12 nieuwe items')).toBeVisible();
+  await expect(dlg.getByText('14 nieuwe items')).toBeVisible();
   await dlg.getByRole('button', { name: 'Samenvoegen' }).last().click();
-  await expect(fresh.getByText(/Samengevoegd: 12 nieuw/)).toBeVisible();
+  await expect(fresh.getByText(/Samengevoegd: 14 nieuw/)).toBeVisible();
   await fresh.goto('/#/verzameling/restaurant');
   await expect(fresh.getByRole('button', { name: /Trattoria Da Marco/ })).toBeVisible();
   await fresh.goto('/#/zoeken?q=Graslei');
@@ -522,4 +522,42 @@ test('restaurant verwijderen met de knop onderaan; geen ronde + op restaurantsch
   await expect(page.getByRole('button', { name: /Stadspark/ })).toBeVisible();
   await page.goto('/#/verzamelingen');
   await expect(addBtn(page)).toBeVisible();
+});
+
+test('uitjes en dates: tegel op het beginscherm, lijst plakken, kaart met punt, geen ronde +', async ({ page }) => {
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
+  await page.route('https://tile.openstreetmap.org/**', (r) => r.fulfill({ status: 200, contentType: 'image/png', body: png }));
+  await page.route('https://api.pdok.nl/**', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ response: { docs: [] } }) }));
+  await page.route('https://nominatim.openstreetmap.org/**', (r) =>
+    r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ lat: '52.0900', lon: '5.1200' }]) }));
+  await loadSamples(page);
+  await page.goto('/#/verzamelingen');
+  await expect(page.getByRole('button', { name: /^Uitjes/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Dates/ })).toBeVisible();
+
+  await page.goto('/#/verzameling/activity');
+  await expect(page.getByRole('heading', { name: 'Uitjes' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Kinderboerderij De Ooievaar/ })).toBeVisible();
+  await expect(addBtn(page)).toHaveCount(0);
+  await page.getByRole('button', { name: 'Lijst plakken' }).click();
+  const paste = page.getByRole('dialog', { name: 'Lijst plakken in Uitjes' });
+  await paste.getByLabel('Geplakte lijst').fill('Utrecht - Speeltuin Zuilen (buiten, gratis)');
+  await paste.getByRole('button', { name: /toevoegen/ }).click();
+  await settle(page);
+  await page.getByRole('button', { name: /Speeltuin Zuilen/ }).click();
+  await page.getByRole('button', { name: 'Gegevens bewerken' }).click();
+  await page.getByLabel('Adres of buurt').fill('Dorpsstraat 1');
+  await page.getByLabel('Adres of buurt').blur();
+  await settle(page);
+  await page.goto('/#/verzameling/activity');
+  await page.getByRole('button', { name: 'Kaart tonen' }).click();
+  await expect(page.getByRole('region', { name: 'Kaart met uitjes' })).toBeVisible();
+  await expect(page.locator('.map-pin')).toHaveCount(1, { timeout: 10_000 });
+  await touchTargetsOk(page);
+
+  await page.goto('/#/verzameling/date');
+  await expect(page.getByRole('heading', { name: 'Dates' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Wijnproeverij De Kelder/ })).toBeVisible();
+  await expect(addBtn(page)).toHaveCount(0);
+  await noHorizontalScroll(page);
 });

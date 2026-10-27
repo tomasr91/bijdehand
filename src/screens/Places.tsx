@@ -1,15 +1,15 @@
-// Restaurantlijst: één filterrij (geweest of niet), labels via de filterknop, per plaats een blok met rijen.
+// Lijst voor plek-soorten (restaurants, uitjes, dates): één filterrij (geweest of niet), labels via de filterknop, per plaats een blok met rijen.
 // Belangrijkste eerst: favorieten, dan je cijfer (hoog → laag), dan waar je nog niet was.
 import { ChevronDown, ClipboardPaste, List, ListFilter, Map as MapIcon, Plus, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { labelsOf, RestaurantRow } from '../components/cards';
+import { labelsOf, PlaceRow } from '../components/cards';
 import { BrandHeader, BrandPanel, ChipGroup, Empty, Section, Segmented, Sheet, TypeIcon } from '../components/ui';
 import { hasBeen, TYPE_MAP } from '../data/itemTypes';
-import type { Item } from '../data/model';
+import type { Item, TypeKey } from '../data/model';
 import { fold } from '../data/util';
 import { useAdd, useData, useToast } from '../ui/context';
 import { geocodeMissing, hasLocation, needsGeocode } from '../data/geocode';
-import { MapLegend, RestaurantMap } from './RestaurantMap';
+import { MapLegend, PlaceMap } from './PlaceMap';
 import { navigate } from '../ui/router';
 import { PasteSheet } from './PasteSheet';
 
@@ -18,7 +18,7 @@ type Seen = 'alle' | 'niet' | 'geweest';
 const traitsOf = labelsOf;
 
 /** Favorieten, dan cijfer hoog → laag, dan "geweest" zonder cijfer, dan nog niet geweest; binnen gelijk op naam. */
-export function sortRestaurants(list: Item[]): Item[] {
+export function sortPlaces(list: Item[]): Item[] {
   const rank = (i: Item) => (i.fields.favorite === true ? 0 : typeof i.fields.score === 'number' ? 1 : hasBeen(i) ? 2 : 3);
   const score = (i: Item) => (typeof i.fields.score === 'number' ? i.fields.score : -1);
   return [...list].sort((a, b) => rank(a) - rank(b) || score(b) - score(a) || a.title.localeCompare(b.title, 'nl'));
@@ -36,28 +36,29 @@ export function groupByCity(list: Item[]): { title: string; items: Item[] }[] {
   }
   return [...m.entries()]
     .sort(([ka, a], [kb, b]) => Number(ka === '') - Number(kb === '') || b.items.length - a.items.length || a.title.localeCompare(b.title, 'nl'))
-    .map(([, g]) => ({ ...g, items: sortRestaurants(g.items) }));
+    .map(([, g]) => ({ ...g, items: sortPlaces(g.items) }));
 }
 
-export function RestaurantCollection() {
+export function PlaceCollection({ type }: { type: TypeKey }) {
   const { liveItems } = useData();
   const add = useAdd();
-  const def = TYPE_MAP.restaurant;
+  const def = TYPE_MAP[type];
+  const texts = def.placeTexts!;
   const [seen, setSeen] = useState<Seen>('alle');
   const [trait, setTrait] = useState('');
   const [picking, setPicking] = useState(false);
   const [pasting, setPasting] = useState(false);
   const toast = useToast();
   const [view, setViewState] = useState<'lijst' | 'kaart'>(() => {
-    try { return localStorage.getItem('bijdehand:restaurantView') === 'kaart' ? 'kaart' : 'lijst'; } catch { return 'lijst'; }
+    try { return localStorage.getItem(`bijdehand:placeView:${type}`) === 'kaart' ? 'kaart' : 'lijst'; } catch { return 'lijst'; }
   });
   const setView = (v: 'lijst' | 'kaart') => {
     setViewState(v);
-    try { localStorage.setItem('bijdehand:restaurantView', v); } catch { /* alleen gemak */ }
+    try { localStorage.setItem(`bijdehand:placeView:${type}`, v); } catch { /* alleen gemak */ }
   };
   const [geo, setGeo] = useState<{ busy: boolean; done: number; total: number; failed: boolean }>({ busy: false, done: 0, total: 0, failed: false });
   const [showMissing, setShowMissing] = useState(false);
-  const all = liveItems.filter((i) => i.type === 'restaurant');
+  const all = liveItems.filter((i) => i.type === type);
   // Kaart open: ontbrekende locaties opzoeken (één keer per adres; zie geocode.ts).
   const missingIds = all.filter(needsGeocode).map((i) => i.id).join(',');
   // Eén ronde tegelijk; tijdens de ronde veranderen de items (gevonden punten), dat mag de ronde niet afbreken.
@@ -87,18 +88,18 @@ export function RestaurantCollection() {
   const beenCount = all.filter(hasBeen).length;
   const shown = byTrait.filter((i) => seen === 'alle' || (seen === 'geweest') === hasBeen(i));
   const groups = groupByCity(shown);
-  const newOne = () => add({ type: 'restaurant', openAfter: true, mode: 'text' });
+  const newOne = () => add({ type, openAfter: true, mode: 'text' });
 
   return (
     <div className="screen">
       <BrandHeader
-        art="restaurant"
+        art={type}
         back="/verzamelingen"
         title={def.plural}
-        sub={all.length ? `${all.length} plekken · ${beenCount} geweest` : 'Waar wil je nog eten?'}
+        sub={all.length ? `${all.length} plekken · ${beenCount} geweest` : texts.emptySub}
         actions={
           <>
-            <button type="button" className="icon-btn" aria-label="Zoeken in Restaurants" onClick={() => navigate('/zoeken?type=restaurant')}><Search size={22} /></button>
+            <button type="button" className="icon-btn" aria-label={`Zoeken in ${def.plural}`} onClick={() => navigate(`/zoeken?type=${type}`)}><Search size={22} /></button>
             {all.length > 0 && (
               <button type="button" className="icon-btn" aria-label={view === 'kaart' ? 'Lijst tonen' : 'Kaart tonen'} onClick={() => setView(view === 'kaart' ? 'lijst' : 'kaart')}>
                 {view === 'kaart' ? <List size={22} /> : <MapIcon size={22} />}
@@ -137,12 +138,12 @@ export function RestaurantCollection() {
       </BrandPanel>
       {all.length === 0 ? (
         <Empty
-          icon={<TypeIcon type="restaurant" size={28} />}
-          title="Nog geen restaurants"
+          icon={<TypeIcon type={type} size={28} />}
+          title={texts.emptyTitle}
           text="Heb je al een lijstje, bijvoorbeeld in Keep? Plak het in één keer."
           action={
             <div className="stack">
-              <button type="button" className="btn btn-primary" onClick={newOne}><Plus size={18} /> Restaurant toevoegen</button>
+              <button type="button" className="btn btn-primary" onClick={newOne}><Plus size={18} /> {def.label} toevoegen</button>
               <button type="button" className="btn" onClick={() => setPasting(true)}><ClipboardPaste size={18} /> Lijst plakken</button>
             </div>
           }
@@ -151,7 +152,7 @@ export function RestaurantCollection() {
         <Empty title="Niets gevonden met deze filters" />
       ) : view === 'kaart' ? (
         <>
-          <RestaurantMap items={shown} onOpen={(id) => navigate(`/item/${id}`)} onLocateError={(m) => toast(m, { tone: 'error' })} />
+          <PlaceMap type={type} items={shown} onOpen={(id) => navigate(`/item/${id}`)} onLocateError={(m) => toast(m, { tone: 'error' })} />
           <MapLegend />
           {geo.busy && <p className="hint" role="status">Locaties opzoeken… {geo.done ? `${geo.done} van ${geo.total}` : ''}</p>}
           {!geo.busy && geo.failed && <p className="notice notice-error" role="alert">Locaties opzoeken lukte niet (geen verbinding?). Het wordt opnieuw geprobeerd als je de kaart weer opent.</p>}
@@ -166,8 +167,8 @@ export function RestaurantCollection() {
                 </button>
                 {showMissing && (
                   <>
-                    <p className="hint">Zonder (vindbaar) adres. Vul het adres in via het restaurant → Gegevens bewerken; daarna zoekt de kaart opnieuw.</p>
-                    <div className="r-block">{missing.map((i) => <RestaurantRow key={i.id} item={i} />)}</div>
+                    <p className="hint">Zonder (vindbaar) adres. Vul het adres in via het item → Gegevens bewerken; daarna zoekt de kaart opnieuw.</p>
+                    <div className="r-block">{missing.map((i) => <PlaceRow key={i.id} item={i} />)}</div>
                   </>
                 )}
               </div>
@@ -177,7 +178,7 @@ export function RestaurantCollection() {
       ) : (
         groups.map((g) => (
           <Section key={g.title} className="city" title={<>{g.title} <span className="group-count">· {g.items.length}</span></>}>
-            <div className="r-block">{g.items.map((i) => <RestaurantRow key={i.id} item={i} />)}</div>
+            <div className="r-block">{g.items.map((i) => <PlaceRow key={i.id} item={i} />)}</div>
           </Section>
         ))
       )}
@@ -192,7 +193,7 @@ export function RestaurantCollection() {
           options={[{ value: '', label: 'Alle labels' }, ...traitCounts.map(([t, n]) => ({ value: t, label: t, count: n }))]}
         />
       </Sheet>
-      <PasteSheet type="restaurant" open={pasting} onClose={() => setPasting(false)} />
+      <PasteSheet type={type} open={pasting} onClose={() => setPasting(false)} />
     </div>
   );
 }

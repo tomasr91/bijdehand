@@ -42,9 +42,20 @@ herkent nu alleen de restaurantnotatie; bij andere soorten wordt daar elke regel
 |---|---|---|---|
 | Restaurant | `Plaats - Naam (keuken, kenmerken)` | `Leiden - Pamir (Afghaans, reserveren)` | city, cuisine, traits (labels). Geen status: "geweest" volgt uit je eigen cijfer; dat en `favorite` vult Claude nooit in |
 | Album | `Album: Titel - Artiest` | `Album: Blue - Joni Mitchell (opnieuw)` | artist, status |
+| Uitje met kinderen | `Plaats - Naam (kenmerken)` of `Uitje: Naam` | `Utrecht - Kinderboerderij Zuid (dieren, buiten)` | city, traits (labels), address, summary, website; geen keuken |
+| Date | `Plaats - Naam (kenmerken)` of `Date: Naam` | `Amersfoort - Wijnproeverij (eten en drinken, avond)` | idem |
 | Paklijst | `Paklijst Naam:` + één punt per regel | `Paklijst skiën:` / `- skibril` | checklist (één punt per regel). Er is **één** paklijst: bestaat die al, dan `aanvullen` met `itemId` en `checklist` (dubbele punten slaat de app over) en de Inbox-notitie met `verwijderen` naar de prullenbak |
 
-Er zijn alleen deze drie soorten (D25). Past iets nergens bij (bijv. een boek of cadeau-idee), dan `laten`: het blijft in de
+**Uitjes en dates (D26):** alles wat de eigenaar met de kinderen kan doen (speeltuin, dierentuin, pretpark, museum, wandeling, bos) is een
+`activity`; alles wat hij samen met zijn partner kan doen (diner buiten de deur, workshop, wijnproeverij, bioscoop, weekendje weg
+voor twee) een `date`. Een eetgelegenheid is een `restaurant` (ook als de eigenaar er met de kinderen of op een date heen wil). Is het
+onduidelijk of het met de kinderen of met z'n tweeën is: `laten` met die vraag. Labels in kleine letters, 2–6, bestaande
+schrijfwijzen volgen (`bekend`). *Uitjes:* plek (*binnen*, *buiten*), wat (*dieren*, *speeltuin*, *natuur*, *museum*, *zwemmen*), praktisch
+(*regenproof*, *gratis*). *Dates:* sfeer (*romantisch*, *actief*, *cultuur*), wat (*eten en drinken*, *buiten*, *binnen*), moment (*avond*, *thuis*).
+Zoek bij een uitje of date met een vaste plek op: adres (*Straat huisnummer, postcode Plaats*), website, samenvatting (3–5 zinnen,
+zonder prijzen), `openStatus`, `checkedAt`. Zonder vaste plek (een date thuis): geen adres, zet "geen vast adres" in `uncertain`.
+
+Er zijn alleen deze vijf soorten (D25, D26). Past iets nergens bij (bijv. een boek of cadeau-idee), dan `laten`: het blijft in de
 Inbox. Stel nooit een soort voor die er niet is; de app weigert dat voorstel.
 
 **[Aanname] — nog te bepalen door de eigenaar:**
@@ -104,8 +115,8 @@ belangrijk. Claude zet ze in deze volgorde, en laat een groep weg als er niets t
 Een geplande Claude-taak draait **één keer per dag** (en op verzoek van de eigenaar: "Bijdehand bijwerken").
 
 1. Kloon `tomasr91/bijdehand` (code, openbaar) en `tomasr91/bijdehand-data` (gegevens, privé); `npm ci` in de code-repo.
-2. `npx tsx scripts/claude-taak.ts todo ../bijdehand-data` geeft: Inbox-items, restaurants die nog niet zijn opgezocht
-   (geen `checkedAt`), restaurants zonder bruikbaar adres (`adresNodig`: geen adres, of de app vond het niet op de kaart), bestaande schrijfwijzen (`bekend`), velden per soort (`soorten`) en `gebaseerdOp`.
+2. `npx tsx scripts/claude-taak.ts todo ../bijdehand-data` geeft: Inbox-items, plekken (restaurants, uitjes, dates) die nog niet zijn opgezocht (`plekkenOpzoeken`, met `soort`)
+   (geen `checkedAt`), plekken zonder bruikbaar adres (`adresNodig`: geen adres, of de app vond het niet op de kaart), bestaande schrijfwijzen (`bekend`), velden per soort (`soorten`) en `gebaseerdOp`.
    Items met een wachtend voorstel staan er niet in. Niets te doen → stoppen, niets committen.
 3. Per Inbox-item: `indelen` / `nieuw` / `laten` volgens de regels hierboven. Wordt het een restaurant, dan meteen ook opzoeken
    (zelfde voorstel, velden hieronder). Per al ingedeeld restaurant zonder `checkedAt`: `aanvullen`.

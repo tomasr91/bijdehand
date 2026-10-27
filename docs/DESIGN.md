@@ -17,7 +17,7 @@ Status: **[Gebouwd]** tenzij anders vermeld. De tokens staan bovenaan `src/style
 
 ## Visuele stijl
 
-- **Eén lijn (D25):** hoofdschermen (beginscherm, Restaurants, Albums, Paklijst, Inbox) hebben de merkkop met daaronder een blok in de achtergrondkleur (filters of voortgang); detailschermen,
+- **Eén lijn (D25):** hoofdschermen (beginscherm, Restaurants, Uitjes, Dates, Albums, Paklijst, Inbox) hebben de merkkop met daaronder een blok in de achtergrondkleur (filters of voortgang); detailschermen,
   Instellingen, Zoeken en Prullenbak een lichte kopbalk. Overal losse kaarten (titel 17 px vet, grijze regel eronder) en
   sectiekoppen in `--heading`.
 - **Even hoog overal:** elke merkkop is één rij (terug · titel met ondertitel · hoogstens twee knoppen); titel en ondertitel
@@ -83,7 +83,7 @@ Verzamelingen (start) ── Inbox ── item
 Toevoegen = bottom sheet boven het huidige scherm (ronde knop rechtsonder)
 ```
 
-**[Gebouwd]** Restaurants hebben een **eigen, sober detail** (`compactDetail`, `src/screens/RestaurantDetail.tsx`), belangrijkste eerst:
+**[Gebouwd]** Restaurants, uitjes en dates hebben een **eigen, sober detail** (`compactDetail`, `src/screens/PlaceDetail.tsx`; D26), belangrijkste eerst:
 
 1. **Kop:** naam (groot, bewerkbaar), **hartje** (favoriet, aan/uit) en rechts **Mijn cijfer** als groot vak (1–10, één decimaal, komma of punt; "–" = nog niet geweest; ongeldige invoer krijgt een melding en wordt niet bewaard).
 2. **Plaats · keuken** in één regel, daaronder de **labels** als kleine, niet-klikbare chips.
@@ -105,7 +105,7 @@ verbanden, tags, eerdere versies en metadata.
 | Soort | Lijstweergave |
 |---|---|
 | Paklijst | Er is **één** paklijst (D23): de tegel op het hoofdscherm opent hem meteen, zonder tussenscherm; is er nog geen, dan een knop *Paklijst maken*. Geen ronde +; Toevoegen met soort Paklijst vult de bestaande lijst aan (dubbele punten overgeslagen). Detail: merkkop met de naam; daaronder plakt *N van M ingepakt* met voortgangsbalk en **Alles uitvinken** (met *Ongedaan maken*); de checklist als één kaart; daaronder notities. Een geplakte lijst met meerdere regels wordt per regel een punt, ook bij Toevoegen (D22) |
-| Restaurants | Eigen scherm (`src/screens/Restaurants.tsx`). Eén filterrij **Alle · Nog niet · Geweest** (afgeleid van je cijfer); labelfilter via de filterknop in de kopbalk (sheet met labels; actief filter als chip met ✕, stip op de knop). Merkkop met *N plekken · N geweest* en de knoppen zoeken en kaart; het filterblok plakt bovenaan: *Alle 30 · Nog niet 15 · Geweest 15* met rechts de labelfilterknop. Per plaats een kop in de merkkleur (*Utrecht · 26*), grootste plaats eerst, daaronder **losse kaarten**: de **naam**, daaronder de eerste drie labels (*Fine dining, frans, michelinster*; zie `INDELEN.md`); rechts **hartje** en **je cijfer**, of niets als je er nog niet was. Filter (kopbalk): labels, ook "fine dining". Volgorde: favorieten, dan cijfer hoog → laag, dan nog niet geweest (op naam). **Kaart** via het kaarticoon (D16): start ingezoomd op de plaats met de meeste restaurants; alle punten rond, gevuld met cijfer = geweest, open = nog niet, met uitleg onder de kaart; tik → popup met *Openen*; knop *Waar ben ik*; daaronder "N zonder locatie" |
+| Restaurants, Uitjes, Dates | Eigen scherm per soort, één bestand voor alle drie (`src/screens/Places.tsx`, D26; uitjes en dates hebben eigen lijntekeningen in de kop). Eén filterrij **Alle · Nog niet · Geweest** (afgeleid van je cijfer); labelfilter via de filterknop in de kopbalk (sheet met labels; actief filter als chip met ✕, stip op de knop). Merkkop met *N plekken · N geweest* en de knoppen zoeken en kaart; het filterblok plakt bovenaan: *Alle 30 · Nog niet 15 · Geweest 15* met rechts de labelfilterknop. Per plaats een kop in de merkkleur (*Utrecht · 26*), grootste plaats eerst, daaronder **losse kaarten**: de **naam**, daaronder de eerste drie labels (*Fine dining, frans, michelinster*; zie `INDELEN.md`); rechts **hartje** en **je cijfer**, of niets als je er nog niet was. Filter (kopbalk): labels, ook "fine dining". Volgorde: favorieten, dan cijfer hoog → laag, dan nog niet geweest (op naam). **Kaart** via het kaarticoon (D16): start ingezoomd op de plaats met de meeste restaurants; alle punten rond, gevuld met cijfer = geweest, open = nog niet, met uitleg onder de kaart; tik → popup met *Openen*; knop *Waar ben ik*; daaronder "N zonder locatie" |
 | Albums | Merkkop (*8 albums · 2 geluisterd*), plakkend filter **Alle · Nog niet · Geluisterd** met aantallen, losse kaarten (titel vet, *artiest · status*) |
 | Inbox | Merkkop (*N nog in te delen · Claude deelt elke ochtend in*), losse kaarten |
 

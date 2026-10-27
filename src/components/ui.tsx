@@ -1,5 +1,5 @@
 import {
-  Backpack, ChevronLeft, Disc3, Inbox, Link2, Star, UtensilsCrossed, X,
+  Backpack, ChevronLeft, Disc3, Inbox, Link2, Star, Tent, UtensilsCrossed, Wine, X,
   type LucideIcon,
 } from 'lucide-react';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
@@ -7,7 +7,7 @@ import { typeDef, type IconName } from '../data/itemTypes';
 import type { TypeKey } from '../data/model';
 import { goBack, useBackToClose } from '../ui/router';
 
-const ICONS: Record<IconName, LucideIcon> = { UtensilsCrossed, Disc3, Backpack };
+const ICONS: Record<IconName, LucideIcon> = { UtensilsCrossed, Tent, Wine, Disc3, Backpack };
 
 export function TypeIcon({ type, size = 20, source = false }: { type: TypeKey | null; size?: number; source?: boolean }) {
   const def = typeDef(type);
@@ -38,7 +38,7 @@ export function TopBar({ title, back, actions, sub }: { title: ReactNode; back?:
 }
 
 /** Lijntekeningen voor de merkkop (eigen, eenvoudig). */
-export type BrandArtName = 'home' | 'restaurant' | 'album' | 'packing' | 'inbox';
+export type BrandArtName = 'home' | 'restaurant' | 'activity' | 'date' | 'album' | 'packing' | 'inbox';
 
 function BrandArt({ art }: { art: BrandArtName }) {
   return (
@@ -64,6 +64,20 @@ function BrandArt({ art }: { art: BrandArtName }) {
           <path d="M10 56l16-34h68l16 34v34H10z" />
           <path d="M10 56h30l6 12h28l6-12h30" />
           <path d="M40 40h40M44 30h32" />
+        </>
+      ) : art === 'activity' ? (
+        <>
+          {/* Tent met vlaggetje */}
+          <path d="M10 90h100M60 90V50M60 50L22 90M60 50l38 40" />
+          <path d="M60 50V14l22 8-22 8" />
+          <path d="M48 90c0-8 6-14 12-14s12 6 12 14" />
+        </>
+      ) : art === 'date' ? (
+        <>
+          {/* Twee glazen */}
+          <path d="M22 16h32c0 22-6 34-16 34S22 38 22 16zM38 50v36M26 86h24" />
+          <path d="M66 16h32c0 22-6 34-16 34S66 38 66 16zM82 50v36M70 86h24" />
+          <path d="M54 12l12 8" />
         </>
       ) : art === 'home' ? (
         <>

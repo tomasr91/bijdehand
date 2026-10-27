@@ -25,6 +25,8 @@ export function sampleSpecs(): S[] {
     { type: 'restaurant', title: 'Pho Hanoi', fields: { city: 'Amsterdam', cuisine: 'Vietnamees', address: 'Oost', score: 6.5, traits: ['vietnamees'], dishes: 'Pho bo' }, body: 'Lekker, maar erg druk op vrijdag.' },
     { type: 'restaurant', title: 'Het Groene Bord', fields: { city: 'Utrecht', venue: 'finedining', traits: ['seizoensgebonden', 'vegetarisch', 'set menu'] }, url: 'https://www.example.com/groene-bord', urlTitle: 'Het Groene Bord', urlNote: 'Menu wisselt elke maand' },
     { type: 'restaurant', title: 'Eetcafé De Graslei', fields: { city: 'Gent', traits: ['eetcafé', 'van alles'], score: 7 } },
+    { type: 'activity', title: 'Kinderboerderij De Ooievaar', fields: { city: 'Utrecht', traits: ['dieren', 'buiten', 'gratis'] } },
+    { type: 'date', title: 'Wijnproeverij De Kelder', fields: { city: 'Amersfoort', traits: ['eten en drinken', 'avond'], score: 8 } },
     { type: 'album', title: 'Blue', fields: { artist: 'Joni Mitchell', status: 'opnieuw' } },
     { type: 'album', title: 'In Rainbows', fields: { artist: 'Radiohead', status: 'ontdekken' } },
     { type: 'album', title: 'Kind of Blue', fields: { artist: 'Miles Davis', status: 'geluisterd', rating: 5 } },

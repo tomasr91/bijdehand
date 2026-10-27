@@ -7,7 +7,7 @@ import type { Item } from '../data/model';
 import * as repo from '../data/repo';
 import { dayOf, formatDate, formatDateTime } from '../data/util';
 import { useData, useToast } from '../ui/context';
-import { RestaurantBody } from './RestaurantDetail';
+import { PlaceBody } from './PlaceDetail';
 import { tracked, useDraft } from '../ui/draft';
 import { afterSheetsClosed, goBack } from '../ui/router';
 
@@ -88,7 +88,7 @@ function ItemEditor({ item }: { item: Item }) {
       )}
 
       {compact ? (
-        <RestaurantBody item={item} title={title} setTitle={setTitle} flushTitle={flushTitle} body={body} setBody={setBody} flushBody={flushBody} onDelete={() => void remove()} />
+        <PlaceBody item={item} title={title} setTitle={setTitle} flushTitle={flushTitle} body={body} setBody={setBody} flushBody={flushBody} onDelete={() => void remove()} />
       ) : (
         <>
         {item.filledBy && (

@@ -2,7 +2,7 @@ import { ChevronRight, CircleAlert, ClipboardPaste, Cloud, CloudOff, Settings, I
 import { useEffect, useMemo, useState } from 'react';
 import { fold } from '../data/util';
 import { PasteSheet } from './PasteSheet';
-import { RestaurantCollection } from './Restaurants';
+import { PlaceCollection } from './Places';
 import { ItemCard } from '../components/cards';
 import { BrandHeader, BrandPanel, Empty, Section, Segmented, TypeIcon } from '../components/ui';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -115,7 +115,7 @@ function sortItems(list: Item[]): Item[] {
 }
 
 export function Collection({ type }: { type: TypeKey }) {
-  if (type === 'restaurant') return <RestaurantCollection />;
+  if (TYPE_MAP[type].place) return <PlaceCollection type={type} />;
   if (type === 'packing') return <PackingStart />;
   return <GenericCollection type={type} />;
 }

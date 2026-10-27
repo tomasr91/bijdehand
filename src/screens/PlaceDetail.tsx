@@ -1,11 +1,11 @@
-// Sober restaurantdetail: eerst wat je wilt weten (naam, je cijfer, favoriet, waar, wat), dan website/route,
+// Sober detail voor plek-soorten (restaurant, uitje, date): eerst wat je wilt weten (naam, je cijfer, favoriet, waar, wat), dan website/route,
 // de samenvatting (ingekort), je notities, en de gegevens zelf pas na "Gegevens bewerken".
 import { ChevronDown, ExternalLink, Globe, Heart, Navigation, Trash2 } from 'lucide-react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { labelsOf } from '../components/cards';
 import { FieldEditor } from '../components/editors';
 import { AutoText, Section } from '../components/ui';
-import { fieldDef } from '../data/itemTypes';
+import { fieldDef, TYPE_MAP } from '../data/itemTypes';
 import type { Item } from '../data/model';
 import * as repo from '../data/repo';
 import { formatDate, formatScore, parseScore } from '../data/util';
@@ -74,7 +74,7 @@ function Summary({ item }: { item: Item }) {
   );
 }
 
-export function RestaurantBody({ item, title, setTitle, flushTitle, body, setBody, flushBody, onDelete }: {
+export function PlaceBody({ item, title, setTitle, flushTitle, body, setBody, flushBody, onDelete }: {
   item: Item;
   onDelete: () => void;
   title: string; setTitle: (v: string) => void; flushTitle: () => void;
@@ -87,12 +87,16 @@ export function RestaurantBody({ item, title, setTitle, flushTitle, body, setBod
   const traits = labelsOf(item);
   const website = /^https?:\/\//i.test(str(f.website)) ? str(f.website) : '';
   const route = routeUrl(item);
-  const editKeys = ['venue', 'experience', 'city', 'cuisine', 'traits', 'address', ...(str(f.dishes) ? ['dishes'] : [])];
+  const def = TYPE_MAP[item.type!];
+  const texts = def.placeTexts!;
+  const editKeys = item.type === 'restaurant'
+    ? ['venue', 'experience', 'city', 'cuisine', 'traits', 'address', ...(str(f.dishes) ? ['dishes'] : [])]
+    : ['city', 'traits', 'address'];
 
   return (
     <>
       <div className="r-head">
-        <AutoText className="title-input r-title" value={title} onChange={(e) => setTitle(e.target.value.replace(/\n/g, ' '))} onBlur={flushTitle} placeholder="Naam van het restaurant" aria-label="Naam" minRows={1} enterKeyHint="done" />
+        <AutoText className="title-input r-title" value={title} onChange={(e) => setTitle(e.target.value.replace(/\n/g, ' '))} onBlur={flushTitle} placeholder={def.titlePlaceholder} aria-label="Naam" minRows={1} enterKeyHint="done" />
         <button type="button" className={`icon-btn r-fav ${fav ? 'on' : ''}`} aria-pressed={fav} aria-label="Favoriet" onClick={() => void tracked(repo.setField(item.id, 'favorite', fav ? null : true))}>
           <Heart size={24} fill={fav ? 'currentColor' : 'none'} />
         </button>
@@ -120,19 +124,19 @@ export function RestaurantBody({ item, title, setTitle, flushTitle, body, setBod
       )}
       <Summary item={item} />
       <Section title="Mijn notities">
-        <AutoText value={body} onChange={(e) => setBody(e.target.value)} onBlur={flushBody} placeholder="Wat at je, met wie, wat wil je onthouden?" aria-label="Mijn notities" minRows={3} />
+        <AutoText value={body} onChange={(e) => setBody(e.target.value)} onBlur={flushBody} placeholder={texts.notesPlaceholder} aria-label="Mijn notities" minRows={3} />
       </Section>
       <button type="button" className="btn btn-ghost r-edit-toggle" aria-expanded={editing} onClick={() => setEditing(!editing)}>
         Gegevens bewerken <ChevronDown size={18} className={editing ? 'rot' : ''} />
       </button>
       {editing && (
         <div className="fields">
-          {editKeys.map((k) => { const d = fieldDef('restaurant', k); return d ? <FieldEditor key={k} item={item} def={d} /> : null; })}
+          {editKeys.map((k) => { const d = fieldDef(item.type!, k); return d ? <FieldEditor key={k} item={item} def={d} /> : null; })}
         </div>
       )}
       {/* Verkeerd restaurant (bijv. Claude haalde iets uit een notitie dat geen restaurant is): direct weg, met Ongedaan maken. */}
       <button type="button" className="btn btn-ghost btn-danger-text r-delete" onClick={onDelete}>
-        <Trash2 size={18} /> Restaurant verwijderen
+        <Trash2 size={18} /> {def.label} verwijderen
       </button>
     </>
   );

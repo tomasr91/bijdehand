@@ -1,4 +1,4 @@
-// Kaart met restaurants (Leaflet + OpenStreetMap-tegels). Zie docs/ARCHITECTURE.md → D16.
+// Kaart met plekken (restaurants, uitjes, dates) (Leaflet + OpenStreetMap-tegels). Zie docs/ARCHITECTURE.md → D16.
 // Punten: gevuld = geweest (met je cijfer erin), open rondje = nog niet geweest. Tik → naam, labels, "Openen".
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -6,7 +6,8 @@ import { LocateFixed } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { hasBeen } from '../data/itemTypes';
 import { hasLocation } from '../data/geocode';
-import type { Item } from '../data/model';
+import type { Item, TypeKey } from '../data/model';
+import { TYPE_MAP } from '../data/itemTypes';
 import { fold, formatScore } from '../data/util';
 import { traitsLine } from '../components/cards';
 
@@ -33,7 +34,7 @@ function popupContent(item: Item, onOpen: (id: string) => void): HTMLElement {
   return box;
 }
 
-export function RestaurantMap({ items, onOpen, onLocateError }: { items: Item[]; onOpen: (id: string) => void; onLocateError: (msg: string) => void }) {
+export function PlaceMap({ type, items, onOpen, onLocateError }: { type: TypeKey; items: Item[]; onOpen: (id: string) => void; onLocateError: (msg: string) => void }) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const layer = useRef<L.LayerGroup | null>(null);
@@ -83,7 +84,7 @@ export function RestaurantMap({ items, onOpen, onLocateError }: { items: Item[];
     const ids = located.map((i) => i.id).sort().join(',');
     if (located.length && ids !== fittedFor.current) {
       fittedFor.current = ids;
-      // Start op de plaats met de meeste restaurants (zoals de lijst); de rest is een veeg of zoom verder.
+      // Start op de plaats met de meeste plekken (zoals de lijst); de rest is een veeg of zoom verder.
       const byCity = new Map<string, Item[]>();
       for (const i of located) {
         const c = fold(String(i.fields.city ?? ''));
@@ -118,7 +119,7 @@ export function RestaurantMap({ items, onOpen, onLocateError }: { items: Item[];
 
   return (
     <div className="map-wrap">
-      <div ref={el} className="map" role="region" aria-label="Kaart met restaurants" />
+      <div ref={el} className="map" role="region" aria-label={`Kaart met ${TYPE_MAP[type].plural.toLowerCase()}`} />
       <button type="button" className="map-locate" aria-label="Waar ben ik" disabled={locating} onClick={locate}>
         <LocateFixed size={22} />
       </button>

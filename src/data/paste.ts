@@ -33,8 +33,8 @@ export function splitLines(text: string): string[] {
     .filter(Boolean);
 }
 
-/** "Plaats - Naam (kenmerk, kenmerk)" → velden van een restaurant. */
-export function parseRestaurant(line: string): PastedItem {
+/** "Plaats - Naam (kenmerk, kenmerk)" → velden van een restaurant (of uitje/date: dan zonder keuken). */
+export function parseRestaurant(line: string, withCuisine = true): PastedItem {
   let rest = line;
   let city = '';
   const m = line.match(/^(.+?)\s+[-–—:]\s+(.+)$/);
@@ -53,7 +53,7 @@ export function parseRestaurant(line: string): PastedItem {
   let cuisine = '';
   for (const raw of inner.split(/[,;]/).map((x) => x.trim()).filter(Boolean)) {
     const f = fold(raw);
-    if (!cuisine && CUISINES.includes(f)) {
+    if (withCuisine && !cuisine && CUISINES.includes(f)) {
       cuisine = capitalize(raw);
       continue;
     }
@@ -76,6 +76,7 @@ export function parseRestaurant(line: string): PastedItem {
 export function parseLines(type: TypeKey, text: string): PastedItem[] {
   return splitLines(text).map((line) => {
     if (type === 'restaurant') return parseRestaurant(line);
+    if (type === 'activity' || type === 'date') return parseRestaurant(line, false);
     return { line, title: capitalize(line), fields: {}, note: '' };
   });
 }
