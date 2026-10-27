@@ -22,12 +22,12 @@ Status: **[Gebouwd]** tenzij anders vermeld. De tokens staan bovenaan `src/style
   sectiekoppen in `--heading`.
 - **Even hoog overal:** elke merkkop is één rij (terug · titel met ondertitel · hoogstens twee knoppen); titel en ondertitel
   blijven op één regel. Meer knoppen gaan naar het plakkende blok eronder.
-- **Merkkop:** op de hoofdschermen een donker terracotta vlak (`--brand #6b2d16`, donker thema `#3b1e12`)
+- **Merkkop:** op de hoofdschermen een donker terracotta vlak (`--brand #6b2d16`)
   met titel, cursieve ondertitel en een lijntekening op lage dekking; scrolt weg. Het lichte blok met de bediening schuift er
   overheen en blijft bovenaan plakken. Idee overgenomen van *Uit in 030*, in de eigen kleur. Kopjes in `--heading`.
 - **Kleuren:** warm off-white (`--bg #f7f3ec`), crèmekleurige kaarten en één accentkleur terracotta
   (`--accent #b5532a`). Groepkleuren alleen in iconen: Inspiratie terracotta, Praktisch groen, Naslag
-  blauw, Bronnen paars, Inbox grijs. Donkere modus volgt het systeem.
+  blauw, Bronnen paars, Inbox grijs. Alleen een licht thema (op verzoek van de eigenaar): geen donkere modus, ook niet als het systeem donker is.
 - **Typografie:** systeemlettertype, basis 16 px. Paginatitels 22–28 px vet, sectiekoppen 15 px
   gedempt.
 - **Vormen:** kaarten met 14 px afgeronde hoeken, een dunne rand en een subtiele schaduw.

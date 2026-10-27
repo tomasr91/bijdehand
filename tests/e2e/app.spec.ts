@@ -582,3 +582,13 @@ test('congressen: tegel, lijst per maand, nieuw congres met datum, "Geweest" ond
   await noHorizontalScroll(page);
   await touchTargetsOk(page);
 });
+
+test('alleen licht thema: ook bij een donker systeem blijft de app licht', async ({ browser }, info) => {
+  const ctx = await browser.newContext({ colorScheme: 'dark', viewport: { width: 360, height: 740 }, baseURL: info.project.use.baseURL });
+  const page = await ctx.newPage();
+  await page.goto('/#/verzamelingen');
+  await expect(page.getByRole('heading', { name: 'Bijdehand' })).toBeVisible();
+  const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  expect(bg).toBe('rgb(247, 243, 236)');
+  await ctx.close();
+});
