@@ -621,16 +621,16 @@ test('alleen licht thema: ook bij een donker systeem blijft de app licht', async
   await page.goto('/#/verzamelingen');
   await expect(page.getByRole('heading', { name: 'Bijdehand' })).toBeVisible();
   const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(bg).toBe('rgb(247, 243, 236)');
+  expect(bg).toBe('rgb(244, 245, 240)');
   await ctx.close();
 });
 
-test('statusbalk van de browser krijgt de merkkleur op schermen met merkkop', async ({ page }) => {
-  await loadSamples(page);
+test('statusbalk van de browser heeft overal de merkkleur (ook voor Firefox: manifest)', async ({ page, request }) => {
   await page.goto('/#/verzamelingen');
   const color = () => page.evaluate(() => document.querySelector('meta[name="theme-color"]')?.getAttribute('content'));
-  await expect.poll(color).toBe('#6b2d16');
-  await page.goto('/#/verzameling/album');
-  await page.getByRole('button', { name: /Kind of Blue/ }).click();
-  await expect.poll(color).toBe('#f7f3ec');
+  expect(await color()).toBe('#2f4a3e');
+  await page.goto('/#/instellingen');
+  expect(await color()).toBe('#2f4a3e');
+  const manifest = await (await request.get('/manifest.webmanifest')).json();
+  expect(manifest.theme_color).toBe('#2f4a3e');
 });

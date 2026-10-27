@@ -173,6 +173,10 @@ bevat geen geheimen.
   (vervangen door de sync, D14), voorbeeldgegevens in Instellingen, de proefversie als artifact (`build:artifact`, `seed.ts`,
   `VITE_PREVIEW`). Testgegevens staan nu in `src/data/testdata.ts` en worden in e2e als back-up teruggezet. Lege soorten
   staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; (sinds D25 zijn de ongebruikte soorten helemaal weg). E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
+- **D30 — 2026-10-27 — Palet C · salie & mosterd.** Donkergroene merkkop (`--brand #2f4a3e`), mosterd als accent (ronde
+  plusknop `--fab-bg #e2a72e`; voor tekst en knoppen donkerder oker `--accent #96680b` voor leesbaarheid), lichte neutrale basis
+  (`--bg #f4f5f0`, witte kaarten). Statusbalk overal in de merkkleur: `meta theme-color` en `theme_color` in het manifest
+  (`#2f4a3e`); een geïnstalleerde app (Firefox) neemt de manifestkleur pas over na opnieuw installeren. Alleen kleuren, geen gegevens.
 - **D29 — 2026-10-27 — Toevoegen = altijd via de Inbox, met wens en tip voor Claude.** De soort die je bij Toevoegen kiest,
   deelt niet meer direct in maar is een wens voor de Claude-taak (`suggestion` met `by: 'eigenaar'`). Je tekst blijft heel
   (geen titel uit de eerste regel; kaarten tonen dan de eerste regel). Optioneel veld *Tip voor Claude* (veld `hint` op het

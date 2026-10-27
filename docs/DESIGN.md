@@ -22,12 +22,14 @@ Status: **[Gebouwd]** tenzij anders vermeld. De tokens staan bovenaan `src/style
   sectiekoppen in `--heading`.
 - **Even hoog overal:** elke merkkop is één rij (terug · titel met ondertitel · hoogstens twee knoppen); titel en ondertitel
   blijven op één regel. Meer knoppen gaan naar het plakkende blok eronder.
-- **Statusbalk:** zolang een merkkop in beeld is, krijgt `meta theme-color` de merkkleur (statusbalk/adresbalk van de browser); op andere schermen de paginakleur. In het manifest staat `theme_color` op de merkkleur: een geïnstalleerde app (Firefox, Chrome) kleurt de statusbalk daarmee, ook als de browser de wisselende `meta`-kleur niet volgt. De balk onderaan (bij de gebaren-streep) hoort bij Android/de browser en is niet te kleuren.
-- **Merkkop:** op de hoofdschermen een donker terracotta vlak (`--brand #6b2d16`)
+- **Statusbalk:** overal in de merkkleur (`meta theme-color` en `theme_color` in het manifest, D30). De balk onderaan (bij de gebaren-streep) hoort bij Android/de browser en is niet te kleuren.
+- **Kleuren (D30, palet C · salie & mosterd):** merkkop donkergroen `--brand #2f4a3e` met ondertitel in mosterd, ronde plusknop
+  mosterd `#e2a72e` met donkere plus, accenten (links, actieve keuze, sterren) in oker `--accent #96680b`, achtergrond `#f4f5f0`,
+  kaarten wit.
+- **Merkkop:** op de hoofdschermen een donkergroen vlak (`--brand #2f4a3e`)
   met titel, cursieve ondertitel en een lijntekening op lage dekking; scrolt weg. Het lichte blok met de bediening schuift er
   overheen en blijft bovenaan plakken. Idee overgenomen van *Uit in 030*, in de eigen kleur. Kopjes in `--heading`.
-- **Kleuren:** warm off-white (`--bg #f7f3ec`), crèmekleurige kaarten en één accentkleur terracotta
-  (`--accent #b5532a`). Groepkleuren alleen in iconen: Inspiratie terracotta, Praktisch groen, Naslag
+- **Kleuren (vóór D30, vervangen):** zie de regel *Kleuren (D30)* hierboven. Groepkleuren alleen in iconen: Inspiratie oker, Praktisch groen, Naslag
   blauw, Bronnen paars, Inbox grijs. Alleen een licht thema (op verzoek van de eigenaar): geen donkere modus, ook niet als het systeem donker is.
 - **Typografie:** systeemlettertype, basis 16 px. Paginatitels 22–28 px vet, sectiekoppen 15 px
   gedempt.
@@ -65,7 +67,7 @@ hoofdscherm, ook startpagina en `start_url`), **Instellingen** (tandwiel rechtsb
 
 ## Hoofdscherm
 
-- **Merkkop** (D24): donker terracotta vlak (`--brand`) met **Bijdehand**, ondertitel *Alles wat je wilt onthouden.*,
+- **Merkkop** (D24, kleur D30): donkergroen vlak (`--brand`) met **Bijdehand**, ondertitel *Alles wat je wilt onthouden.*,
   een eigen lijntekening (notitieboek) en het tandwiel. De inhoud schuift er met een afgeronde bovenkant overheen.
 - **Inbox** als balk, alleen als er iets in staat.
 - **Tegels** alleen voor soorten waar iets in zit, grootste eerst.
