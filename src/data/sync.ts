@@ -1,8 +1,9 @@
 // Synchronisatie met een privé GitHub-repo (route 2, zie docs/ARCHITECTURE.md → D13/D14).
 //
-// - Het toestel is de enige schrijver van data/bijdehand.json (volledige back-up, verliesvrij).
-// - De eerste keer (nog nooit gesynchroniseerd) wordt wat er al in de repo staat eerst samengevoegd
-//   (nieuwste wint, niets wordt verwijderd), zodat een nieuw toestel of nieuw adres alles terugkrijgt.
+// - Het toestel schrijft data/bijdehand.json (volledige back-up, verliesvrij).
+// - Is de repo veranderd sinds dit toestel hem laatst zag (eerste keer, of een tweede kopie van de app schreef
+//   ertussen), dan wordt die stand eerst samengevoegd (nieuwste wint, niets wordt verwijderd). Zo kan een kopie
+//   met een oudere stand nooit nieuwere gegevens overschrijven (bug 2026-10-28, D31).
 // - Claude schrijft alleen voorstellen in voorstellen/*.json. De app controleert ze met dezelfde regels
 //   als bij "Voorstellen openen", past alles toe wat "ok" is en verwijdert het bestand (git bewaart het).
 // - De sleutel (fine-grained token) staat alleen in de lokale meta-tabel. Die gaat nooit mee in een back-up.
@@ -14,7 +15,7 @@ import { nowIso } from './util';
 export const DATA_PATH = 'data/bijdehand.json';
 export const PROPOSALS_DIR = 'voorstellen';
 
-const K = { repo: 'sync:repo', token: 'sync:token', lastAt: 'sync:lastAt', lastPrint: 'sync:lastPrint', error: 'sync:error', applied: 'sync:applied' } as const;
+const K = { repo: 'sync:repo', token: 'sync:token', lastAt: 'sync:lastAt', lastPrint: 'sync:lastPrint', error: 'sync:error', applied: 'sync:applied', lastSha: 'sync:lastSha' } as const;
 
 export interface SyncConfig { repo: string; token: string }
 
@@ -106,9 +107,10 @@ function api(cfg: SyncConfig) {
       if (b.status !== 200) throw new SyncError(`Lezen van ${path} mislukte (fout ${b.status}).`);
       return { sha: f.sha, text: fromBase64((b.json as { content: string }).content) };
     },
-    async putFile(path: string, text: string, sha: string | undefined, message: string): Promise<'ok' | 'conflict'> {
+    /** Geeft de nieuwe sha terug (of '' als GitHub die niet meestuurt), of 'conflict'. */
+    async putFile(path: string, text: string, sha: string | undefined, message: string): Promise<{ sha: string } | 'conflict'> {
       const r = await call('PUT', `/contents/${enc(path)}`, { message, content: toBase64(text), ...(sha ? { sha } : {}) });
-      if (r.status === 200 || r.status === 201) return 'ok';
+      if (r.status === 200 || r.status === 201) return { sha: (r.json as { content?: { sha?: string } } | null)?.content?.sha ?? '' };
       if (r.status === 409 || r.status === 422) return 'conflict';
       if (r.status === 403 || r.status === 404) throw new SyncError('De sleutel mag niet schrijven in deze repo. Geef hem "Contents: Read and write".');
       throw new SyncError(`Opslaan in GitHub mislukte (fout ${r.status}).`);
@@ -208,14 +210,17 @@ async function runSync(): Promise<SyncResult> {
   const gh = api(cfg);
   const result: SyncResult = { merged: null, pushed: false, applied: { updated: 0, created: 0, trashed: 0, titles: [] }, undo: [], skippedFiles: [] };
   try {
-    // 1. Eerste keer: wat al in de repo staat samenvoegen (niets verwijderen, nieuwste wint).
+    // 1. Repo veranderd sinds dit toestel hem laatst zag (eerste keer of een andere kopie schreef ertussen):
+    //    eerst samenvoegen (niets verwijderen, nieuwste wint). Nooit blind overschrijven (D31).
     let remote = await gh.getFile(DATA_PATH);
-    if (remote && !(await meta(K.lastAt))) {
-      const parsed = parseBackup(remote.text);
+    const mergeRemote = async (r: { sha: string; text: string }) => {
+      const parsed = parseBackup(r.text);
       if (!parsed.ok) throw new SyncError(`${DATA_PATH} in de repo is geen geldige back-up: ${parsed.error}`);
       const plan = await applyRestore(parsed.backup, 'merge');
-      result.merged = { items: plan.added.items + plan.updated.items, sources: plan.added.sources + plan.updated.sources };
-    }
+      const n = { items: plan.added.items + plan.updated.items, sources: plan.added.sources + plan.updated.sources };
+      result.merged = result.merged ? { items: result.merged.items + n.items, sources: result.merged.sources + n.sources } : n;
+    };
+    if (remote && (!(await meta(K.lastAt)) || remote.sha !== (await meta(K.lastSha)))) await mergeRemote(remote);
 
     // 2. Voorstellen van Claude toepassen (vóór het opslaan, zodat de repo meteen de nieuwe stand krijgt).
     const files = (await gh.listDir(PROPOSALS_DIR)).filter((f) => f.type === 'file' && f.name.endsWith('.json')).sort((a, b) => a.name.localeCompare(b.name));
@@ -246,17 +251,24 @@ async function runSync(): Promise<SyncResult> {
       await gh.deleteFile(f.path, file.sha, `Verwerkt door de app: ${f.name}`);
     }
 
-    // 3. Volledige stand opslaan. Het toestel is de enige schrijver; bij een conflict nieuwste sha ophalen en opnieuw.
+    // 3. Volledige stand opslaan. Schreef een andere kopie er net tussendoor: die stand eerst samenvoegen en opnieuw.
     const print = await fingerprint();
-    if (!remote || print !== (await meta(K.lastPrint)) || result.merged || result.undo.length) {
-      const text = JSON.stringify(await exportBackup(), null, 1);
-      let state = await gh.putFile(DATA_PATH, text, remote?.sha, `Bijdehand: stand van ${nowIso()}`);
-      if (state === 'conflict') {
-        remote = await gh.getFile(DATA_PATH);
-        state = await gh.putFile(DATA_PATH, text, remote?.sha, `Bijdehand: stand van ${nowIso()}`);
-        if (state === 'conflict') throw new SyncError('De repo veranderde tijdens het opslaan. Probeer het zo opnieuw.');
+    if (!remote || remote.sha !== (await meta(K.lastSha)) || print !== (await meta(K.lastPrint)) || result.merged || result.undo.length) {
+      let saved: { sha: string } | 'conflict' = 'conflict';
+      for (let attempt = 0; attempt < 3 && saved === 'conflict'; attempt++) {
+        if (attempt > 0) {
+          remote = await gh.getFile(DATA_PATH);
+          if (remote) await mergeRemote(remote);
+        }
+        const text = JSON.stringify(await exportBackup(), null, 1);
+        saved = await gh.putFile(DATA_PATH, text, remote?.sha, `Bijdehand: stand van ${nowIso()}`);
       }
+      if (saved === 'conflict') throw new SyncError('De repo veranderde tijdens het opslaan. Probeer het zo opnieuw.');
+      const sha = saved.sha || (await gh.getFile(DATA_PATH))?.sha || '';
+      await setMeta(K.lastSha, sha);
       result.pushed = true;
+    } else if (remote) {
+      await setMeta(K.lastSha, remote.sha);
     }
     await setMeta(K.lastPrint, await fingerprint());
     await setMeta(K.lastAt, nowIso());

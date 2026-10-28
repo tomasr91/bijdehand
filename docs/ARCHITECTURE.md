@@ -173,6 +173,12 @@ bevat geen geheimen.
   (vervangen door de sync, D14), voorbeeldgegevens in Instellingen, de proefversie als artifact (`build:artifact`, `seed.ts`,
   `VITE_PREVIEW`). Testgegevens staan nu in `src/data/testdata.ts` en worden in e2e als back-up teruggezet. Lege soorten
   staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; (sinds D25 zijn de ongebruikte soorten helemaal weg). E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
+- **D31 — 2026-10-28 — Synchroniseren voegt altijd eerst samen (bugfix gegevensverlies).** Twee kopieën van de app op
+  één telefoon (een Firefox-app en een Chrome-tab) schreven om beurten hun volledige stand weg; een kopie met een oudere stand
+  overschreef zo 7 nieuwe items (die zijn uit de git-geschiedenis teruggezet). Nu onthoudt elk toestel de sha van de laatste
+  stand die het zag of schreef (`sync:lastSha`). Is de repo sindsdien veranderd, of botst het opslaan, dan wordt de repo-stand
+  eerst samengevoegd (nieuwste wint, niets weg) en pas daarna opgeslagen. Gevolg: wat in de ene kopie definitief uit de
+  prullenbak is gewist, kan via een andere kopie terugkomen; dat is bewust (liever terug dan kwijt). Test in `sync.test.ts`.
 - **D30 — 2026-10-27 — Palet C · salie & mosterd.** Donkergroene merkkop (`--brand #2f4a3e`), mosterd als accent (ronde
   plusknop `--fab-bg #e2a72e`; voor tekst en knoppen donkerder oker `--accent #96680b` voor leesbaarheid), lichte neutrale basis
   (`--bg #f4f5f0`, witte kaarten). Statusbalk overal in de merkkleur: `meta theme-color` en `theme_color` in het manifest
@@ -229,9 +235,9 @@ bevat geen geheimen.
   Inbox-item met de link (niet meer een losse bron). Zoeken blijft als vergrootglas binnen een verzameling.
 - **D14 — 2026-10-24 — Synchronisatie met de privé data-repo** (`src/data/sync.ts`, `src/ui/sync.tsx`, Instellingen →
   Synchronisatie). GitHub Contents API rechtstreeks vanuit de app met een fine-grained token (alleen *Contents: Read and write*
-  op de data-repo), opgeslagen in de lokale meta-tabel, nooit in back-ups. De app weigert een openbare repo. Het toestel is de
-  enige schrijver van `data/bijdehand.json` (volledige back-up); alleen bij de eerste koppeling wordt wat er al staat samengevoegd
-  (nieuwste wint, niets weg). Claude schrijft alleen `voorstellen/*.json`; de app past de "ok"-voorstellen automatisch toe,
+  op de data-repo), opgeslagen in de lokale meta-tabel, nooit in back-ups. De app weigert een openbare repo. Het toestel schrijft
+  `data/bijdehand.json` (volledige back-up); is de repo veranderd sinds dit toestel hem laatst zag, dan wordt die stand eerst
+  samengevoegd (nieuwste wint, niets weg; D31). Claude schrijft alleen `voorstellen/*.json`; de app past de "ok"-voorstellen automatisch toe,
   verwijdert het bestand en toont *Ongedaan maken*. Synchroniseren: bij openen, bij terugkomen in de app, elke minuut na een
   wijziging en bij wegschakelen. **Beperking:** twee toestellen tegelijk worden nog niet samengevoegd (B3), en definitief
   verwijderde items kunnen op een ander toestel blijven bestaan.

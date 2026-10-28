@@ -99,6 +99,30 @@ describe('synchroniseren', () => {
     expect(JSON.parse(gh.files.get(DATA_PATH)!.text).data.items).toHaveLength(3);
   });
 
+  it('twee kopieën van de app overschrijven elkaar niet: een oudere stand wordt eerst samengevoegd (bug 2026-10-28)', async () => {
+    const gh = fakeGitHub();
+    setFetcher(gh.fetch);
+    // Kopie A (bijv. Chrome) en kopie B (bijv. Firefox) zijn allebei gekoppeld en gesynchroniseerd.
+    const dbA = `sync-${++k}`, dbB = `sync-${++k}`;
+    switchDb(dbA); await connect('tomas/data', TOKEN); await syncNow();
+    switchDb(dbB); await connect('tomas/data', TOKEN); await syncNow();
+    // B krijgt nieuwe items (zoals Claude's voorstellen) en slaat op.
+    const kleding = await repo.createItem({ type: 'clothing', title: 'Bergvos', fields: { sizes: ['trui M'] } });
+    expect((await syncNow()).pushed).toBe(true);
+    // A heeft de oude stand, voegt zelf iets toe en synchroniseert: B's item mag niet verdwijnen.
+    switchDb(dbA);
+    await repo.createItem({ type: null, title: '', body: 'Grand Living Utrecht' });
+    const r = await syncNow();
+    expect(r.merged?.items).toBe(1);
+    const stored = JSON.parse(gh.files.get(DATA_PATH)!.text);
+    expect(stored.data.items.map((i: { id: string }) => i.id)).toContain(kleding.id);
+    expect(stored.data.items).toHaveLength(2);
+    // En B krijgt A's item er bij de volgende keer bij.
+    switchDb(dbB);
+    await syncNow();
+    expect(await db.items.count()).toBe(2);
+  });
+
   it('past voorstellen van Claude automatisch toe, verwijdert het bestand en kan alles terugdraaien', async () => {
     const gh = fakeGitHub();
     setFetcher(gh.fetch);
