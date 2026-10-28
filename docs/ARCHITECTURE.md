@@ -15,7 +15,7 @@ op het apparaat. De app werkt offline en kan op Android via Chrome worden geïns
 | Opslag | IndexedDB via Dexie 4 (`src/data/db.ts`); live-queries via `dexie-react-hooks` |
 | Iconen | lucide-react |
 | Navigatie | Eigen hash-router met echte geschiedenis (`src/ui/router.ts`), zodat de Android-terugknop werkt; open sheets sluiten met "terug" |
-| Offline | Eigen service worker (`public/sw.js`): pagina eerst van het netwerk, bestanden eerst uit de cache |
+| Offline / installeren | Eigen service worker (`public/sw.js`, D32): per build een eigen cache (build-id), pagina, manifest en iconen eerst van het netwerk (zonder HTTP-cache), gehashte `assets/` eerst uit de cache; na het eerste bezoek offline te openen |
 | Tests | Vitest + fake-indexeddb (gegevenslaag), Playwright (e2e op 360 px; lay-out en kaart ook op 412 px en desktop) |
 
 ## Lagen
@@ -173,6 +173,14 @@ bevat geen geheimen.
   (vervangen door de sync, D14), voorbeeldgegevens in Instellingen, de proefversie als artifact (`build:artifact`, `seed.ts`,
   `VITE_PREVIEW`). Testgegevens staan nu in `src/data/testdata.ts` en worden in e2e als back-up teruggezet. Lege soorten
   staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; (sinds D25 zijn de ongebruikte soorten helemaal weg). E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
+- **D32 — 2026-10-28 — Installeerbare PWA en geen oude versies meer.** Vite zet bij elke build een unieke id in `dist/sw.js`
+  (`vite.config.ts`, plugin `swBuildId`); elke deployment is dus een nieuwe service worker met een eigen cache, oude caches
+  worden bij activeren gewist. Registratie met `updateViaCache: 'none'` en een update-check bij terugkomen in de app. Pagina,
+  manifest en iconen: eerst netwerk met `cache: 'no-cache'` (GitHub Pages cachet 10 minuten); gehashte `assets/`: eerst cache
+  (`ignoreVary`), en bij installeren al meegenomen zodat de app na het eerste bezoek offline opent. Manifest-`id` naar
+  `./?app=bijdehand-3`: Chrome op Android had een kapotte registratie van `bijdehand-2` ("al geïnstalleerd", "kan app niet
+  openen") en bood daardoor geen installatie meer aan. Alle paden zijn relatief (`base: './'`), dus werkt onder `/bijdehand/`.
+  E2e-test: manifest, iconen, installeerbaarheid (Chrome), build-cache en offline openen.
 - **D31 — 2026-10-28 — Synchroniseren voegt altijd eerst samen (bugfix gegevensverlies).** Twee kopieën van de app op
   één telefoon (een Firefox-app en een Chrome-tab) schreven om beurten hun volledige stand weg; een kopie met een oudere stand
   overschreef zo 7 nieuwe items (die zijn uit de git-geschiedenis teruggezet). Nu onthoudt elk toestel de sha van de laatste

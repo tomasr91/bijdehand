@@ -3,7 +3,7 @@
   "short_name": "Bijdehand",
   "description": "Persoonlijk geheugen voor ideeën, lijstjes, bronnen en klussen.",
   "lang": "nl",
-  "id": "./?app=bijdehand-2",
+  "id": "./?app=bijdehand-3",
   "start_url": "./#/verzamelingen",
   "scope": "./",
   "display": "standalone",

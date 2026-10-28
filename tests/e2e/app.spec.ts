@@ -634,3 +634,27 @@ test('statusbalk van de browser heeft overal de merkkleur (ook voor Firefox: man
   const manifest = await (await request.get('/manifest.webmanifest')).json();
   expect(manifest.theme_color).toBe('#2f4a3e');
 });
+
+test('installeerbare PWA: manifest, iconen, service worker met eigen build-cache, offline openen', async ({ page, context, request }) => {
+  const manifest = await (await request.get('/manifest.webmanifest')).json();
+  expect(manifest).toMatchObject({ name: 'Bijdehand', short_name: 'Bijdehand', start_url: './#/verzamelingen', scope: './', display: 'standalone' });
+  for (const icon of manifest.icons as { src: string; sizes: string }[]) {
+    const r = await request.get('/' + icon.src);
+    expect(r.status(), icon.src).toBe(200);
+    expect(r.headers()['content-type']).toBe('image/png');
+  }
+  expect(manifest.icons.map((i: { sizes: string }) => i.sizes)).toEqual(expect.arrayContaining(['192x192', '512x512']));
+  const sw = await (await request.get('/sw.js')).text();
+  expect(sw).not.toContain('__BUILD_ID__'); // build-id is ingevuld
+  await page.goto('/');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  const cdp = await context.newCDPSession(page);
+  expect((await cdp.send('Page.getInstallabilityErrors')).installabilityErrors).toEqual([]);
+  expect(await page.evaluate(() => caches.keys())).toEqual([expect.stringMatching(/^bijdehand-\d{14}-/)]);
+  // Offline openen werkt (pagina uit de cache).
+  await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Bijdehand', level: 1 })).toBeVisible();
+  await context.setOffline(false);
+});

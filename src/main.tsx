@@ -16,7 +16,13 @@ window.addEventListener('beforeinstallprompt', (e) => {
 // Service worker alleen in de productiebuild: offline openen + installeerbaar.
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch((e) => console.warn('Service worker niet geregistreerd', e));
+    // updateViaCache 'none': de browser vraagt sw.js altijd vers op, zodat een nieuwe deployment meteen wordt gezien.
+    navigator.serviceWorker.register('./sw.js', { scope: './', updateViaCache: 'none' })
+      .then((reg) => {
+        // Bij terugkomen in de app ook kijken of er een nieuwe versie is.
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void reg.update().catch(() => {}); });
+      })
+      .catch((e) => console.warn('Service worker niet geregistreerd', e));
   });
 }
 
