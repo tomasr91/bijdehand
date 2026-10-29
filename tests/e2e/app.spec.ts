@@ -203,7 +203,7 @@ test('back-up exporteren en in een lege app terugzetten', async ({ page, browser
   await download.saveAs(file);
   const json = JSON.parse(readFileSync(file, 'utf8'));
   expect(json.format).toBe('bijdehand-backup');
-  expect(json.data.items).toHaveLength(16);
+  expect(json.data.items).toHaveLength(17);
   await expect(page.getByText('Laatste back-up: nog nooit')).toHaveCount(0);
 
   // Schone browser = leeg apparaat.
@@ -212,9 +212,9 @@ test('back-up exporteren en in een lege app terugzetten', async ({ page, browser
   await fresh.goto('/#/instellingen');
   await fresh.getByLabel('Back-upbestand kiezen').setInputFiles(file);
   const dlg = fresh.getByRole('dialog', { name: 'Back-up terugzetten' });
-  await expect(dlg.getByText('16 nieuwe items')).toBeVisible();
+  await expect(dlg.getByText('17 nieuwe items')).toBeVisible();
   await dlg.getByRole('button', { name: 'Samenvoegen' }).last().click();
-  await expect(fresh.getByText(/Samengevoegd: 16 nieuw/)).toBeVisible();
+  await expect(fresh.getByText(/Samengevoegd: 17 nieuw/)).toBeVisible();
   await fresh.goto('/#/verzameling/restaurant');
   await expect(fresh.getByRole('button', { name: /Trattoria Da Marco/ })).toBeVisible();
   await fresh.goto('/#/zoeken?q=Graslei');
@@ -657,4 +657,15 @@ test('installeerbare PWA: manifest, iconen, service worker met eigen build-cache
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Bijdehand', level: 1 })).toBeVisible();
   await context.setOffline(false);
+});
+
+test('boeken: tegel en lijst met filter', async ({ page }) => {
+  await loadSamples(page);
+  await page.goto('/#/verzamelingen');
+  await page.getByRole('button', { name: /^Boeken/ }).click();
+  await expect(page.getByRole('heading', { name: 'Boeken' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /De ontdekking van de hemel/ })).toContainText('Harry Mulisch');
+  await page.getByRole('radio', { name: /Gelezen/ }).click();
+  await expect(page.getByRole('button', { name: /De ontdekking van de hemel/ })).toHaveCount(0);
+  await noHorizontalScroll(page);
 });

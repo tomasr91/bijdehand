@@ -1,5 +1,5 @@
 import {
-  Backpack, ChevronLeft, Disc3, Inbox, Link2, Presentation, Shirt, Star, Tent, UtensilsCrossed, Wine, X,
+  Backpack, BookOpen, ChevronLeft, Disc3, Inbox, Link2, Presentation, Shirt, Star, Tent, UtensilsCrossed, Wine, X,
   type LucideIcon,
 } from 'lucide-react';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
@@ -7,7 +7,7 @@ import { typeDef, type IconName } from '../data/itemTypes';
 import type { TypeKey } from '../data/model';
 import { goBack, useBackToClose } from '../ui/router';
 
-const ICONS: Record<IconName, LucideIcon> = { UtensilsCrossed, Tent, Wine, Presentation, Shirt, Disc3, Backpack };
+const ICONS: Record<IconName, LucideIcon> = { UtensilsCrossed, Tent, Wine, Presentation, Shirt, BookOpen, Disc3, Backpack };
 
 export function TypeIcon({ type, size = 20, source = false }: { type: TypeKey | null; size?: number; source?: boolean }) {
   const def = typeDef(type);
@@ -38,7 +38,7 @@ export function TopBar({ title, back, actions, sub }: { title: ReactNode; back?:
 }
 
 /** Lijntekeningen voor de merkkop (eigen, eenvoudig). */
-export type BrandArtName = 'home' | 'restaurant' | 'activity' | 'date' | 'conference' | 'clothing' | 'album' | 'packing' | 'inbox';
+export type BrandArtName = 'home' | 'restaurant' | 'activity' | 'date' | 'conference' | 'clothing' | 'book' | 'album' | 'packing' | 'inbox';
 
 function BrandArt({ art }: { art: BrandArtName }) {
   return (
@@ -71,6 +71,14 @@ function BrandArt({ art }: { art: BrandArtName }) {
           <path d="M10 90h100M60 90V50M60 50L22 90M60 50l38 40" />
           <path d="M60 50V14l22 8-22 8" />
           <path d="M48 90c0-8 6-14 12-14s12 6 12 14" />
+        </>
+      ) : art === 'book' ? (
+        <>
+          {/* Stapel boeken */}
+          <rect x="18" y="70" width="84" height="18" rx="3" />
+          <rect x="26" y="52" width="70" height="18" rx="3" />
+          <rect x="22" y="34" width="62" height="18" rx="3" />
+          <path d="M32 70v18M40 52v18M34 34v18" />
         </>
       ) : art === 'clothing' ? (
         <>

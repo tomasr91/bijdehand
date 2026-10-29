@@ -237,7 +237,7 @@ async function runSync(): Promise<SyncResult> {
       const parsed = parseProposals(file.text, items);
       if (!parsed.ok) { result.skippedFiles.push(f.name); continue; }
       // Geschreven voor een nieuwere versie van de app (onbekend veld of actie)? Laten staan tot de app is bijgewerkt.
-      if (parsed.value.rows.some((r) => r.status === 'fout' && /onbekend veld|onbekende actie/.test(r.problem ?? ''))) { result.skippedFiles.push(f.name); continue; }
+      if (parsed.value.rows.some((r) => r.status === 'fout' && /onbekend veld|onbekende actie|onbekende soort/.test(r.problem ?? ''))) { result.skippedFiles.push(f.name); continue; }
       const ok = parsed.value.rows.filter((r) => r.status === 'ok');
       if (ok.length) {
         const res = await applyProposals(ok, parsed.value.rows);

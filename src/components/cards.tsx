@@ -22,6 +22,7 @@ export function summary(item: Item): string[] {
       return [a ? formatDate(a) : '', s('city')];
     }
     case 'clothing': return [Array.isArray(f.sizes) ? (f.sizes as string[]).join(' · ') : ''];
+    case 'book': return [s('author'), status];
     case 'album': return [s('artist'), status];
     case 'packing': {
       const done = item.checklist.filter((e) => e.done).length;

@@ -39,8 +39,9 @@ terug als de eigenaar hem wil. Velden staan in `DATA_MODEL.md`.
 | 3 | Dates | Inspiratie | Idem, voor dates met z'n tweeën (labels als *romantisch*, *actief*, *avond*) |
 | 4 | Congressen | Praktisch | Kale lijst op datum (eerstvolgende bovenaan, voorbije onderaan): naam, datum, plaats; tik opent de link; potlood = klein venster om te wijzigen of te verwijderen; geen detailscherm (D27) |
 | 5 | Kleding | Praktisch | Per merk welke stukken en maten je hebt (*Trui **M***); zoeken op merk of stuk; weergave *Per merk* of *Per stuk*; tik = klein venster om te wijzigen; lijst plakken (één merk per regel); geen detailscherm (D28) |
-| 6 | Albums | Inspiratie | Artiest, status (ontdekken / beluisteren / opnieuw / geluisterd) |
-| 7 | Paklijst | Praktisch | Vakantiepaklijst als checklist: hele lijst plakken, afvinken, alles uitvinken |
+| 6 | Boeken | Inspiratie | Schrijver, status (wil ik lezen / aan het lezen / gelezen); filter Nog niet · Gelezen (D33) |
+| 7 | Albums | Inspiratie | Artiest, status (ontdekken / beluisteren / opnieuw / geluisterd) |
+| 8 | Paklijst | Praktisch | Vakantiepaklijst als checklist: hele lijst plakken, afvinken, alles uitvinken |
 
 De groepering (Inspiratie, Praktisch) en de soorten staan in één register
 (`src/data/itemTypes.ts`). Daardoor is uitbreiden mogelijk zonder het gegevensmodel te wijzigen.

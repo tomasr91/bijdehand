@@ -37,11 +37,11 @@ export function shownFields(fields: FieldDef[]): FieldDef[] {
 export type GroupKey = 'inspiratie' | 'praktisch';
 
 export const GROUPS: { key: GroupKey; label: string; description: string }[] = [
-  { key: 'inspiratie', label: 'Inspiratie', description: 'Waar ik wil eten, naartoe wil en wat ik wil luisteren' },
+  { key: 'inspiratie', label: 'Inspiratie', description: 'Waar ik wil eten, naartoe wil, wat ik wil lezen en luisteren' },
   { key: 'praktisch', label: 'Praktisch', description: 'Lijsten, congressen en kledingmaten' },
 ];
 
-export type IconName = 'UtensilsCrossed' | 'Tent' | 'Wine' | 'Presentation' | 'Shirt' | 'Disc3' | 'Backpack';
+export type IconName = 'UtensilsCrossed' | 'Tent' | 'Wine' | 'Presentation' | 'Shirt' | 'BookOpen' | 'Disc3' | 'Backpack';
 
 export interface TypeDef {
   key: TypeKey;
@@ -251,6 +251,21 @@ export const TYPES: TypeDef[] = [
     ],
     keywords: ['kleding', 'kledingmaat', 'maat', 'maten', 'broek', 'trui', 'overhemd', 'polo', 'blouse', 'colbert', 'jas'],
     hosts: [],
+  },
+
+  {
+    // Boeken (D33): eenvoudig, zoals albums. (Oude 'book'-items uit schema < 5 gaan bij de migratie nog steeds naar de Inbox.)
+    key: 'book', label: 'Boek', plural: 'Boeken', group: 'inspiratie', icon: 'BookOpen',
+    titleLabel: 'Titel', titlePlaceholder: 'Titel van het boek',
+    fields: [
+      { key: 'author', label: 'Schrijver', kind: 'text', primary: true },
+      { key: 'status', label: 'Status', kind: 'select', primary: true, options: [
+        { value: 'lezen', label: 'Wil ik lezen' }, { value: 'bezig', label: 'Aan het lezen' }, { value: 'gelezen', label: 'Gelezen' },
+      ] },
+    ],
+    statusKey: 'status', doneStatuses: ['gelezen'], filterLabels: ['Nog niet', 'Gelezen'],
+    keywords: ['boek', 'boeken', 'lezen', 'roman', 'schrijver', 'auteur'],
+    hosts: ['goodreads.com', 'bol.com/nl/nl/p', 'libris.nl', 'bruna.nl'],
   },
 
   {

@@ -7,7 +7,7 @@ staan in eigen bestanden (bijv. `CLAUDE.md`) en mogen deze regels niet tegenspre
 ## Wat is dit project?
 
 Bijdehand (werknaam) is een persoonlijke, mobile-first app die Google Keep vervangt: een
-persoonlijk geheugen met zeven soorten informatie (restaurants, uitjes met kinderen, dates, congressen, kleding, albums en één paklijst), bronnen en een Inbox.
+persoonlijk geheugen met acht soorten informatie (restaurants, uitjes met kinderen, dates, congressen, kleding, boeken, albums en één paklijst), bronnen en een Inbox.
 Nieuwe soorten komen erbij als de eigenaar ze wil (D25). Eén gebruiker. Primair
 Android, desktop aanvullend.
 

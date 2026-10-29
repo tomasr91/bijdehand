@@ -173,6 +173,8 @@ bevat geen geheimen.
   (vervangen door de sync, D14), voorbeeldgegevens in Instellingen, de proefversie als artifact (`build:artifact`, `seed.ts`,
   `VITE_PREVIEW`). Testgegevens staan nu in `src/data/testdata.ts` en worden in e2e als back-up teruggezet. Lege soorten
   staan niet meer op het hoofdscherm en bij *Soort kiezen* ingeklapt onder *Andere soorten*; (sinds D25 zijn de ongebruikte soorten helemaal weg). E2e draait volledig op 360 px, op 412 px en desktop alleen lay-out en kaart.
+- **D33 — 2026-10-29 — Boeken.** Eenvoudige soort `book` (schrijver, status), zelfde scherm als albums. Voorstelbestanden met
+  een soort die de app nog niet kent, blijven voortaan in de repo staan (zoals bij een onbekend veld) tot de app is bijgewerkt.
 - **D32 — 2026-10-28 — Installeerbare PWA en geen oude versies meer.** Vite zet bij elke build een unieke id in `dist/sw.js`
   (`vite.config.ts`, plugin `swBuildId`); elke deployment is dus een nieuwe service worker met een eigen cache, oude caches
   worden bij activeren gewist. Registratie met `updateViaCache: 'none'` en een update-check bij terugkomen in de app. Pagina,

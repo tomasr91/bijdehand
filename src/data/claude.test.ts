@@ -37,7 +37,7 @@ describe('voorstellen controleren', () => {
       { actie: 'indelen', itemId: note.id, type: 'restaurant', velden: { city: 'Leiden' } },
       { actie: 'indelen', itemId: done.id, type: 'restaurant', velden: {} },
       { actie: 'indelen', itemId: 'bestaat-niet', type: 'album', velden: {} },
-      { actie: 'nieuw', type: 'book', titel: 'Verwijderde soort' },
+      { actie: 'nieuw', type: 'game', titel: 'Verwijderde soort' },
       { actie: 'nieuw', type: 'raket', titel: 'x' },
       { actie: 'laten', itemId: note.id, reden: 'Welke stad?' },
     ]), items);

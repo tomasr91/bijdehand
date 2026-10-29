@@ -159,7 +159,7 @@ function GenericCollection({ type }: { type: TypeKey }) {
   const [openLabel, doneLabel] = def.filterLabels ?? ['Nog open', 'Klaar'];
   const shown = all.filter((i) => done === 'alle' || (done === 'klaar') === isDone(i));
   const groups = groupItems(type, sortItems(shown));
-  const art = type === 'album' ? 'album' : 'home';
+  const art = type === 'album' ? 'album' : type === 'book' ? 'book' : 'home';
 
   return (
     <div className="screen">
